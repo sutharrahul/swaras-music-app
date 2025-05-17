@@ -8,7 +8,7 @@ export async function sendVerificationEmail(
 ) {
   try {
     await resend.emails.send({
-      from: "Acme <onboarding@resend.dev>",
+      from: "Swaras Music <onboarding@resend.dev>",
       to: email,
       subject: "Swaras Music Verification Code",
       react: VerificationEmail({ username, otp: verifyCode }),
@@ -19,3 +19,5 @@ export async function sendVerificationEmail(
     return { success: false, message: "Failed to send verification email." };
   }
 }
+
+                                                                                                               

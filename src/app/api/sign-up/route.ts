@@ -34,16 +34,7 @@ export async function POST(request: Request) {
         exisitingUserbyEmail.verifyCode = verifyCode;
         exisitingUserbyEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
 
-        const userExistbyEmail = await exisitingUserbyEmail.save();
-        return ApiResponce.success(
-          "User already exist with email but not verified new verification code send on email",
-          {
-            email: userExistbyEmail.email,
-            username: userExistbyEmail.username,
-            id: userExistbyEmail._id,
-          },
-          208
-        );
+        await exisitingUserbyEmail.save();
       }
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -58,31 +49,26 @@ export async function POST(request: Request) {
         verifyCodeExpiry: verifyCodeExpiryDate,
         isVerified: false,
       });
-
-      const emailResponse = await sendVerificationEmail(
-        email,
-        username,
-        verifyCode
-      );
-
-      if (!emailResponse.success) {
-        return ApiResponce.error(emailResponse.message, 401);
-      }
-
-      const savedUser = await newUserSignUp.save();
-
-      console.log("Saved User", savedUser);
-
-      return ApiResponce.success(
-        "User registered successfully please verify your email",
-        {
-          email: savedUser.email,
-          username: savedUser.username,
-          id: savedUser._id,
-        },
-        201
-      );
+      await newUserSignUp.save();
     }
+    const emailResponse = await sendVerificationEmail(
+      email,
+      username,
+      verifyCode
+    );
+
+    if (!emailResponse.success) {
+      return ApiResponce.error(emailResponse.message, 401);
+    }
+
+    return ApiResponce.success(
+      "User registered  successfully verification code send on email",
+      {
+        username,
+        email,
+      },
+      201
+    );
   } catch (error) {
     console.log("Error while sign-up user", error);
     return ApiResponce.error("Error while sign-up user", 500);
