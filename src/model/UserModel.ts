@@ -28,11 +28,11 @@ const userSchema: Schema<User> = new Schema({
   },
   verifyCode: {
     type: String,
-    require: [true, "Verify code is required"],
+    required: [true, "Verify code is required"],
   },
   verifyCodeExpiry: {
     type: Date,
-    require: [true, "Verify code expiry is required"],
+    required: [true, "Verify code expiry is required"],
   },
   isVerified: {
     type: Boolean,

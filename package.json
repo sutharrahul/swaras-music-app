@@ -11,9 +11,11 @@
   "dependencies": {
     "@react-email/components": "^0.0.41",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.6.1",
     "mongoose": "^8.14.2",
     "next": "15.3.1",
     "next-auth": "^4.24.11",
+    "next-cloudinary": "^6.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-email": "^4.0.13",
