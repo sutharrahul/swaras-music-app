@@ -9,36 +9,41 @@ export interface User extends Document {
   isVerified: boolean;
 }
 
-const userSchema: Schema<User> = new Schema({
-  username: {
-    type: String,
-    required: [true, "User name is required"],
-    unique: true,
-    trim: true,
+const userSchema: Schema<User> = new Schema(
+  {
+    username: {
+      type: String,
+      required: [true, "User name is required"],
+      unique: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      match: [/.+\@.+\..+/, "please use avalid email address"],
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required "],
+    },
+    verifyCode: {
+      type: String,
+      required: [true, "Verify code is required"],
+    },
+    verifyCodeExpiry: {
+      type: Date,
+      required: [true, "Verify code expiry is required"],
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
-  email: {
-    type: String,
-    required: [true, "Email is required"],
-    unique: true,
-    match: [/.+\@.+\..+/, "please use avalid email address"],
-  },
-  password: {
-    type: String,
-    required: [true, "Password is required "],
-  },
-  verifyCode: {
-    type: String,
-    required: [true, "Verify code is required"],
-  },
-  verifyCodeExpiry: {
-    type: Date,
-    required: [true, "Verify code expiry is required"],
-  },
-  isVerified: {
-    type: Boolean,
-    default: false,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 const UserModel =
   (mongoose.models.User as mongoose.Model<User>) ||
