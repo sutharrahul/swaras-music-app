@@ -12,6 +12,7 @@
     "@react-email/components": "^0.0.41",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.1",
+    "lucide-react": "^0.511.0",
     "mongoose": "^8.14.2",
     "next": "15.3.1",
     "next-auth": "^4.24.11",

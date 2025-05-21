@@ -36,9 +36,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full overflow-hidden">
       <AuthProvider>
-        <body className={`${poppins.className}  antialiased`}>{children}</body>
+        <body
+          className={`${poppins.className}  antialiased bg-[#0E0E0E] h-full overflow-hidden`}
+        >
+          {children}
+        </body>
       </AuthProvider>
     </html>
   );
