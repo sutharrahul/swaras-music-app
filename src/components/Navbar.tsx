@@ -15,18 +15,18 @@ export default function Navbar() {
     <div>
       <button
         onClick={() => setIsMenuOpen((prev) => !prev)}
-        className="absolute top-4 left-4 z-50 sm:hidden text-white"
+        className="absolute top-4 left-4 z-50 md:hidden text-white"
       >
         {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
       </button>
       {/* Sidebar */}
       <div
         className={`
-          fixed sm:static top-0 left-0 h-full z-40
-           px-6 py-10 w-[58%] sm:w-64
+          fixed md:static top-0 left-0 h-full z-40
+           px-6 py-10 w-[58%] md:w-64
           transform transition-transform duration-300
           ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
-          sm:translate-x-0 sm:flex
+          md:translate-x-0 md:flex
           flex-col justify-between text-white
         `}
       >
@@ -36,8 +36,8 @@ export default function Navbar() {
             {/* Logo & Close Button */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <LogoIcon className="w-8 sm:w-10" />
-                <h1 className="text-lg sm:text-2xl font-bold">
+                <LogoIcon className="w-8 md:w-10" />
+                <h1 className="text-lg md:text-2xl font-bold">
                   <span className="text-[#FF5656]">Swaras</span>Music
                 </h1>
               </div>
@@ -45,14 +45,14 @@ export default function Navbar() {
 
             {/* User Info */}
             <div className="flex flex-col gap-1">
-              <h2 className="text-sm sm:text-xl font-semibold text-[#FF5656]">
+              <h2 className="text-sm md:text-xl font-semibold text-[#FF5656]">
                 rahulsuthar
               </h2>
-              <span className="text-xs sm:text-sm">rahulsuthar@gmail.com</span>
+              <span className="text-xs md:text-sm">rahulsuthar@gmail.com</span>
             </div>
 
             {/* Navigation Links */}
-            <nav className="flex flex-col gap-6 text-sm sm:text-base font-medium">
+            <nav className="flex flex-col gap-6 text-sm md:text-base font-medium">
               <Link href="/" className="flex items-center gap-3">
                 <HomeIcon />
                 <span>Home</span>
@@ -67,7 +67,7 @@ export default function Navbar() {
           {/* Logout at Bottom */}
           <div className="flex items-center gap-3 mt-10">
             <SignInOutIcon />
-            <span className="text-sm sm:text-base">Log Out</span>
+            <span className="text-sm md:text-base">Log Out</span>
           </div>
         </div>
       </div>
