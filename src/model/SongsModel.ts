@@ -4,22 +4,22 @@ export interface Song extends Document {
   songFile: string;
   songName: string;
   singerName: string[];
+  composersName: string[];
+  albumName?: string;
+  coverImage?: string; // Now storing image URL from Cloudinary
 }
 
-const songSchema: Schema<Song> = new Schema({
-  songFile: {
-    type: String,
-    required: true,
+const songSchema: Schema<Song> = new Schema(
+  {
+    songFile: { type: String, required: true },
+    songName: { type: String, required: true },
+    singerName: { type: [String], required: true },
+    composersName: { type: [String], required: true },
+    albumName: { type: String },
+    coverImage: { type: String },
   },
-  songName: {
-    type: String,
-    required: true,
-  },
-  singerName: {
-    type: [String],
-    required: true,
-  },
-});
+  { timestamps: true }
+);
 
 const SongModel =
   (mongoose.models.Song as mongoose.Model<Song>) ||
