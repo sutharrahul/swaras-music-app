@@ -1,5 +1,7 @@
-import { truncateByLetters } from "@/app/utils/truncateByLetters";
+"use client";
+
 import React from "react";
+import { truncateByLetters } from "@/app/utils/truncateByLetters";
 
 export default function PlayList() {
   return (
@@ -25,4 +27,11 @@ export default function PlayList() {
       </ul>
     </div>
   );
+}
+
+// Optional: format duration (seconds to MM:SS)
+function formatTime(duration: number): string {
+  const minutes = Math.floor(duration / 60);
+  const seconds = Math.floor(duration % 60);
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
