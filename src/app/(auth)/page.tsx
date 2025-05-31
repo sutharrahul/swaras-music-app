@@ -7,6 +7,9 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { getAllSongsApi } from "@/lib/axiosApiRequest";
 
 export default function Home() {
+  useEffect(() => {
+    getAllSongsApi();
+  }, []);
   return (
     <div className="flex flex-col justify-between items-center h-full py-4">
       <div>
