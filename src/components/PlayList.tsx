@@ -6,6 +6,7 @@ import { truncateByLetters } from "@/app/utils/truncateByLetters";
 type SongDataType = {
   _id: string;
   songFile: string;
+  duration: number;
   songName: string;
   singerName: string[];
   composersName: string[];
@@ -18,30 +19,6 @@ type PlayListProps = {
 };
 
 export default function PlayList({ songData }: PlayListProps) {
-  const [durations, setDurations] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    async function loadDurations() {
-      const durationMap: Record<string, string> = {};
-
-      await Promise.all(
-        songData.map(async (song) => {
-          try {
-            const duration = await getAudioDuration(song.songFile);
-            durationMap[song._id] = duration;
-          } catch {
-            durationMap[song._id] = "00:00";
-          }
-        })
-      );
-
-      setDurations(durationMap);
-    }
-
-    if (songData?.length) {
-      loadDurations();
-    }
-  }, [songData]);
   return (
     <div>
       <ul className="space-y-1">
@@ -67,7 +44,7 @@ export default function PlayList({ songData }: PlayListProps) {
 
             <span className="text-gray-400 text-sm ml-4">
               {" "}
-              {durations[songData._id] || "Loading..."}
+              {formatTime(Math.floor(songData.duration))}
             </span>
           </li>
         ))}
@@ -83,17 +60,17 @@ function formatTime(duration: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function getAudioDuration(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const audio = new Audio(url);
+// function getAudioDuration(url: string): Promise<string> {
+//   return new Promise((resolve, reject) => {
+//     const audio = new Audio(url);
 
-    audio.addEventListener("loadedmetadata", () => {
-      const duration = audio.duration;
-      resolve(formatTime(duration));
-    });
+//     audio.addEventListener("loadedmetadata", () => {
+//       const duration = audio.duration;
+//       resolve(formatTime(duration));
+//     });
 
-    audio.addEventListener("error", (e) => {
-      reject("Failed to load audio");
-    });
-  });
-}
+//     audio.addEventListener("error", (e) => {
+//       reject("Failed to load audio");
+//     });
+//   });
+// }

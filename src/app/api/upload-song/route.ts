@@ -20,19 +20,22 @@ export async function POST(request: Request) {
     // Extract metadata from file
     const metadata = await parseBuffer(buffer, "audio/mpeg");
     const { title, artist, album, picture, composer } = metadata.common;
-    console.log("all meta data of song", metadata.common);
-    console.log("Composer", composer);
+    // console.log("all meta data of song", metadata.common);
+    // console.log("Composer", composer);
+
     // Upload song file to Cloudinary
-    const uploadSong = await new Promise<{ secure_url: string }>(
-      (resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream({ resource_type: "video" }, (err, result) => {
-            if (err || !result) reject(err);
-            else resolve(result);
-          })
-          .end(buffer);
-      }
-    );
+
+    const uploadSong = await new Promise<{
+      secure_url: string;
+      duration?: number;
+    }>((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream({ resource_type: "video" }, (err, result) => {
+          if (err || !result) reject(err);
+          else resolve(result);
+        })
+        .end(buffer);
+    });
 
     // Upload album art to Cloudinary (if present)
     let coverImageUrl = "";
@@ -61,9 +64,11 @@ export async function POST(request: Request) {
       coverImageUrl = uploadImage.secure_url;
     }
 
-    // Save all extracted and uploaded data to DB
+    // console.log("song duration ", uploadSong.duration);
+
     const song = new SongModel({
       songFile: uploadSong.secure_url,
+      duration: uploadSong?.duration,
       songName: title || "Unknown Title",
       singerName: artist ? [artist] : ["Unknown Artist"],
       composersName: composer || "Unknown composer",

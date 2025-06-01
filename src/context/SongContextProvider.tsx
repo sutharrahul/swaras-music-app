@@ -29,7 +29,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       try {
         const { data } = await axios.get("/api/get-songs");
-        console.log(data);
+        console.log("api data", data.data);
 
         setSongData(data.data);
         setLoading(false);
