@@ -16,12 +16,14 @@ interface SongeType extends Song {
 type SongDataType = {
   songData: SongeType[];
   loading: boolean;
+  erroMessage: string | undefined;
 };
 
 export const SongContext = createContext<SongDataType | undefined>(undefined);
 
 export function SongProvider({ children }: { children: ReactNode }) {
   const [songData, setSongData] = useState<SongeType[]>([]);
+  const [erroMessage, setErrorMessage] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -29,9 +31,16 @@ export function SongProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       try {
         const { data } = await axios.get("/api/get-songs");
-        console.log("api data", data.data);
+        console.log("api data", data);
 
-        setSongData(data.data);
+        if (data.data.length === 0 || !data.data) {
+          console.log("No songs found in response", data);
+          setErrorMessage(data.message);
+          setSongData([]);
+        } else {
+          setSongData(data.data);
+          setErrorMessage(undefined);
+        }
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch songs", err);
@@ -42,8 +51,10 @@ export function SongProvider({ children }: { children: ReactNode }) {
     getAllSongs();
   }, []);
 
+  console.log("error message", erroMessage);
+
   return (
-    <SongContext.Provider value={{ loading, songData }}>
+    <SongContext.Provider value={{ loading, songData, erroMessage }}>
       {children}
     </SongContext.Provider>
   );

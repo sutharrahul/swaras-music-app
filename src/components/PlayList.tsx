@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { truncateByLetters } from "@/app/utils/truncateByLetters";
 
 type SongDataType = {
@@ -17,6 +17,12 @@ type SongDataType = {
 type PlayListProps = {
   songData: SongDataType[];
 };
+
+function formatTime(duration: number): string {
+  const minutes = Math.floor(duration / 60);
+  const seconds = Math.floor(duration % 60);
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
 
 export default function PlayList({ songData }: PlayListProps) {
   return (
@@ -52,25 +58,3 @@ export default function PlayList({ songData }: PlayListProps) {
     </div>
   );
 }
-
-// Optional: format duration (seconds to MM:SS)
-function formatTime(duration: number): string {
-  const minutes = Math.floor(duration / 60);
-  const seconds = Math.floor(duration % 60);
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
-// function getAudioDuration(url: string): Promise<string> {
-//   return new Promise((resolve, reject) => {
-//     const audio = new Audio(url);
-
-//     audio.addEventListener("loadedmetadata", () => {
-//       const duration = audio.duration;
-//       resolve(formatTime(duration));
-//     });
-
-//     audio.addEventListener("error", (e) => {
-//       reject("Failed to load audio");
-//     });
-//   });
-// }

@@ -8,7 +8,9 @@ export async function GET() {
     const allSongs = await SongModel.find({});
 
     if (allSongs.length === 0) {
-      return ApiResponce.error("Songs are not available", 404);
+      if (allSongs.length === 0) {
+        return ApiResponce.success("No songs available", [], 200);
+      }
     }
 
     return ApiResponce.success("All songs fetch successfully", allSongs, 200);
