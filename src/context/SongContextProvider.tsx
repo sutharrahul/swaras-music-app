@@ -14,14 +14,14 @@ interface SongeType extends Song {
 }
 
 type SongDataType = {
-  songData: SongeType | undefined;
+  songData: SongeType[];
   loading: boolean;
 };
 
 export const SongContext = createContext<SongDataType | undefined>(undefined);
 
 export function SongProvider({ children }: { children: ReactNode }) {
-  const [songData, setSongData] = useState<SongeType | undefined>(undefined);
+  const [songData, setSongData] = useState<SongeType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
         const { data } = await axios.get("/api/get-songs");
         console.log(data);
 
-        setSongData(data);
+        setSongData(data.data);
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch songs", err);

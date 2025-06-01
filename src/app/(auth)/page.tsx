@@ -4,12 +4,11 @@ import React, { useEffect, useState } from "react";
 import MusicPlayer from "@/components/MusicPlayer";
 import PlayList from "@/components/PlayList";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { getAllSongsApi } from "@/lib/axiosApiRequest";
+import { useSong } from "@/context/SongContextProvider";
 
 export default function Home() {
-  useEffect(() => {
-    getAllSongsApi();
-  }, []);
+  const { loading, songData } = useSong();
+
   return (
     <div className="flex flex-col justify-between items-center h-full py-4">
       <div>
@@ -18,7 +17,7 @@ export default function Home() {
           <LoadingSkeleton />
           <LoadingSkeleton />
         </>
-        <PlayList />
+        <PlayList songData={songData} />
       </div>
       <MusicPlayer />
     </div>

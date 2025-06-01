@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins, Playpen_Sans } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/context/AuthProviders";
+import { SongProvider } from "@/context/SongContextProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,13 +38,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full overflow-hidden">
-      <AuthProvider>
-        <body
-          className={`${poppins.className}  antialiased bg-[#0E0E0E] h-full overflow-hidden`}
-        >
-          {children}
-        </body>
-      </AuthProvider>
+      <SongProvider>
+        <AuthProvider>
+          <body
+            className={`${poppins.className}  antialiased bg-[#0E0E0E] h-full overflow-hidden`}
+          >
+            {children}
+          </body>
+        </AuthProvider>
+      </SongProvider>
     </html>
   );
 }
