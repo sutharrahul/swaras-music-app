@@ -26,11 +26,21 @@ export default function MusicPlayer() {
         </div>
         {/* Controls */}
         <div className="flex justify-center gap-14 items-center w-full">
-          <PreviousButton className="h-5" />
+          <PreviousButton
+            className="h-5"
+            previoesSong={(e) => {
+              console.log("click");
+            }}
+          />
           {/* <Play className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md" /> */}
           <Pause className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md" />
           {/* <PlayPauseButton className="h-8" /> */}
-          <NextButton className="h-5" />
+          <NextButton
+            className="h-5"
+            nextSong={(e) => {
+              console.log("click click");
+            }}
+          />
         </div>
       </div>
     </div>

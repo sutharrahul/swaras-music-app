@@ -41,7 +41,7 @@ export default function MusicPlayer() {
   if (!currentSong) return null;
 
   return (
-    <div className="fixed bottom-5 w-full bg-black p-4">
+    <div className="fixed bottom-5 w-full ">
       <audio ref={audioRef} controls className="w-full">
         <source src={currentSong.songFile} type="audio/mpeg" />
         Your browser does not support the audio element.
