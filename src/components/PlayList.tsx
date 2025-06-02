@@ -2,6 +2,7 @@
 
 import React from "react";
 import { truncateByLetters } from "@/app/utils/truncateByLetters";
+import { useSong } from "@/context/SongContextProvider";
 
 type SongDataType = {
   _id: string;
@@ -25,11 +26,17 @@ function formatTime(duration: number): string {
 }
 
 export default function PlayList({ songData }: PlayListProps) {
+  const { playSong } = useSong();
+
   return (
     <div>
       <ul className="space-y-1">
         {songData.map((songData) => (
-          <li className="flex items-center gap-5 py-3 px-2" key={songData?._id}>
+          <li
+            className="flex items-center gap-5 py-3 px-2 cursor-pointer"
+            key={songData?._id}
+            onClick={() => playSong(songData?._id)}
+          >
             <img
               src={songData?.coverImage}
               className="w-12 h-12 object-cover rounded"

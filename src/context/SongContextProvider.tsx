@@ -17,6 +17,8 @@ type SongDataType = {
   songData: SongeType[];
   loading: boolean;
   erroMessage: string | undefined;
+  currentSong: SongeType | null;
+  playSong: (songId: string) => void;
 };
 
 export const SongContext = createContext<SongDataType | undefined>(undefined);
@@ -25,6 +27,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
   const [songData, setSongData] = useState<SongeType[]>([]);
   const [erroMessage, setErrorMessage] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [currentSong, setCurrentSong] = useState<SongeType | null>(null);
 
   useEffect(() => {
     async function getAllSongs() {
@@ -51,10 +54,19 @@ export function SongProvider({ children }: { children: ReactNode }) {
     getAllSongs();
   }, []);
 
+  const playSong = (songId: string) => {
+    const selectSong = songData.find((song) => song._id === songId);
+    if (selectSong) {
+      setCurrentSong(selectSong);
+    }
+  };
+
   console.log("error message", erroMessage);
 
   return (
-    <SongContext.Provider value={{ loading, songData, erroMessage }}>
+    <SongContext.Provider
+      value={{ loading, songData, erroMessage, currentSong, playSong }}
+    >
       {children}
     </SongContext.Provider>
   );
