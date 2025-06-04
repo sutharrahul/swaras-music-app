@@ -27,7 +27,7 @@ export default function Home() {
           <PlayList songData={songData} />
         )}
       </div>
-      <MusicPlayerTow />
+      {/* <MusicPlayerTow /> */}
       <MusicPlayer />
     </div>
   );

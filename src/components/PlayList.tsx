@@ -3,6 +3,7 @@
 import React from "react";
 import { truncateByLetters } from "@/app/utils/truncateByLetters";
 import { useSong } from "@/context/SongContextProvider";
+import { formatTime } from "@/app/utils/formatTime";
 
 type SongDataType = {
   _id: string;
@@ -18,12 +19,6 @@ type SongDataType = {
 type PlayListProps = {
   songData: SongDataType[];
 };
-
-function formatTime(duration: number): string {
-  const minutes = Math.floor(duration / 60);
-  const seconds = Math.floor(duration % 60);
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
 
 export default function PlayList({ songData }: PlayListProps) {
   const { playSong } = useSong();
