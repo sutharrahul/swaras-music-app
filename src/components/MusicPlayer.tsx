@@ -44,7 +44,6 @@ export default function MusicPlayer() {
       setIsPlaying(true);
 
       const currentTimeUpdate = () => {
-        console.log("current time metadata", audio.currentTime);
         setCurrectTime(audio.currentTime);
       };
 
@@ -55,6 +54,67 @@ export default function MusicPlayer() {
       };
     }
   }, [currentSong]);
+
+  const nextSong = (
+    e:
+      | React.KeyboardEvent<HTMLButtonElement>
+      | React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault();
+
+    // if (!currentSong) return;
+
+    const currentPlayingSong = songData.findIndex(
+      (song) => song?._id === currentSong?._id
+    );
+    const nextSong = songData[currentPlayingSong + 1];
+
+    if (!nextSong) return;
+
+    if ("key" in e) {
+      if (e.key === "ArrowRight") {
+        console.log("keyb press");
+        playSong(nextSong?._id);
+      }
+    } else {
+      playSong(nextSong?._id);
+    }
+  };
+
+  const previousSong = (
+    e:
+      | React.KeyboardEvent<HTMLButtonElement>
+      | React.MouseEvent<HTMLButtonElement>
+  ) => {
+    if (!currentSong) return;
+    const currentPlayingSongIndex = songData.findIndex(
+      (song) => song?._id === currentSong?._id
+    );
+
+    console.log("previous song index", songData[currentPlayingSongIndex - 1]);
+    if (currentPlayingSongIndex === 0) return;
+
+    const playPreviousSong = songData[currentPlayingSongIndex - 1];
+
+    if (!playPreviousSong) return;
+    if ("key" in e) {
+      if (e.key === "ArrowLeft") {
+        playSong(playPreviousSong?._id);
+      }
+    } else {
+      playSong(playPreviousSong?._id);
+    }
+  };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio?.addEventListener("ended", nextSong);
+    return () => {
+      audio?.removeEventListener("ended", nextSong);
+    };
+  }, [currentSong, songData, playSong]);
 
   return (
     <div className="flex flex-col items-center md:flex-row bg-[#141414]/90 gap-10 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center w-fit">
@@ -92,9 +152,8 @@ export default function MusicPlayer() {
         <div className="flex justify-center gap-14 items-center w-full">
           <PreviousButton
             className="h-5"
-            previoesSong={(e) => {
-              console.log("click");
-            }}
+            onClick={previousSong}
+            onKeyDown={previousSong}
           />
           {isPlaying ? (
             <Pause
@@ -107,12 +166,7 @@ export default function MusicPlayer() {
               onClick={toggle}
             />
           )}
-          <NextButton
-            className="h-5"
-            nextSong={(e) => {
-              console.log("click click");
-            }}
-          />
+          <NextButton className="h-5" onClick={nextSong} onKeyDown={nextSong} />
         </div>
       </div>
     </div>

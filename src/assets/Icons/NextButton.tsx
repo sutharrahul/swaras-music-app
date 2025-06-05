@@ -2,16 +2,12 @@ import React from "react";
 
 type Prop = {
   className?: string;
-  nextSong: (
-    e:
-      | React.MouseEvent<HTMLButtonElement>
-      | React.KeyboardEvent<HTMLButtonElement>
-  ) => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
 };
-
-export default function NextButton({ nextSong, className }: Prop) {
+export default function NextButton({ onClick, onKeyDown, className }: Prop) {
   return (
-    <button onClick={nextSong}>
+    <button onClick={onClick} onKeyDown={onKeyDown} tabIndex={0}>
       <svg
         className={className}
         // width="42"
