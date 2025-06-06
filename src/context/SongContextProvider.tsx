@@ -34,10 +34,8 @@ export function SongProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       try {
         const { data } = await axios.get("/api/get-songs");
-        console.log("api data", data);
 
         if (data.data.length === 0 || !data.data) {
-          console.log("No songs found in response", data);
           setErrorMessage(data.message);
           setSongData([]);
         } else {
@@ -60,8 +58,6 @@ export function SongProvider({ children }: { children: ReactNode }) {
       setCurrentSong(selectSong);
     }
   };
-
-  console.log("error message", erroMessage);
 
   return (
     <SongContext.Provider

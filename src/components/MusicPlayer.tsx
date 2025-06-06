@@ -2,16 +2,20 @@
 import React, { ChangeEvent, use, useEffect, useRef, useState } from "react";
 import { useSong } from "@/context/SongContextProvider";
 import NextButton from "@/assets/Icons/NextButton";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Volume, Volume1, Volume2, VolumeX } from "lucide-react";
 import PreviousButton from "@/assets/Icons/PreviousButton";
 import { formatTime } from "@/app/utils/formatTime";
 
 export default function MusicPlayer() {
   const { currentSong, songData, playSong } = useSong();
   const [currectTime, setCurrectTime] = useState<number>();
+  const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState<boolean>();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  console.log("volume", volume);
+
+  // play paush button
   const toggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -25,6 +29,7 @@ export default function MusicPlayer() {
     setIsPlaying(!isPlaying);
   };
 
+  // handel progressbar
   const handleProgressBar = (e: ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
 
@@ -35,6 +40,25 @@ export default function MusicPlayer() {
     setCurrectTime(time);
   };
 
+  // Volume contol
+  const handleVolumeBar = (e: ChangeEvent<HTMLInputElement>) => {
+    const volume = Number(e.target.value);
+
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+    setVolume(volume);
+  };
+
+  const mute = () => {
+    if (volume == 0) {
+      setVolume(1);
+    } else {
+      setVolume(0);
+    }
+  };
+
+  // play song when song is selected
   useEffect(() => {
     if (currentSong && audioRef.current) {
       const audio = audioRef.current;
@@ -55,31 +79,41 @@ export default function MusicPlayer() {
     }
   }, [currentSong]);
 
-  const nextSong = (
-    e:
-      | React.KeyboardEvent<HTMLButtonElement>
-      | React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault();
-
-    // if (!currentSong) return;
-
+  // play next song
+  const nextSong = () => {
+    if (!currentSong) return;
     const currentPlayingSong = songData.findIndex(
       (song) => song?._id === currentSong?._id
     );
     const nextSong = songData[currentPlayingSong + 1];
 
-    if (!nextSong) return;
-
-    if ("key" in e) {
-      if (e.key === "ArrowRight") {
-        console.log("keyb press");
-        playSong(nextSong?._id);
-      }
-    } else {
+    if (nextSong) {
       playSong(nextSong?._id);
+      setIsPlaying(true);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      setIsPlaying(false);
     }
   };
+
+  // const handelNextSong = (
+  //   e:
+  //     | React.KeyboardEvent<HTMLButtonElement>
+  //     | React.MouseEvent<HTMLButtonElement>
+  // ) => {
+  //   e.preventDefault();
+
+  //   if ("key" in e && e.key === "ArrowRight") {
+  //     nextSong();
+  //   } else {
+  //     nextSong();
+  //   }
+  // };
+
+  // play previous song
 
   const previousSong = (
     e:
@@ -106,6 +140,7 @@ export default function MusicPlayer() {
     }
   };
 
+  // auto play next song
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -140,8 +175,9 @@ export default function MusicPlayer() {
           <span>{formatTime(currectTime)}</span>
           <input
             type="range"
-            value={currectTime}
             max={currentSong?.duration}
+            step={"5"}
+            value={currectTime}
             onChange={handleProgressBar}
             className="flex-1"
           />
@@ -166,7 +202,31 @@ export default function MusicPlayer() {
               onClick={toggle}
             />
           )}
-          <NextButton className="h-5" onClick={nextSong} onKeyDown={nextSong} />
+          <button onClick={nextSong}>
+            <NextButton className="h-5" />
+          </button>
+        </div>
+        <div className="flex gap-3">
+          <div onClick={mute}>
+            {volume >= 0.66 ? (
+              <Volume2 />
+            ) : volume >= 0.33 ? (
+              <Volume1 />
+            ) : volume >= 0.01 ? (
+              <Volume />
+            ) : (
+              <VolumeX />
+            )}
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={volume}
+            onChange={handleVolumeBar}
+            className="flex-1"
+          />
         </div>
       </div>
     </div>
