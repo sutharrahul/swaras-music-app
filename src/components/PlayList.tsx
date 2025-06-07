@@ -43,7 +43,7 @@ export default function PlayList({ songData }: PlayListProps) {
                 {truncateByLetters(songData?.songName, 25)}
               </p>
               <p className="text-gray-400 text-sm truncate">
-                {truncateByLetters(songData?.composersName.join(" "), 25)}
+                {truncateByLetters(songData?.singerName.join(" ,"), 35)}
               </p>
               <p className="text-gray-400 text-sm truncate">
                 {songData?.albumName}
