@@ -38,14 +38,17 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <LogoIcon className="w-8 md:w-10" />
                 <h1 className="text-lg md:text-2xl font-bold">
-                  <span className="text-[#FF5656]">Swaras</span>Music
+                  <span className="bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
+                    Swaras
+                  </span>
+                  Music
                 </h1>
               </div>
             </div>
 
             {/* User Info */}
             <div className="flex flex-col gap-1">
-              <h2 className="text-sm md:text-xl font-semibold text-[#FF5656]">
+              <h2 className="text-sm md:text-xl font-semibold bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
                 rahulsuthar
               </h2>
               <span className="text-xs md:text-sm">rahulsuthar@gmail.com</span>

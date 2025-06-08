@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -26,8 +25,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-
-
 @keyframes marquee {
   0% {
     transform: translateX(0%);
@@ -42,4 +39,13 @@ body {
   width: max-content;
   animation: marquee 30s linear infinite;
   white-space: nowrap;
+}
+
+input:-webkit-autofill {
+  background-color: #262626 !important;
+  -webkit-box-shadow: 0 0 0 1000px #262626 inset !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white;
+  border-radius: 0.5rem !important; /* Match your Tailwind rounded-lg */
+  transition: background-color 5000s ease-in-out 0s !important;
 }

@@ -23,6 +23,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-email": "^4.0.13",
+    "react-hot-toast": "^2.5.2",
     "resend": "^4.5.1"
   },
   "devDependencies": {
