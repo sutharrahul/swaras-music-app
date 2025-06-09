@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Poppins, Playpen_Sans } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/context/AuthProviders";
 import { SongProvider } from "@/context/SongContextProvider";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +44,16 @@ export default function RootLayout({
           <body
             className={`${poppins.className}  antialiased bg-[#0E0E0E] h-full overflow-hidden`}
           >
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: "#1f1f1f",
+                  color: "#fff",
+                },
+              }}
+              reverseOrder={false}
+            />
             {children}
           </body>
         </AuthProvider>

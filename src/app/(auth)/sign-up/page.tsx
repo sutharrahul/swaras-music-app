@@ -1,10 +1,44 @@
 "use client";
+import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
+import { LoaderCircle } from "lucide-react";
 
 export default function SingUp() {
   const [seePassword, setSeePassword] = useState("password");
+  const [username, setUsername] = useState<string>();
+  const [email, setEmail] = useState<string>();
+  const [password, setPassword] = useState<string>();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const userData = {
+    username,
+    email,
+    password,
+  };
+
+  const handelSingUp = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post("/api/sign-up", userData);
+
+      if (!response.data.success) {
+        toast.error(response?.data?.message);
+        return;
+      }
+      toast.success(response?.data?.message);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || "Server error");
+      } else {
+        toast.error("Something went wrong");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const passwordVisible = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -23,7 +57,7 @@ export default function SingUp() {
             <h1 className="text-xl text-center font-bold leading-tight tracking-tight md:text-2xl text-white">
               Create an account
             </h1>
-            <form className="space-y-4 md:space-y-6" action="#">
+            <div className="space-y-4 md:space-y-6">
               <div>
                 <label
                   htmlFor="username"
@@ -34,6 +68,8 @@ export default function SingUp() {
                 <input
                   type="text"
                   id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   placeholder="username"
                 />
@@ -48,6 +84,8 @@ export default function SingUp() {
                 <input
                   type="email"
                   id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   placeholder="youremail@email.com"
                 />
@@ -63,6 +101,8 @@ export default function SingUp() {
                   <input
                     type={seePassword}
                     id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   />
@@ -73,10 +113,18 @@ export default function SingUp() {
               </div>
 
               <button
-                type="submit"
-                className="w-full text-white bg-gradient-to-r from-[#800000] to-[#B40000]  focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center "
+                disabled={loading}
+                onClick={handelSingUp}
+                className="w-full  text-white bg-gradient-to-r from-[#800000] to-[#B40000]  focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center "
               >
-                Create an account
+                {loading ? (
+                  <span className="flex items-center justify-center gap-4">
+                    <LoaderCircle className="animate-spin" />
+                    Creating account...
+                  </span>
+                ) : (
+                  "Create an account"
+                )}
               </button>
               <p className="text-sm font-light text-white">
                 Already have an account?{" "}
@@ -87,7 +135,7 @@ export default function SingUp() {
                   Login here
                 </Link>
               </p>
-            </form>
+            </div>
           </div>
         </div>
       </div>

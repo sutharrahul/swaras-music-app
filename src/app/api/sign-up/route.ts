@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     });
 
     if (existingUserdByUserName) {
-      return ApiResponce.error("User already exist with username", 401);
+      return ApiResponce.error("User already exist ", 409);
     }
 
     const exisitingUserbyEmail = await UserModel.findOne({ email });
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       if (exisitingUserbyEmail.isVerified) {
         return ApiResponce.error(
           "User already exist with email and Verified",
-          401
+          409
         );
       } else {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -58,11 +58,11 @@ export async function POST(request: Request) {
     );
 
     if (!emailResponse.success) {
-      return ApiResponce.error(emailResponse.message, 401);
+      return ApiResponce.error(emailResponse.message, 500);
     }
 
     return ApiResponce.success(
-      "User registered  successfully verification code send on email",
+      "User registered  successfully verification code send to your email",
       {
         username,
         email,
