@@ -5,7 +5,6 @@ import MusicPlayer from "@/components/MusicPlayer";
 import PlayList from "@/components/PlayList";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import { useSong } from "@/context/SongContextProvider";
-import MusicPlayerTow from "@/components/MusicPlayerTwo";
 
 export default function Home() {
   const { loading, songData, erroMessage } = useSong();

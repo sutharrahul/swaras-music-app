@@ -7,9 +7,22 @@ import LogoIcon from "@/assets/Icons/LogoIcon";
 import PlayListIcon from "@/assets/Icons/PlayListIcon";
 import SignInOutIcon from "@/assets/Icons/SignInOutIcon";
 import { Menu, X } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-export default function Navbar() {
+export default function Navbar({ session }: any) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+  const userData = session?.user;
+
+  const handleUserSignInOut = () => {
+    if (session) {
+      signOut();
+    } else {
+      console.log("sign-in ");
+      router.push("/sign-in");
+    }
+  };
 
   return (
     <div>
@@ -49,9 +62,11 @@ export default function Navbar() {
             {/* User Info */}
             <div className="flex flex-col gap-1">
               <h2 className="text-sm md:text-xl font-semibold bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
-                rahulsuthar
+                {userData ? userData?.username : "login"}
               </h2>
-              <span className="text-xs md:text-sm">rahulsuthar@gmail.com</span>
+              <span className="text-xs md:text-sm">
+                {userData ? userData?.email : "login"}
+              </span>
             </div>
 
             {/* Navigation Links */}
@@ -68,9 +83,16 @@ export default function Navbar() {
           </div>
 
           {/* Logout at Bottom */}
-          <div className="flex items-center gap-3 mt-10">
+          <div
+            onClick={handleUserSignInOut}
+            className="flex items-center gap-3 mt-10 cursor-pointer"
+          >
             <SignInOutIcon />
-            <span className="text-sm md:text-base">Log Out</span>
+            {session ? (
+              <span className="text-sm md:text-base">Log Out</span>
+            ) : (
+              <span className="text-sm md:text-base">Log In</span>
+            )}
           </div>
         </div>
       </div>

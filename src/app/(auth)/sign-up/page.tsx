@@ -5,14 +5,15 @@ import Link from "next/link";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { LoaderCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SingUp() {
   const [seePassword, setSeePassword] = useState("password");
   const [username, setUsername] = useState<string>();
   const [email, setEmail] = useState<string>();
   const [password, setPassword] = useState<string>();
-  const [loading, setLoading] = useState<boolean>(false);
-
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const router = useRouter();
   const userData = {
     username,
     email,
@@ -20,7 +21,7 @@ export default function SingUp() {
   };
 
   const handelSingUp = async () => {
-    setLoading(true);
+    setIsCreating(true);
     try {
       const response = await axios.post("/api/sign-up", userData);
 
@@ -29,6 +30,7 @@ export default function SingUp() {
         return;
       }
       toast.success(response?.data?.message);
+      router.replace(`/verify/${username}`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data?.message || "Server error");
@@ -36,7 +38,7 @@ export default function SingUp() {
         toast.error("Something went wrong");
       }
     } finally {
-      setLoading(false);
+      setIsCreating(false);
     }
   };
 
@@ -113,11 +115,11 @@ export default function SingUp() {
               </div>
 
               <button
-                disabled={loading}
+                disabled={isCreating}
                 onClick={handelSingUp}
                 className="w-full  text-white bg-gradient-to-r from-[#800000] to-[#B40000]  focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center "
               >
-                {loading ? (
+                {isCreating ? (
                   <span className="flex items-center justify-center gap-4">
                     <LoaderCircle className="animate-spin" />
                     Creating account...
