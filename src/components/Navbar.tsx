@@ -7,13 +7,13 @@ import LogoIcon from "@/assets/Icons/LogoIcon";
 import PlayListIcon from "@/assets/Icons/PlayListIcon";
 import SignInOutIcon from "@/assets/Icons/SignInOutIcon";
 import { Menu, X } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-export default function Navbar({ session }: any) {
+export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
-  const userData = session?.user;
+  const { data: session, status } = useSession();
 
   const handleUserSignInOut = () => {
     if (session) {
@@ -61,12 +61,29 @@ export default function Navbar({ session }: any) {
 
             {/* User Info */}
             <div className="flex flex-col gap-1">
-              <h2 className="text-sm md:text-xl font-semibold bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
-                {userData ? userData?.username : "login"}
-              </h2>
-              <span className="text-xs md:text-sm">
-                {userData ? userData?.email : "login"}
-              </span>
+              {status === "loading" ? (
+                // Skeleton loading UI
+                <div className="animate-pulse space-y-2">
+                  <div className="h-3 bg-gray-600 rounded-md w-3/4" />
+                  <div className="h-2 bg-gray-700 rounded-md w-1/2" />
+                </div>
+              ) : session?.user ? (
+                <>
+                  <h2 className="text-sm md:text-xl font-semibold bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
+                    {session.user.username}
+                  </h2>
+                  <span className="text-xs md:text-sm">
+                    {session.user.email}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-sm md:text-xl font-semibold">
+                    Welcome, Guest
+                  </h2>
+                  <span className="text-xs md:text-sm">Please sign in</span>
+                </>
+              )}
             </div>
 
             {/* Navigation Links */}
