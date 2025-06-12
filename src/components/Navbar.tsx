@@ -92,7 +92,7 @@ export default function Navbar() {
                 <HomeIcon />
                 <span>Home</span>
               </Link>
-              <Link href="/" className="flex items-center gap-3">
+              <Link href="/playlist" className="flex items-center gap-3">
                 <PlayListIcon />
                 <span>Playlists</span>
               </Link>

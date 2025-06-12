@@ -7,7 +7,7 @@ export interface Song extends Document {
   singerName: string[];
   composersName: string[];
   albumName?: string;
-  coverImage?: string; // Now storing image URL from Cloudinary
+  coverImage?: string;
 }
 
 const songSchema: Schema<Song> = new Schema(
