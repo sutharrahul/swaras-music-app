@@ -14,7 +14,6 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
-
   const handleUserSignInOut = () => {
     if (session) {
       signOut();
@@ -92,7 +91,10 @@ export default function Navbar() {
                 <HomeIcon />
                 <span>Home</span>
               </Link>
-              <Link href="/playlist" className="flex items-center gap-3">
+              <Link
+                href={`/${session?.user?.username}/playlist`}
+                className="flex items-center gap-3"
+              >
                 <PlayListIcon />
                 <span>Playlists</span>
               </Link>

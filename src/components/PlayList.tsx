@@ -17,7 +17,7 @@ type SongDataType = {
 };
 
 type PlayListProps = {
-  songData: SongDataType[];
+  songData: SongDataType[] | undefined;
 };
 
 export default function PlayList({ songData }: PlayListProps) {
@@ -26,7 +26,7 @@ export default function PlayList({ songData }: PlayListProps) {
   return (
     <div>
       <ul className="space-y-1">
-        {songData.map((songData) => (
+        {songData?.map((songData) => (
           <li
             className="flex items-center gap-5 py-3 px-2 cursor-pointer"
             key={songData?._id}
