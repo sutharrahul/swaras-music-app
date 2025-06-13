@@ -7,7 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { Song } from "@/model/SongsModel";
+import { Song } from "@/model/SongModel";
 
 interface SongeType extends Song {
   _id: string;

@@ -1,6 +1,6 @@
 import { ApiResponce } from "@/app/utils/ApiResponse";
 import dbConnect from "@/lib/dbConnection";
-import PlaylistModel from "@/model/PlaylistModelSchema";
+import PlaylistModel from "@/model/PlaylistModel";
 
 export async function POST(request: Request) {
   dbConnect();

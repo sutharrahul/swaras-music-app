@@ -1,6 +1,7 @@
 import { ApiResponce } from "@/app/utils/ApiResponse";
 import dbConnect from "@/lib/dbConnection";
-import PlaylistModel from "@/model/PlaylistModelSchema";
+import PlaylistModel from "@/model/PlaylistModel";
+import "@/model/SongModel";
 
 export async function GET(request: Request) {
   dbConnect();
@@ -8,7 +9,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    const userPlaylist = await PlaylistModel.findOne({ playlistUser: userId });
+    const userPlaylist = await PlaylistModel.findOne({
+      playlistUser: userId,
+    }).populate("playListSong");
+
     if (!userPlaylist) {
       return ApiResponce.error("User playlist not found", 404);
     }

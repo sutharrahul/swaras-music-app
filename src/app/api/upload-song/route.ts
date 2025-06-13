@@ -1,7 +1,7 @@
 import { ApiResponce } from "@/app/utils/ApiResponse";
 import cloudinary from "@/lib/cloudinary";
 import dbConnect from "@/lib/dbConnection";
-import SongModel from "@/model/SongsModel";
+import SongModel from "@/model/SongModel";
 import { parseBuffer } from "music-metadata";
 
 export async function POST(request: Request) {

@@ -1,6 +1,6 @@
 import { ApiResponce } from "@/app/utils/ApiResponse";
 import dbConnect from "@/lib/dbConnection";
-import SongModel from "@/model/SongsModel";
+import SongModel from "@/model/SongModel";
 
 export async function GET() {
   await dbConnect();
