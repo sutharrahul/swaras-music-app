@@ -23,7 +23,7 @@ export default function Navbar() {
       router.push("/sign-in");
     }
   };
-
+  console.log(session?.user?._id);
   return (
     <div>
       <button
@@ -70,10 +70,10 @@ export default function Navbar() {
               ) : session?.user ? (
                 <>
                   <h2 className="text-sm md:text-xl font-semibold bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
-                    {session.user.username}
+                    {session?.user?.username}
                   </h2>
                   <span className="text-xs md:text-sm">
-                    {session.user.email}
+                    {session?.user?.email}
                   </span>
                 </>
               ) : (
