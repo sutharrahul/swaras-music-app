@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { Song } from "@/model/SongModel";
+import { useSession } from "next-auth/react";
 
 interface SongeType extends Song {
   _id: string;
@@ -19,15 +20,18 @@ type SongDataType = {
   erroMessage: string | undefined;
   currentSong: SongeType | null;
   playSong: (songId: string) => void;
+  userPlaylist: SongeType[];
 };
 
 export const SongContext = createContext<SongDataType | undefined>(undefined);
 
 export function SongProvider({ children }: { children: ReactNode }) {
   const [songData, setSongData] = useState<SongeType[]>([]);
+  const [userPlaylist, setUserPlaylist] = useState<SongeType[]>([]);
   const [erroMessage, setErrorMessage] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [currentSong, setCurrentSong] = useState<SongeType | null>(null);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     async function getAllSongs() {
@@ -49,8 +53,31 @@ export function SongProvider({ children }: { children: ReactNode }) {
         return [];
       }
     }
+
     getAllSongs();
   }, []);
+
+  useEffect(() => {
+    async function GetPlaylist() {
+      setLoading(true);
+      try {
+        const { data } = await axios.get(
+          `/api/get-playlist?userId=${session?.user?._id}`
+        );
+        const playListSongs = data?.data?.playListSong;
+
+        console.log("playlist data fetch", playListSongs);
+        setUserPlaylist(playListSongs);
+      } catch (error) {
+        console.error("Failed to fetch playlist", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (status === "authenticated" && session?.user?._id) {
+      GetPlaylist();
+    }
+  }, [session?.user?._id]);
 
   const playSong = (songId: string) => {
     const selectSong = songData.find((song) => song._id === songId);
@@ -61,7 +88,14 @@ export function SongProvider({ children }: { children: ReactNode }) {
 
   return (
     <SongContext.Provider
-      value={{ loading, songData, erroMessage, currentSong, playSong }}
+      value={{
+        loading,
+        songData,
+        erroMessage,
+        currentSong,
+        playSong,
+        userPlaylist,
+      }}
     >
       {children}
     </SongContext.Provider>

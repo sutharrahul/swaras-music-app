@@ -153,86 +153,88 @@ export default function MusicPlayer() {
   return (
     <>
       {currentSong && (
-        <div className="flex flex-col items-center md:flex-row bg-[#141414]/90 gap-10 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center w-fit">
-          <audio autoPlay ref={audioRef} src={currentSong?.songFile}></audio>
-          {/* SongInfo */}
-          <div className="flex flex-col gap-5 justify-center items-center">
-            <span className="text-sm text-center">Now Playing</span>
-            <img
-              className="h-36 md:h-28 rounded-md"
-              src={currentSong?.coverImage}
-              alt={currentSong?.coverImage}
-            />
-            <div className="flex flex-col items-center">
-              <span className="text-sm ">
-                {truncateByLetters(currentSong?.songName, 20)}
-              </span>
-              <div className="relative w-40 overflow-hidden">
-                <span className="text-xs px-5 font-light animate-marquee">
-                  {currentSong.singerName.join(", ")}
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex flex-col items-center md:flex-row bg-[#141414]/90 gap-10 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center w-fit">
+            <audio ref={audioRef} src={currentSong?.songFile}></audio>
+            {/* SongInfo */}
+            <div className="flex flex-col gap-5 justify-center items-center">
+              <span className="text-sm text-center">Now Playing</span>
+              <img
+                className="h-36 md:h-28 rounded-md"
+                src={currentSong?.coverImage}
+                alt={currentSong?.coverImage}
+              />
+              <div className="flex flex-col items-center">
+                <span className="text-sm ">
+                  {truncateByLetters(currentSong?.songName, 20)}
                 </span>
+                <div className="relative w-40 overflow-hidden">
+                  <span className="text-xs px-5 font-light animate-marquee">
+                    {currentSong.singerName.join(", ")}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          {/* Song play */}
-          <div className="flex flex-col justify-center items-center gap-8">
-            {/* Song progress */}
-            <div className="flex items-center gap-6 text-sm font-light">
-              {/* @ts-ignore */}
-              <span>{formatTime(currectTime)}</span>
-              <input
-                type="range"
-                max={currentSong?.duration}
-                value={currectTime}
-                onChange={handleProgressBar}
-                className="flex-1"
-              />
-              {/* @ts-ignore */}
-              <span>{formatTime(currentSong?.duration)}</span>
-            </div>
-            {/* Controls */}
-            <div className="flex justify-center gap-14 items-center w-full">
-              <PreviousButton
-                className="h-5"
-                onClick={previousSong}
-                onKeyDown={previousSong}
-              />
-              {isPlaying ? (
-                <Pause
-                  className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md"
-                  onClick={toggle}
+            {/* Song play */}
+            <div className="flex flex-col justify-center items-center gap-8">
+              {/* Song progress */}
+              <div className="flex items-center gap-6 text-sm font-light">
+                {/* @ts-ignore */}
+                <span>{formatTime(currectTime)}</span>
+                <input
+                  type="range"
+                  max={currentSong?.duration}
+                  value={currectTime}
+                  onChange={handleProgressBar}
+                  className="flex-1"
                 />
-              ) : (
-                <Play
-                  className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md"
-                  onClick={toggle}
+                {/* @ts-ignore */}
+                <span>{formatTime(currentSong?.duration)}</span>
+              </div>
+              {/* Controls */}
+              <div className="flex justify-center gap-14 items-center w-full">
+                <PreviousButton
+                  className="h-5"
+                  onClick={previousSong}
+                  onKeyDown={previousSong}
                 />
-              )}
-              <button onClick={nextSong}>
-                <NextButton className="h-5" />
-              </button>
-            </div>
-            <div className="flex gap-3">
-              <div onClick={mute}>
-                {volume >= 0.6 ? (
-                  <Volume2 />
-                ) : volume >= 0.1 ? (
-                  <Volume1 />
-                ) : volume >= 0.01 ? (
-                  <Volume />
+                {isPlaying ? (
+                  <Pause
+                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md"
+                    onClick={toggle}
+                  />
                 ) : (
-                  <VolumeX />
+                  <Play
+                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md"
+                    onClick={toggle}
+                  />
                 )}
+                <button onClick={nextSong}>
+                  <NextButton className="h-5" />
+                </button>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeBar}
-                className="flex-1"
-              />
+              <div className="flex gap-3">
+                <div onClick={mute}>
+                  {volume >= 0.6 ? (
+                    <Volume2 />
+                  ) : volume >= 0.1 ? (
+                    <Volume1 />
+                  ) : volume >= 0.01 ? (
+                    <Volume />
+                  ) : (
+                    <VolumeX />
+                  )}
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeBar}
+                  className="flex-1"
+                />
+              </div>
             </div>
           </div>
         </div>

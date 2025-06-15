@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "@/context/AuthProviders";
 import { SongProvider } from "@/context/SongContextProvider";
 import { Toaster } from "react-hot-toast";
+import MusicPlayer from "@/components/MusicPlayer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,8 +40,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full overflow-hidden">
-      <SongProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <SongProvider>
           <body
             className={`${poppins.className}  antialiased bg-[#0E0E0E] h-full overflow-hidden`}
           >
@@ -55,9 +56,10 @@ export default function RootLayout({
               reverseOrder={false}
             />
             {children}
+            {/* <MusicPlayer /> */}
           </body>
-        </AuthProvider>
-      </SongProvider>
+        </SongProvider>
+      </AuthProvider>
     </html>
   );
 }
