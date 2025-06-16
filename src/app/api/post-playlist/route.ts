@@ -30,7 +30,6 @@ export async function POST(request: Request) {
 
     user?.playListSong.push(songId);
     const saveResponse = await user.save();
-    console.log("save response", saveResponse);
 
     return ApiResponce.success("Song add to playlist", saveResponse, 200);
   } catch (error) {

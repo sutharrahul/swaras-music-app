@@ -153,7 +153,7 @@ export default function MusicPlayer() {
   return (
     <>
       {currentSong && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
           <div className="flex flex-col items-center md:flex-row bg-[#141414]/90 gap-10 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center w-fit">
             <audio ref={audioRef} src={currentSong?.songFile}></audio>
             {/* SongInfo */}

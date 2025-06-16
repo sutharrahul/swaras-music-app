@@ -25,7 +25,7 @@ export default function PlayList({ songData }: PlayListProps) {
 
   return (
     <div>
-      <ul className="space-y-1">
+      <ul className="space-y-1 px-2 md:px-8">
         {songData?.map((songData) => (
           <li
             className="flex items-center gap-5 py-3 px-2 cursor-pointer"

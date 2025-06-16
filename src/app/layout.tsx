@@ -5,6 +5,7 @@ import AuthProvider from "@/context/AuthProviders";
 import { SongProvider } from "@/context/SongContextProvider";
 import { Toaster } from "react-hot-toast";
 import MusicPlayer from "@/components/MusicPlayer";
+import Navbar from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,7 +44,7 @@ export default function RootLayout({
       <AuthProvider>
         <SongProvider>
           <body
-            className={`${poppins.className}  antialiased bg-[#0E0E0E] h-full overflow-hidden`}
+            className={`${poppins.className}  antialiased flex bg-[#0E0E0E] h-full overflow-hidden`}
           >
             <Toaster
               position="top-right"
@@ -55,8 +56,13 @@ export default function RootLayout({
               }}
               reverseOrder={false}
             />
-            {children}
-            {/* <MusicPlayer /> */}
+            <Navbar />
+            <div className="flex-1 h-full relative overflow-hidden bg-black">
+              <div className="h-full overflow-y-auto pr-2 pb-28">
+                {children}
+              </div>
+              <MusicPlayer />
+            </div>
           </body>
         </SongProvider>
       </AuthProvider>

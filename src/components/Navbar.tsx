@@ -24,26 +24,32 @@ export default function Navbar() {
   };
   console.log(session?.user?._id);
   return (
-    <div className="z-50 bg-[#141414]">
+    <div>
       <button
         onClick={() => setIsMenuOpen((prev) => !prev)}
         className="absolute top-4 left-4 z-50 md:hidden text-white"
       >
-        {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        {isMenuOpen ? "" : <Menu size={28} />}
       </button>
       {/* Sidebar */}
       <div
         className={`
-          fixed md:static top-0 left-0 h-full z-40
+          fixed md:static top-0 left-0 h-full 
            px-6 py-10 w-[58%] md:w-64
-          transform transition-transform duration-300
+          transform transition-transform duration-300 z-30 bg-[#141414]/80 backdrop-blur-sm
           ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0 md:flex
-          flex-col justify-between text-white border
+          flex-col justify-between text-white
         `}
       >
         {/* Sidebar Content */}
-        <div className="flex flex-col h-full justify-between ">
+        <div className="flex flex-col h-full justify-between">
+          <button
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            className="absolute top-4 right-4 z-50 md:hidden text-white"
+          >
+            {isMenuOpen ? <X size={28} /> : ""}
+          </button>
           <div className="flex flex-col gap-10">
             {/* Logo & Close Button */}
             <div className="flex items-center justify-between">
