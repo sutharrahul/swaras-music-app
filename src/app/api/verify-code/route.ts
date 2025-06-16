@@ -8,9 +8,16 @@ export async function POST(request: Request) {
     const { username, code } = await request.json();
 
     const decodedUsername = decodeURIComponent(username);
+
+    console.log("url username", decodedUsername);
+    console.log("url code", code);
+
     const user = await UserModel.findOne({ username: decodedUsername });
-    if (!user?.username || user.isVerified) {
-      return ApiResponce.error("User not exist or already verified", 401);
+    if (!user?.username) {
+      return ApiResponce.error("User not exist ", 401);
+    }
+    if (user.isVerified) {
+      return ApiResponce.error("User already verified", 401);
     }
 
     const isVerified = user.verifyCode == code;
