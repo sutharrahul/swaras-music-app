@@ -22,7 +22,7 @@ export default function Home() {
             {erroMessage}
           </p>
         ) : (
-          <PlayList songData={songData} />
+          <PlayList songData={songData} dataType="allsong" />
         )}
       </div>
     </div>

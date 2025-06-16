@@ -4,6 +4,7 @@ import React from "react";
 import { truncateByLetters } from "@/app/utils/truncateByLetters";
 import { useSong } from "@/context/SongContextProvider";
 import { formatTime } from "@/app/utils/formatTime";
+import { CirclePlus, Trash2 } from "lucide-react";
 
 type SongDataType = {
   _id: string;
@@ -18,9 +19,10 @@ type SongDataType = {
 
 type PlayListProps = {
   songData: SongDataType[] | undefined;
+  dataType: "allsong" | "userPlaylist";
 };
 
-export default function PlayList({ songData }: PlayListProps) {
+export default function PlayList({ songData, dataType }: PlayListProps) {
   const { playSong } = useSong();
 
   return (
@@ -28,7 +30,7 @@ export default function PlayList({ songData }: PlayListProps) {
       <ul className="space-y-1 px-2 md:px-8">
         {songData?.map((songData) => (
           <li
-            className="flex items-center gap-5 py-3 px-2 cursor-pointer"
+            className="flex items-center gap-5 my-7 px-2 cursor-pointer"
             key={songData?._id}
             onClick={() => playSong(songData?._id)}
           >
@@ -37,8 +39,7 @@ export default function PlayList({ songData }: PlayListProps) {
               className="w-12 h-12 object-cover rounded"
               alt="./Pic.png"
             />
-
-            <div className="flex-1 grid grid-cols-3 gap-5">
+            <div className="flex-1 grid grid-cols-3 gap-5 ">
               <p className="text-white font-medium truncate ">
                 {truncateByLetters(songData?.songName, 25)}
               </p>
@@ -50,10 +51,16 @@ export default function PlayList({ songData }: PlayListProps) {
               </p>
             </div>
 
-            <span className="text-gray-400 text-sm ml-4">
+            <span className="text-gray-400 text-sm mx-4">
               {" "}
               {formatTime(Math.floor(songData.duration))}
             </span>
+
+            {dataType === "allsong" ? (
+              <CirclePlus />
+            ) : (
+              <Trash2 className="text-[#B40000]" />
+            )}
           </li>
         ))}
       </ul>

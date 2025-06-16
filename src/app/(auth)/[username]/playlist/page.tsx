@@ -21,7 +21,7 @@ export default function Playlist() {
             <LoadingSkeleton />
           </>
         ) : (
-          <PlayList songData={userPlaylist!} />
+          <PlayList songData={userPlaylist!} dataType="userPlaylist" />
         )}
       </div>
     </div>

@@ -5,10 +5,12 @@ import Link from "next/link";
 import HomeIcon from "@/assets/Icons/HomeIcon";
 import LogoIcon from "@/assets/Icons/LogoIcon";
 import PlayListIcon from "@/assets/Icons/PlayListIcon";
-import SignInOutIcon from "@/assets/Icons/SignInOutIcon";
+import SignInOutIcon from "@/assets/Icons/SignOutIcon";
 import { Menu, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import SignOutIcon from "@/assets/Icons/SignOutIcon";
+import SignInIcon from "@/assets/Icons/SignInIcon";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -108,15 +110,17 @@ export default function Navbar() {
           </div>
 
           {/* Logout at Bottom */}
-          <div
-            onClick={handleUserSignInOut}
-            className="flex items-center gap-3 mt-10 cursor-pointer"
-          >
-            <SignInOutIcon />
+          <div onClick={handleUserSignInOut} className=" cursor-pointer">
             {session ? (
-              <span className="text-sm md:text-base">Log Out</span>
+              <div className="flex items-center gap-3 mt-10">
+                <SignOutIcon />
+                <span className="text-sm md:text-base">Log Out</span>
+              </div>
             ) : (
-              <span className="text-sm md:text-base">Log In</span>
+              <div className="flex items-center gap-3 mt-10">
+                <SignInIcon />
+                <span className="text-sm md:text-base">Log In</span>
+              </div>
             )}
           </div>
         </div>
