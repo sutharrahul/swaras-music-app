@@ -19,7 +19,7 @@ type SongDataType = {
   loading: boolean;
   erroMessage: string | undefined;
   currentSong: SongeType | null;
-  playSong: (songId: string) => void;
+  playSong: (e: React.MouseEvent, songId: string) => void;
   userPlaylist: SongeType[];
 };
 
@@ -79,7 +79,9 @@ export function SongProvider({ children }: { children: ReactNode }) {
     }
   }, [session?.user?._id]);
 
-  const playSong = (songId: string) => {
+  const playSong = (e: React.MouseEvent, songId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
     const selectSong = songData.find((song) => song._id === songId);
     if (selectSong) {
       setCurrentSong(selectSong);

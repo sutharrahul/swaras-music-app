@@ -29,7 +29,7 @@ export default function VerifyAccount() {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMsg =
-          error.response?.data?.message || "Unknown error occurred";
+          error.response?.data?.message || "Unable to verify user";
         toast.error(errorMsg);
       } else {
         toast.error("Something went wrong");
