@@ -98,45 +98,21 @@ export default function MusicPlayer() {
     }
   };
 
-  // const handelNextSong = (
-  //   e:
-  //     | React.KeyboardEvent<HTMLButtonElement>
-  //     | React.MouseEvent<HTMLButtonElement>
-  // ) => {
-  //   e.preventDefault();
-
-  //   if ("key" in e && e.key === "ArrowRight") {
-  //     nextSong();
-  //   } else {
-  //     nextSong();
-  //   }
-  // };
-
-  // play previous song
-
-  const previousSong = (
-    e:
-      | React.KeyboardEvent<HTMLButtonElement>
-      | React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const previousSong = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!currentSong) return;
     const currentPlayingSongIndex = songData.findIndex(
       (song) => song?._id === currentSong?._id
     );
 
     console.log("previous song index", songData[currentPlayingSongIndex - 1]);
+
     if (currentPlayingSongIndex === 0) return;
 
     const playPreviousSong = songData[currentPlayingSongIndex - 1];
 
     if (!playPreviousSong) return;
-    if ("key" in e) {
-      if (e.key === "ArrowLeft") {
-        playSong(playPreviousSong?._id);
-      }
-    } else {
-      playSong(playPreviousSong?._id);
-    }
+
+    playSong(e, playPreviousSong?._id);
   };
 
   // auto play next song
@@ -149,6 +125,31 @@ export default function MusicPlayer() {
       audio?.removeEventListener("ended", nextSong);
     };
   }, [currentSong, songData, playSong]);
+
+  const progressRef = useRef<HTMLInputElement>(null);
+  const volumeRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (progressRef.current) {
+        updateSliderBackground(progressRef.current);
+      }
+      if (volumeRef.current) {
+        updateSliderBackground(volumeRef.current);
+      }
+    }, 50); // slight delay ensures DOM is updated
+
+    return () => clearTimeout(timeout);
+  }, [currentSong, volume]);
+
+  function updateSliderBackground(el: HTMLInputElement) {
+    const min = Number(el.min) || 0;
+    const max = Number(el.max) || 100;
+    const value = Number(el.value);
+    const percent = ((value - min) / (max - min)) * 100;
+
+    el.style.background = `linear-gradient(to right, #800000 0%, #F00000 ${percent / 2}%, #B40000 ${percent}%, #ddd ${percent}%)`;
+  }
 
   return (
     <>
@@ -182,11 +183,16 @@ export default function MusicPlayer() {
                 {/* @ts-ignore */}
                 <span>{formatTime(currectTime)}</span>
                 <input
+                  ref={progressRef}
                   type="range"
+                  min="0"
                   max={currentSong?.duration}
                   value={currectTime}
-                  onChange={handleProgressBar}
-                  className="flex-1"
+                  onChange={(e) => {
+                    handleProgressBar(e);
+                    updateSliderBackground(e.currentTarget);
+                  }}
+                  className="music-range"
                 />
                 {/* @ts-ignore */}
                 <span>{formatTime(currentSong?.duration)}</span>
@@ -194,23 +200,22 @@ export default function MusicPlayer() {
               {/* Controls */}
               <div className="flex justify-center gap-14 items-center w-full">
                 <PreviousButton
-                  className="h-5"
+                  className="h-5 cursor-pointer"
                   onClick={previousSong}
-                  onKeyDown={previousSong}
                 />
                 {isPlaying ? (
                   <Pause
-                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md"
+                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md cursor-pointer"
                     onClick={toggle}
                   />
                 ) : (
                   <Play
-                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md"
+                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md cursor-pointer"
                     onClick={toggle}
                   />
                 )}
                 <button onClick={nextSong}>
-                  <NextButton className="h-5" />
+                  <NextButton className="h-5 cursor-pointer" />
                 </button>
               </div>
               <div className="flex gap-3">
@@ -226,13 +231,17 @@ export default function MusicPlayer() {
                   )}
                 </div>
                 <input
+                  ref={volumeRef}
                   type="range"
                   min="0"
                   max="1"
                   step="0.01"
                   value={volume}
-                  onChange={handleVolumeBar}
-                  className="flex-1"
+                  onChange={(e) => {
+                    handleVolumeBar(e);
+                    updateSliderBackground(e.currentTarget);
+                  }}
+                  className="flex-1 music-range"
                 />
               </div>
             </div>

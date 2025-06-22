@@ -46,6 +46,48 @@ input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px #262626 inset !important;
   -webkit-text-fill-color: white !important;
   caret-color: white;
-  border-radius: 0.5rem !important; /* Match your Tailwind rounded-lg */
+  border-radius: 0.5rem !important; 
   transition: background-color 5000s ease-in-out 0s !important;
+}
+
+
+/* Input range slider */
+
+.music-range {
+  @apply w-full appearance-none h-2 rounded-lg cursor-pointer bg-transparent;
+  background: linear-gradient(to right, #800000 50%, #ddd 50%);
+}
+
+.music-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.music-range::-webkit-slider-thumb {
+  @apply appearance-none w-4 h-4 rounded-full;
+  background-color: #B40000;
+  border: 2px solid white;
+  margin-top: -6px; /* Align thumb with track */
+}
+
+.music-range::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  background-color: #B40000;
+  border: 2px solid white;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.music-range::-moz-range-track {
+  height: 6px;
+  background: #ddd;
+  border-radius: 999px;
+}
+
+.music-range::-moz-range-progress {
+  background: linear-gradient(to right, #800000, #F00000, #B40000);
+  height: 6px;
+  border-radius: 999px;
 }

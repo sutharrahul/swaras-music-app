@@ -33,6 +33,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
   const [currentSong, setCurrentSong] = useState<SongeType | null>(null);
   const { data: session, status } = useSession();
 
+  // get-all song
   useEffect(() => {
     async function getAllSongs() {
       setLoading(true);
@@ -57,6 +58,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
     getAllSongs();
   }, []);
 
+  // get-playlist
   useEffect(() => {
     async function GetPlaylist() {
       setLoading(true);
@@ -65,8 +67,6 @@ export function SongProvider({ children }: { children: ReactNode }) {
           `/api/get-playlist?userId=${session?.user?._id}`
         );
         const playListSongs = data?.data?.playListSong;
-
-        console.log("playlist data fetch", playListSongs);
         setUserPlaylist(playListSongs);
       } catch (error) {
         console.error("Failed to fetch playlist", error);
