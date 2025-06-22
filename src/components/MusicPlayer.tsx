@@ -98,7 +98,8 @@ export default function MusicPlayer() {
     }
   };
 
-  const previousSong = (e: React.MouseEvent<HTMLButtonElement>) => {
+  // Play preivouse song
+  const previousSong = () => {
     if (!currentSong) return;
     const currentPlayingSongIndex = songData.findIndex(
       (song) => song?._id === currentSong?._id
@@ -112,7 +113,7 @@ export default function MusicPlayer() {
 
     if (!playPreviousSong) return;
 
-    playSong(e, playPreviousSong?._id);
+    playSong(playPreviousSong?._id);
   };
 
   // auto play next song
