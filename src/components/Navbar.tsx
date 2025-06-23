@@ -16,6 +16,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
+
   const handleUserSignInOut = () => {
     if (session) {
       signOut();
@@ -24,7 +25,9 @@ export default function Navbar() {
       router.push("/sign-in");
     }
   };
+
   console.log(session?.user?._id);
+
   return (
     <div>
       <button

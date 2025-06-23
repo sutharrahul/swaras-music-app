@@ -94,7 +94,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
         >
           {/* Song Click Area */}
           <div
-            onClick={(e) => playSong(e, songData._id)}
+            onClick={(e) => playSong(songData._id)}
             className="flex items-center gap-5 flex-1"
           >
             <img
