@@ -4,6 +4,7 @@ export interface User extends Document {
   username: string;
   email: string;
   password: string;
+  role: "user" | "admin";
   verifyCode: string;
   verifyCodeExpiry: Date;
   isVerified: boolean;
@@ -26,6 +27,11 @@ const userSchema: Schema<User> = new Schema(
     password: {
       type: String,
       required: [true, "Password is required "],
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
     },
     verifyCode: {
       type: String,

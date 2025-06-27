@@ -61,8 +61,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
   ) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log("userid....", session?.user?._id);
-    console.log("song id....", songId);
+
     try {
       const { data } = await axios.delete("/api/delete-playlist", {
         data: {
@@ -123,12 +122,17 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
           {/* Action Icon */}
           <div>
             {dataType === "allsong" ? (
-              <CirclePlus
-                onClick={(e) => {
-                  addSongToPlaylist(e, songData._id);
-                }}
-                className="h-7 w-7 ml-4 text-gray-300 hover:text-white cursor-pointer"
-              />
+              <div className="relative group">
+                <div className="absolute bottom-full bg-[#141414] mb-2 left-1/2 -translate-x-1/2 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                  Add to playlist
+                </div>
+                <CirclePlus
+                  onClick={(e) => {
+                    addSongToPlaylist(e, songData._id);
+                  }}
+                  className="h-7 w-7 ml-4 text-gray-300 hover:text-white cursor-pointer"
+                />
+              </div>
             ) : (
               <Trash2
                 onClick={(e) => {

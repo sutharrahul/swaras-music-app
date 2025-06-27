@@ -3,9 +3,24 @@ import cloudinary from "@/lib/cloudinary";
 import dbConnect from "@/lib/dbConnection";
 import SongModel from "@/model/SongModel";
 import { parseBuffer } from "music-metadata";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/options";
+import UserModel from "@/model/UserModel";
 
 export async function POST(request: Request) {
   await dbConnect();
+
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return ApiResponce.error("Unauthorized: Please log in", 401);
+  }
+
+  const user = await UserModel.findOne({ email: session.user.email });
+
+  if (!user || user.role !== "admin") {
+    return ApiResponce.error("Only admins can upload songs", 403);
+  }
 
   try {
     const formData = await request.formData();
@@ -18,6 +33,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Extract metadata from file
+
     const metadata = await parseBuffer(buffer, "audio/mpeg");
     const { title, artist, album, picture, composer } = metadata.common;
     // console.log("all meta data of song", metadata.common);

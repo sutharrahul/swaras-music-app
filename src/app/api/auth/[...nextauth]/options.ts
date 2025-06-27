@@ -50,6 +50,7 @@ export const authOptions: NextAuthOptions = {
         token._id = user._id?.toString();
         token.isVerified = user.isVerified;
         token.username = user.username;
+        token.role = user.role;
       }
       return token;
     },
@@ -58,6 +59,7 @@ export const authOptions: NextAuthOptions = {
         session.user._id = token._id;
         session.user.isVerified = token.isVerified;
         session.user.username = token.username;
+        session.user.role = token?.role;
       }
       return session;
     },
