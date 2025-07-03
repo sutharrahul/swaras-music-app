@@ -6,7 +6,7 @@ import HomeIcon from "@/assets/Icons/HomeIcon";
 import LogoIcon from "@/assets/Icons/LogoIcon";
 import PlayListIcon from "@/assets/Icons/PlayListIcon";
 import SignInOutIcon from "@/assets/Icons/SignOutIcon";
-import { Menu, X } from "lucide-react";
+import { Menu, X, CloudUpload } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import SignOutIcon from "@/assets/Icons/SignOutIcon";
@@ -109,6 +109,18 @@ export default function Navbar() {
                 <PlayListIcon />
                 <span>Playlists</span>
               </Link>
+              {session?.user.role == "admin" && (
+                <Link
+                  href="/admin/upload-song"
+                  className="flex items-center gap-3"
+                >
+                  <CloudUpload
+                    className="text-[#B40000] w-6 h-6"
+                    strokeWidth={3}
+                  />
+                  <span>Upload Song</span>
+                </Link>
+              )}
             </nav>
           </div>
 
