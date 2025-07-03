@@ -125,7 +125,7 @@ export default function Navbar() {
           </div>
 
           {/* Logout at Bottom */}
-          <div onClick={handleUserSignInOut} className=" cursor-pointer">
+          <div onClick={handleUserSignInOut} className=" cursor-pointer w-fit">
             {session ? (
               <div className="flex items-center gap-3 mt-10">
                 <SignOutIcon />

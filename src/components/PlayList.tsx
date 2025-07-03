@@ -89,7 +89,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
       {songData?.map((songData) => (
         <li
           key={songData._id}
-          className="flex items-center justify-between my-7 px-2 cursor-pointer group"
+          className="flex items-center justify-between my-7 px-2 cursor-pointer"
         >
           {/* Song Click Area */}
           <div

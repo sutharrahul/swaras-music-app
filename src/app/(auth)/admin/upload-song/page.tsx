@@ -46,6 +46,7 @@ export default function AdminPage() {
       setUploading(false);
     }
   };
+
   if (status === "loading" || !session) {
     return (
       <div className="h-screen flex items-center justify-center text-white">
@@ -55,7 +56,7 @@ export default function AdminPage() {
     );
   }
   return (
-    <div className="p-6">
+    <div className="p-6 h-full overflow-hidden">
       <h1 className="text-2xl font-bold text-center">Admin Dashboard</h1>
       <section className="bg-[#000000]">
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
@@ -64,7 +65,7 @@ export default function AdminPage() {
               <h1 className="text-xl text-center font-bold leading-tight tracking-tight md:text-2xl text-white">
                 Upload Song
               </h1>
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-4 md:space-y-6 h-44">
                 <div>
                   <label className="block mb-2 text-sm font-medium text-white">
                     Upload file
@@ -74,13 +75,20 @@ export default function AdminPage() {
                     onChange={(e) => setUploadSong(e.target.files?.[0])}
                     className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   />
-                  {uploadSong && <p>Selected file: {uploadSong?.name}</p>}
+                  {uploadSong && (
+                    <p className="mt-3 text-sm">
+                      Selected file:{" "}
+                      <span className="text-[#c50707] ">
+                        {uploadSong?.name}
+                      </span>
+                    </p>
+                  )}
                 </div>
 
                 <button
                   onClick={handleUpload}
                   disabled={uploading}
-                  className="w-full text-white bg-gradient-to-r from-[#800000] to-[#B40000]  focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center "
+                  className="w-full text-white bg-gradient-to-r from-[#800000] to-[#B40000]  focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
                 >
                   {uploading ? (
                     <span className="flex items-center justify-center gap-4">
