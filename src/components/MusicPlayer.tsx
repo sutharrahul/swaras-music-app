@@ -127,10 +127,8 @@ export default function MusicPlayer() {
     };
   }, [currentSong, songData, playSong]);
 
-  const progressRef = useRef<HTMLInputElement>(null);
-  const volumeRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
+    // Delay ensures DOM is updated
     const timeout = setTimeout(() => {
       if (progressRef.current) {
         updateSliderBackground(progressRef.current);
@@ -138,19 +136,23 @@ export default function MusicPlayer() {
       if (volumeRef.current) {
         updateSliderBackground(volumeRef.current);
       }
-    }, 50); // slight delay ensures DOM is updated
+    }, 10);
 
     return () => clearTimeout(timeout);
   }, [currentSong, volume]);
 
   function updateSliderBackground(el: HTMLInputElement) {
-    const min = Number(el.min) || 0;
-    const max = Number(el.max) || 100;
-    const value = Number(el.value);
+    const min = +el.min || 0;
+    const max = +el.max || 100;
+    const value = +el.value;
     const percent = ((value - min) / (max - min)) * 100;
 
-    el.style.background = `linear-gradient(to right, #800000 0%, #F00000 ${percent / 2}%, #B40000 ${percent}%, #ddd ${percent}%)`;
+    el.style.background = `linear-gradient(to right, #800000 0%, #F00000 ${
+      percent / 2
+    }%, #B40000 ${percent}%, #ddd ${percent}%)`;
   }
+  const progressRef = useRef<HTMLInputElement>(null);
+  const volumeRef = useRef<HTMLInputElement>(null);
 
   return (
     <>

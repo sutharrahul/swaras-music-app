@@ -55,7 +55,8 @@ input:-webkit-autofill {
 
 .music-range {
   @apply w-full appearance-none h-2 rounded-lg cursor-pointer bg-transparent;
-  background: linear-gradient(to right, #800000 50%, #ddd 50%);
+ background: linear-gradient(to right, #800000 0%, #ddd 0%);
+
 }
 
 .music-range::-webkit-slider-runnable-track {
