@@ -54,13 +54,11 @@ input:-webkit-autofill {
 /* Input range slider */
 
 .music-range {
-  @apply w-full appearance-none h-2 rounded-lg cursor-pointer bg-transparent;
- background: linear-gradient(to right, #800000 0%, #ddd 0%);
-
+  @apply w-full h-2 appearance-none rounded-lg cursor-pointer bg-transparent;
 }
 
 .music-range::-webkit-slider-runnable-track {
-  height: 6px;
+  height: 4px;
   border-radius: 999px;
   background: transparent;
 }
@@ -69,7 +67,7 @@ input:-webkit-autofill {
   @apply appearance-none w-4 h-4 rounded-full;
   background-color: #B40000;
   border: 2px solid white;
-  margin-top: -6px; /* Align thumb with track */
+  margin-top: -6px;
 }
 
 .music-range::-moz-range-thumb {
@@ -82,13 +80,13 @@ input:-webkit-autofill {
 }
 
 .music-range::-moz-range-track {
-  height: 6px;
+  height: 4px;
   background: #ddd;
   border-radius: 999px;
 }
 
 .music-range::-moz-range-progress {
-  background: linear-gradient(to right, #800000, #F00000, #B40000);
-  height: 6px;
+  background: #B40000;
+  height: 4px;
   border-radius: 999px;
 }

@@ -9,7 +9,7 @@ import { truncateByLetters } from "@/app/utils/truncateByLetters";
 
 export default function MusicPlayer() {
   const { currentSong, songData, playSong } = useSong();
-  const [currectTime, setCurrectTime] = useState<number>();
+  const [currectTime, setCurrectTime] = useState<number>(0);
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState<boolean>();
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -128,7 +128,6 @@ export default function MusicPlayer() {
   }, [currentSong, songData, playSong]);
 
   useEffect(() => {
-    // Delay ensures DOM is updated
     const timeout = setTimeout(() => {
       if (progressRef.current) {
         updateSliderBackground(progressRef.current);
@@ -139,18 +138,18 @@ export default function MusicPlayer() {
     }, 10);
 
     return () => clearTimeout(timeout);
-  }, [currentSong, volume]);
+  }, [currentSong, volume, currectTime]);
 
   function updateSliderBackground(el: HTMLInputElement) {
-    const min = +el.min || 0;
-    const max = +el.max || 100;
-    const value = +el.value;
+    const min = parseFloat(el.min);
+    const max = parseFloat(el.max);
+    const value = parseFloat(el.value);
+
     const percent = ((value - min) / (max - min)) * 100;
 
-    el.style.background = `linear-gradient(to right, #800000 0%, #F00000 ${
-      percent / 2
-    }%, #B40000 ${percent}%, #ddd ${percent}%)`;
+    el.style.background = `linear-gradient(to right, #B40000 0%, #B40000 ${percent}%, #ddd ${percent}%, #ddd 100%)`;
   }
+
   const progressRef = useRef<HTMLInputElement>(null);
   const volumeRef = useRef<HTMLInputElement>(null);
 
