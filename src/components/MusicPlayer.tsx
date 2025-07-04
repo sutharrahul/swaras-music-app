@@ -46,8 +46,21 @@ export default function MusicPlayer() {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
+    localStorage.setItem("volume", volume.toString());
     setVolume(volume);
   };
+
+  useEffect(() => {
+    const storedVolume = localStorage.getItem("volume");
+    if (storedVolume) {
+      const volume = parseFloat(storedVolume);
+      setVolume(volume);
+    }
+
+    console.log("volume lavel", storedVolume);
+  }, [volume]);
+
+  const prevVolumeRef = useRef(volume);
 
   const mute = () => {
     if (volume == 0) {
@@ -158,7 +171,16 @@ export default function MusicPlayer() {
       {currentSong && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
           <div className="flex flex-col items-center md:flex-row bg-[#141414]/90 gap-10 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center w-fit">
-            <audio ref={audioRef} src={currentSong?.songFile}></audio>
+            <audio
+              ref={audioRef}
+              src={currentSong?.songFile}
+              onLoadedMetadata={() => {
+                if (audioRef.current) {
+                  audioRef.current.volume = volume;
+                }
+              }}
+            />
+
             {/* SongInfo */}
             <div className="flex flex-col gap-5 justify-center items-center">
               <span className="text-sm text-center">Now Playing</span>
