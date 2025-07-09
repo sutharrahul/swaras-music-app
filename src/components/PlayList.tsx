@@ -99,22 +99,22 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
             <img
               src={songData.coverImage}
               alt={songData.songName}
-              className="w-12 h-12 object-cover rounded"
+              className="w-9 h-9 md:w-12 md:h-12 object-cover rounded"
             />
 
-            <div className="grid grid-cols-3 gap-5 flex-1">
-              <p className="text-white font-medium truncate">
+            <div className="flex flex-col md:grid md:grid-cols-3 md:gap-5 md:flex-1">
+              <p className="text-white text-sm md:text-base md:font-medium truncate">
                 {truncateByLetters(songData.songName, 25)}
               </p>
-              <p className="text-gray-400 text-sm truncate">
+              <p className="text-gray-400 text-xs md:text-sm truncate">
                 {truncateByLetters(songData.singerName.join(" ,"), 35)}
               </p>
-              <p className="text-gray-400 text-sm truncate">
+              <p className="text-gray-400 text-xs md:text-sm truncate">
                 {songData.albumName}
               </p>
             </div>
 
-            <span className="text-gray-400 text-sm mx-4">
+            <span className="text-gray-400 text-sm mx-4 hidden md:inline">
               {formatTime(Math.floor(songData.duration))}
             </span>
           </div>
@@ -130,7 +130,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
                   onClick={(e) => {
                     addSongToPlaylist(e, songData._id);
                   }}
-                  className="h-7 w-7 ml-4 text-gray-300 hover:text-white cursor-pointer"
+                  className="h-5 w-5 md:h-7 md:w-7 ml-4 text-gray-300 hover:text-white cursor-pointer"
                 />
               </div>
             ) : (
@@ -138,7 +138,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
                 onClick={(e) => {
                   removeSongFromPlaylist(e, songData._id);
                 }}
-                className="h-7 w-7 ml-4 text-[#B40000] hover:text-red-600 cursor-pointer"
+                className="h-4 w-4 md:h-7 md:w-7 ml-4 text-[#B40000] hover:text-red-600 cursor-pointer"
               />
             )}
           </div>
