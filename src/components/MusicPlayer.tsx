@@ -170,7 +170,7 @@ export default function MusicPlayer() {
     <>
       {currentSong && (
         <div className="absolute bottom-4  left-1/2 -translate-x-1/2 z-10">
-          <div className="flex flex-col w-[330px] md:w-[550px] items-center md:flex-row bg-[#141414]/90 gap-10 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center">
+          <div className="flex flex-col w-[330px] md:w-[550px] items-center md:flex-row bg-[#141414]/90 gap-4 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center">
             <audio
               ref={audioRef}
               src={currentSong?.songFile}
@@ -182,10 +182,10 @@ export default function MusicPlayer() {
             />
 
             {/* SongInfo */}
-            <div className="flex flex-col gap-5 justify-center items-center">
+            <div className="flex flex-col gap-3 justify-center items-center">
               <span className="text-sm text-center">Now Playing</span>
               <img
-                className="h-36 md:h-28 rounded-md"
+                className="h-20 md:h-28 rounded-md"
                 src={currentSong?.coverImage}
                 alt={currentSong?.coverImage}
               />
@@ -201,7 +201,7 @@ export default function MusicPlayer() {
               </div>
             </div>
             {/* Song play */}
-            <div className="flex flex-col justify-center gap-8">
+            <div className="flex flex-col justify-center gap-4 md:gap-8">
               {/* Song progress */}
               <div className="flex items-center gap-6 text-sm font-light">
                 {/* @ts-ignore */}
@@ -242,7 +242,7 @@ export default function MusicPlayer() {
                   <NextButton className="h-5 cursor-pointer" />
                 </button>
               </div>
-              <div className="flex items-center w-32 gap-3">
+              <div className="hidden md:flex md:items-center w-32 gap-3">
                 <div onClick={mute}>
                   {volume >= 0.6 ? (
                     <Volume2 />
