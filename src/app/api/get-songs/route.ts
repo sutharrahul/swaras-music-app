@@ -15,7 +15,6 @@ export async function GET() {
 
     return ApiResponce.success("All songs fetch successfully", allSongs, 200);
   } catch (error) {
-    console.log("Somthing went wrong while try to fetch songs", error);
     return ApiResponce.error(
       "Somthing went wrong while try to fetch songs",
       500

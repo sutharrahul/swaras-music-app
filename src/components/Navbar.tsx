@@ -21,12 +21,9 @@ export default function Navbar() {
     if (session) {
       signOut();
     } else {
-      console.log("sign-in ");
       router.push("/sign-in");
     }
   };
-
-  console.log(session?.user?._id);
 
   return (
     <div>

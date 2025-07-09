@@ -70,7 +70,6 @@ export async function POST(request: Request) {
       201
     );
   } catch (error) {
-    console.log("Error while sign-up user", error);
     return ApiResponce.error("Error while sign-up user", 500);
   }
 }

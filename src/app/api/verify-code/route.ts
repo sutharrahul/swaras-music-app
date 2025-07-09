@@ -9,9 +9,6 @@ export async function POST(request: Request) {
 
     const decodedUsername = decodeURIComponent(username);
 
-    console.log("url username", decodedUsername);
-    console.log("url code", code);
-
     const user = await UserModel.findOne({ username: decodedUsername });
     if (!user?.username) {
       return ApiResponce.error("User not exist ", 401);
@@ -37,7 +34,6 @@ export async function POST(request: Request) {
       return ApiResponce.error("Incorrect Verification code", 400);
     }
   } catch (error) {
-    console.log("Error verifying user", error);
     return ApiResponce.error("Error verifying user", 500);
   }
 }

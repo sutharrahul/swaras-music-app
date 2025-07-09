@@ -7,9 +7,6 @@ export async function DELETE(request: Request) {
   try {
     const { userId, songId } = await request.json();
 
-    console.log("userid", userId);
-    console.log("songId", songId);
-
     if (!userId && !songId) {
       return ApiResponce.error("User Id or Song Id missing ", 401);
     }
@@ -32,10 +29,8 @@ export async function DELETE(request: Request) {
       return ApiResponce.error("Playlist not found", 401);
     }
 
-    // console.log("delete response", updatedPlaylist);
     return ApiResponce.success("Song removed", updatedPlaylist, 201);
   } catch (error) {
-    console.log("Faild remove song from playlist", error);
     return ApiResponce.error("Faild remove song from playlist", 500);
   }
 }

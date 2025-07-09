@@ -36,8 +36,6 @@ export async function POST(request: Request) {
 
     const metadata = await parseBuffer(buffer, "audio/mpeg");
     const { title, artist, album, picture, composer } = metadata.common;
-    // console.log("all meta data of song", metadata.common);
-    // console.log("Composer", composer);
 
     // Upload song file to Cloudinary
 
@@ -79,8 +77,6 @@ export async function POST(request: Request) {
 
       coverImageUrl = uploadImage.secure_url;
     }
-
-    // console.log("song duration ", uploadSong.duration);
 
     const song = new SongModel({
       songFile: uploadSong.secure_url,

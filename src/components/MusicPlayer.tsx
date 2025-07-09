@@ -56,8 +56,6 @@ export default function MusicPlayer() {
       const volume = parseFloat(storedVolume);
       setVolume(volume);
     }
-
-    console.log("volume lavel", storedVolume);
   }, [volume]);
 
   const prevVolumeRef = useRef(volume);
@@ -117,8 +115,6 @@ export default function MusicPlayer() {
     const currentPlayingSongIndex = songData.findIndex(
       (song) => song?._id === currentSong?._id
     );
-
-    console.log("previous song index", songData[currentPlayingSongIndex - 1]);
 
     if (currentPlayingSongIndex === 0) return;
 
