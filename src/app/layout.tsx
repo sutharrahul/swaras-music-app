@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Poppins, Playpen_Sans } from "next/font/google";
+import {  Poppins } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/context/AuthProviders";
 import { SongProvider } from "@/context/SongContextProvider";
@@ -7,15 +7,7 @@ import { Toaster } from "react-hot-toast";
 import MusicPlayer from "@/components/MusicPlayer";
 import Navbar from "@/components/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
-const playpen = Playpen_Sans({
-  subsets: ["latin"],
-  variable: "--font-playpen-Sans",
-});
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -24,10 +16,6 @@ const poppins = Poppins({
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "SwarasMusic",

@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       return ApiResponce.error("Incorrect Verification code", 400);
     }
   } catch (error) {
+    console.error("Error verifying user:", error);
     return ApiResponce.error("Error verifying user", 500);
   }
 }

@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 
     return ApiResponce.success("Song add to playlist", saveResponse, 200);
   } catch (error) {
+    console.error("Error adding song to playlist:", error);
     return ApiResponce.error("Faild add song to playlist", 500);
   }
 }

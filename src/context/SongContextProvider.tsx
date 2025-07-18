@@ -77,7 +77,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
     if (status === "authenticated" && session?.user?._id) {
       GetPlaylist();
     }
-  }, [session?.user?._id]);
+  }, [session?.user?._id, status, setUserPlaylist, setLoading]);
 
   const playSong = (songId: string) => {
     const selectSong = songData.find((song) => song._id === songId);

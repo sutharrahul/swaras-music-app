@@ -26,7 +26,7 @@ type PlayListProps = {
 };
 
 export default function PlayList({ songData, dataType }: PlayListProps) {
-  const { playSong } = useSong();
+  const { playSong ,currentSong} = useSong();
   const { data: session } = useSession();
 
   const addSongToPlaylist = async (
@@ -87,13 +87,14 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
   return (
     <ul className="space-y-1 px-2 md:px-8">
       {songData?.map((songData) => (
-        <li
-          key={songData._id}
-          className="flex items-center justify-between my-7 px-2 cursor-pointer"
-        >
+       <li
+  key={songData._id}
+  className={`flex items-center justify-between my-7 px-2 py-3 cursor-pointer rounded transition-colors ${
+    songData._id === currentSong?._id ? "bg-[#B40000]/30 backdrop-blur-sm" : "hover:bg-zinc-800/40"
+  }`}>
           {/* Song Click Area */}
           <div
-            onClick={(e) => playSong(songData._id)}
+            onClick={() => playSong(songData._id)}
             className="flex items-center gap-5 flex-1"
           >
             <img

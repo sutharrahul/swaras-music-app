@@ -1,5 +1,5 @@
 "use client";
-import React, { ChangeEvent, use, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useSong } from "@/context/SongContextProvider";
 import NextButton from "@/assets/Icons/NextButton";
 import { Pause, Play, Volume, Volume1, Volume2, VolumeX } from "lucide-react";
@@ -58,7 +58,6 @@ export default function MusicPlayer() {
     }
   }, [volume]);
 
-  const prevVolumeRef = useRef(volume);
 
   const mute = () => {
     if (volume == 0) {
@@ -178,7 +177,7 @@ export default function MusicPlayer() {
             />
 
             {/* SongInfo */}
-            <div className="flex flex-col gap-3 justify-center items-center">
+            <div className="flex flex-col gap-3 justify-center items-center md:w-[40%]">
               <span className="text-sm text-center">Now Playing</span>
               <img
                 className="h-20 md:h-28 rounded-md"
@@ -197,10 +196,8 @@ export default function MusicPlayer() {
               </div>
             </div>
             {/* Song play */}
-            <div className="flex flex-col justify-center gap-4 md:gap-8">
-              {/* Song progress */}
+            <div className="flex flex-col justify-center gap-4 md:gap-8 md:w-[60%] w-full">
               <div className="flex items-center gap-6 text-sm font-light">
-                {/* @ts-ignore */}
                 <span>{formatTime(currectTime)}</span>
                 <input
                   ref={progressRef}
@@ -214,7 +211,6 @@ export default function MusicPlayer() {
                   }}
                   className="music-range"
                 />
-                {/* @ts-ignore */}
                 <span>{formatTime(currentSong?.duration)}</span>
               </div>
               {/* Controls */}

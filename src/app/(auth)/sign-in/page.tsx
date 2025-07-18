@@ -31,8 +31,8 @@ export default function SignIn() {
       if (result?.url) {
         router.replace("/");
       }
-    } catch (error) {
-      toast.error("Somthing went wrong");
+    } catch (error: any) {
+      toast.error("Somthing went wrong", error);
     } finally {
       setIsSignin(false);
     }

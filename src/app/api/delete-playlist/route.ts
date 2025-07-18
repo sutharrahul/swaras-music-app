@@ -31,6 +31,8 @@ export async function DELETE(request: Request) {
 
     return ApiResponce.success("Song removed", updatedPlaylist, 201);
   } catch (error) {
+    console.error("Error removing song from playlist:", error);
     return ApiResponce.error("Faild remove song from playlist", 500);
+    
   }
 }

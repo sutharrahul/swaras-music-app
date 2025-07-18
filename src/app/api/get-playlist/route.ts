@@ -22,6 +22,7 @@ export async function GET(request: Request) {
       200
     );
   } catch (error) {
+    console.error("Error fetching user playlist:", error);
     return ApiResponce.error("User playlist not found", 500);
   }
 }

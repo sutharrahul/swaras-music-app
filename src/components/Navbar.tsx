@@ -5,7 +5,6 @@ import Link from "next/link";
 import HomeIcon from "@/assets/Icons/HomeIcon";
 import LogoIcon from "@/assets/Icons/LogoIcon";
 import PlayListIcon from "@/assets/Icons/PlayListIcon";
-import SignInOutIcon from "@/assets/Icons/SignOutIcon";
 import { Menu, X, CloudUpload } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
