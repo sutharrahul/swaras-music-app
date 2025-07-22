@@ -120,7 +120,7 @@ npm run dev
 
 ### 👤 Author
 
-* **Your Name** – [GitHub](https://github.com/yourusername) • [LinkedIn](https://linkedin.com/in/yourusername)
+* **Your Name** – [GitHub](https://github.com/sutharrahul) • [LinkedIn](https://www.linkedin.com/in/suthar-rahul/)
 
 ---
 
