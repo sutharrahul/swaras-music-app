@@ -21,7 +21,6 @@ A modern full-stack music streaming web application where users play their favor
 * 🔐 **Authentication** – Secure login and logout with **NextAuth.js (email + password)**
 * ☁️ **Cloudinary Integration** – Upload songs and cover art with seamless storage
 * 🧠 **Metadata Extraction** – Automatically extract and store song title, artist, album, and artwork
-* 📂 **Playlist Management** – Create, manage, and add songs to personal playlists
 * 🖼️ **Cover Image Display** – Show album artwork on player
 * ⚙️ **Responsive UI** – TailwindCSS-based design with mobile-first responsiveness
 * 💾 **MongoDB Database** – Store user data, songs, and metadata
