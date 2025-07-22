@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## swaras-music-app
 
-## Getting Started
+A modern full-stack music streaming web application where users play their favorite tracks. Built with **Next.js 14 (App Router), NextAuth.js** for authentication, **MongoDB** for storage, and **Cloudinary** for file hosting. The app includes a special admin-only route where only the admin user can upload new songs, ensuring content control and moderation.
+ 
 
-First, run the development server:
+***Landing Page***
+
+![Landing Page](./public/LandingPage.png)
+
+---
+
+***Admin Page***
+
+![Adming page](./public/Admin.png)
+
+
+---
+### 🚀 Features
+
+* 🎧 **Music Playback** – Custom audio player with volume, progress, and seek controls
+* 🔐 **Authentication** – Secure login and logout with **NextAuth.js (email + password)**
+* ☁️ **Cloudinary Integration** – Upload songs and cover art with seamless storage
+* 🧠 **Metadata Extraction** – Automatically extract and store song title, artist, album, and artwork
+* 📂 **Playlist Management** – Create, manage, and add songs to personal playlists
+* 🖼️ **Cover Image Display** – Show album artwork on player
+* ⚙️ **Responsive UI** – TailwindCSS-based design with mobile-first responsiveness
+* 💾 **MongoDB Database** – Store user data, songs, and metadata
+* 🔄 **Context API** – Global audio state management using React Context
+* 📧 **Email Verification via Resend + Axios**
+
+---
+
+### 🛠️ Tech Stack
+
+* **Next.js (App Router)**
+* **NextAuth.js** (Credentials-based login)
+* **Cloudinary** (Song & image uploads)
+* **Resend** (Email sending API)
+* **Axios** (HTTP requests)
+* **Tailwind CSS** (Styling)
+* **MongoDB + Mongoose** (Database)
+* **bcryptjs** (Password hashing)
+* **react-hot-toast** (User notifications)
+* **react-email** (Email templating)
+
+---
+
+### ⚙️ Setup Instructions
+
+#### 1. **Clone the Repo**
+
+```bash
+git clone https://github.com/sutharrahul/swaras-music-app.git
+cd music-app
+```
+
+#### 2. **Install Dependencies**
+
+```bash
+npm install
+```
+
+#### 3. **Setup Environment Variables**
+
+Create a `.env.local` file in the root directory:
+
+```env
+# MongoDB
+MONGODB_URI=""
+
+# Resend Email
+RESEND_API_KEY=""
+
+# Next Auth
+NEXTAUTH_SECRET=""
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=""
+CLOUDINARY_API_KEY=""
+CLOUDINARY_API_SECRET=""
+CLOUDINARY_URL=""
+```
+
+#### 4. **Run the App**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🔍 How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### 🔐 Authentication (NextAuth.js)
 
-## Learn More
+* Credentials provider with email + password
+* Email verification handled via Resend API
+* Only developer can login since domain isn’t verified
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+#### 🎼 Music Upload & Playback
 
-## Deploy on Vercel
+* Uploads to Cloudinary
+* Metadata extracted and stored in MongoDB
+* Player uses `useRef`, `useEffect`, and global context
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+#### 📂 Playlist Management
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* Songs can be added to or removed from playlists
+* Each playlist is associated with a user and stored in MongoDB
+
+---
+
+
+### ✅ TODO / Future Features
+
+* ❤️ Liked songs
+* 🔍 Search functionality
+---
+
+### 👤 Author
+
+* **Your Name** – [GitHub](https://github.com/yourusername) • [LinkedIn](https://linkedin.com/in/yourusername)
+
+---
+
