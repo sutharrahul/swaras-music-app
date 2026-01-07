@@ -22,7 +22,6 @@ export default function MusicPlayer() {
   const {
     currentSong,
     songData,
-    playSong,
     isShuffled,
     toggleShuffle,
     repeatMode,
