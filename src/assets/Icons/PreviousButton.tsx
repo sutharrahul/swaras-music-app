@@ -1,12 +1,10 @@
-import React from "react";
+import React from 'react';
 
 type Prop = {
   className?: string;
 };
 
-export default function PreviousButton({
-  className,
-}: Prop) {
+export default function PreviousButton({ className }: Prop) {
   return (
     <svg
       className={className}

@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useParams, useRouter } from "next/navigation";
-import React, { useState } from "react";
-import toast from "react-hot-toast";
-import { LoaderCircle } from "lucide-react";
-import axios from "axios";
+import { useParams, useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import { LoaderCircle } from 'lucide-react';
+import axios from 'axios';
 
 export default function VerifyAccount() {
-  const [verifyCode, setVerifyCode] = useState<string>("");
+  const [verifyCode, setVerifyCode] = useState<string>('');
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const router = useRouter();
   const params = useParams<{ username: string }>();
@@ -17,22 +17,21 @@ export default function VerifyAccount() {
   const verifyAccount = async () => {
     setIsVerifying(true);
     try {
-      const { data } = await axios.post("/api/verify-code", {
+      const { data } = await axios.post('/api/verify-code', {
         username: params?.username,
         code: verifyCode,
       });
 
       if (data.success) {
-        toast.success("User Verified");
-        router.replace("/");
+        toast.success('User Verified');
+        router.replace('/');
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorMsg =
-          error.response?.data?.message || "Unable to verify user";
+        const errorMsg = error.response?.data?.message || 'Unable to verify user';
         toast.error(errorMsg);
       } else {
-        toast.error("Something went wrong");
+        toast.error('Something went wrong');
       }
     } finally {
       setIsVerifying(false);
@@ -55,7 +54,7 @@ export default function VerifyAccount() {
                 <input
                   type="text"
                   value={verifyCode}
-                  onChange={(e) => setVerifyCode(e.target.value)}
+                  onChange={e => setVerifyCode(e.target.value)}
                   className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   placeholder="XXXX"
                 />
@@ -71,7 +70,7 @@ export default function VerifyAccount() {
                     verifying...
                   </span>
                 ) : (
-                  "Verify"
+                  'Verify'
                 )}
               </button>
             </div>

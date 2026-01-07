@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import PlayList from "@/components/PlayList";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { useSong } from "@/context/SongContextProvider";
+import React from 'react';
+import PlayList from '@/components/PlayList';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
+import { useSong } from '@/context/SongContextProvider';
 
 export default function Home() {
   const { loading, songData, erroMessage } = useSong();

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface Song extends Document {
   songFile: string;
@@ -24,7 +24,6 @@ const songSchema: Schema<Song> = new Schema(
 );
 
 const SongModel =
-  (mongoose.models.Song as mongoose.Model<Song>) ||
-  mongoose.model("Song", songSchema);
+  (mongoose.models.Song as mongoose.Model<Song>) || mongoose.model('Song', songSchema);
 
 export default SongModel;

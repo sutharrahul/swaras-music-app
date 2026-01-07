@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
-import PlayList from "@/components/PlayList";
-import { useSong } from "@/context/SongContextProvider";
+import React from 'react';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
+import PlayList from '@/components/PlayList';
+import { useSong } from '@/context/SongContextProvider';
 
 export default function Playlist() {
   const { userPlaylist, loading } = useSong();

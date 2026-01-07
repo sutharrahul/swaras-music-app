@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import HomeIcon from "@/assets/Icons/HomeIcon";
-import LogoIcon from "@/assets/Icons/LogoIcon";
-import PlayListIcon from "@/assets/Icons/PlayListIcon";
-import { Menu, X, CloudUpload } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useState } from 'react';
+import Link from 'next/link';
+import HomeIcon from '@/assets/Icons/HomeIcon';
+import LogoIcon from '@/assets/Icons/LogoIcon';
+import PlayListIcon from '@/assets/Icons/PlayListIcon';
+import { Menu, X, CloudUpload } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,10 +15,10 @@ export default function Navbar() {
   return (
     <div>
       <button
-        onClick={() => setIsMenuOpen((prev) => !prev)}
+        onClick={() => setIsMenuOpen(prev => !prev)}
         className="absolute top-4 left-4 z-50 md:hidden text-white"
       >
-        {isMenuOpen ? "" : <Menu size={28} />}
+        {isMenuOpen ? '' : <Menu size={28} />}
       </button>
       {/* Sidebar */}
       <div
@@ -26,7 +26,7 @@ export default function Navbar() {
           fixed md:static top-0 left-0 h-full 
            px-6 py-10 w-[58%] md:w-64
           transform transition-transform duration-300 z-30 bg-[#141414]/80 backdrop-blur-sm
-          ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
+          ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0 md:flex
           flex-col text-white
         `}
@@ -34,10 +34,10 @@ export default function Navbar() {
         {/* Sidebar Content */}
         <div className="flex flex-col h-full">
           <button
-            onClick={() => setIsMenuOpen((prev) => !prev)}
+            onClick={() => setIsMenuOpen(prev => !prev)}
             className="absolute top-4 right-4 z-50 md:hidden text-white"
           >
-            {isMenuOpen ? <X size={28} /> : ""}
+            {isMenuOpen ? <X size={28} /> : ''}
           </button>
           <div className="flex flex-col gap-10">
             {/* Logo */}
@@ -57,8 +57,8 @@ export default function Navbar() {
 
             {/* Navigation Links */}
             <nav className="flex flex-col gap-6 text-sm md:text-base font-medium">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="flex items-center gap-3 hover:text-[#B40000] transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -73,16 +73,13 @@ export default function Navbar() {
                 <PlayListIcon />
                 <span>Playlists</span>
               </Link>
-              {session?.user?.role === "admin" && (
+              {session?.user?.role === 'admin' && (
                 <Link
                   href="/admin/upload-song"
                   className="flex items-center gap-3 hover:text-[#B40000] transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <CloudUpload
-                    className="text-[#B40000] w-6 h-6"
-                    strokeWidth={3}
-                  />
+                  <CloudUpload className="text-[#B40000] w-6 h-6" strokeWidth={3} />
                   <span>Upload Song</span>
                 </Link>
               )}

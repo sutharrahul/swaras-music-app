@@ -1,8 +1,8 @@
-import { ApiResponce } from "@/app/utils/ApiResponse";
-import dbConnect from "@/lib/dbConnection";
-import UserModel from "@/model/UserModel";
-import bcrypt from "bcryptjs";
-import { sendVerificationEmail } from "@/helper/sendVerificationEmail";
+import { ApiResponce } from '@/app/utils/ApiResponse';
+import dbConnect from '@/lib/dbConnection';
+import UserModel from '@/model/UserModel';
+import bcrypt from 'bcryptjs';
+import { sendVerificationEmail } from '@/helper/sendVerificationEmail';
 
 export async function POST(request: Request) {
   await dbConnect();
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     });
 
     if (existingUserdByUserName) {
-      return ApiResponce.error("User already exist ", 409);
+      return ApiResponce.error('User already exist ', 409);
     }
 
     const exisitingUserbyEmail = await UserModel.findOne({ email });
@@ -24,10 +24,7 @@ export async function POST(request: Request) {
 
     if (exisitingUserbyEmail) {
       if (exisitingUserbyEmail.isVerified) {
-        return ApiResponce.error(
-          "User already exist with email and Verified",
-          409
-        );
+        return ApiResponce.error('User already exist with email and Verified', 409);
       } else {
         const hashedPassword = await bcrypt.hash(password, 10);
         exisitingUserbyEmail.password = hashedPassword;
@@ -51,18 +48,14 @@ export async function POST(request: Request) {
       });
       await newUserSignUp.save();
     }
-    const emailResponse = await sendVerificationEmail(
-      email,
-      username,
-      verifyCode
-    );
+    const emailResponse = await sendVerificationEmail(email, username, verifyCode);
 
     if (!emailResponse.success) {
       return ApiResponce.error(emailResponse.message, 500);
     }
 
     return ApiResponce.success(
-      "User registered  successfully verification code send to your email",
+      'User registered  successfully verification code send to your email',
       {
         username,
         email,
@@ -70,7 +63,7 @@ export async function POST(request: Request) {
       201
     );
   } catch (error) {
-    console.error("Error during user sign-up:", error);
-    return ApiResponce.error("Error while sign-up user", 500);
+    console.error('Error during user sign-up:', error);
+    return ApiResponce.error('Error while sign-up user', 500);
   }
 }

@@ -1,10 +1,10 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface User extends Document {
   username: string;
   email: string;
   password: string;
-  role: "user" | "admin";
+  role: 'user' | 'admin';
   verifyCode: string;
   verifyCodeExpiry: Date;
   isVerified: boolean;
@@ -14,32 +14,32 @@ const userSchema: Schema<User> = new Schema(
   {
     username: {
       type: String,
-      required: [true, "User name is required"],
+      required: [true, 'User name is required'],
       unique: true,
       trim: true,
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: [true, 'Email is required'],
       unique: true,
-      match: [/.+\@.+\..+/, "please use avalid email address"],
+      match: [/.+\@.+\..+/, 'please use avalid email address'],
     },
     password: {
       type: String,
-      required: [true, "Password is required "],
+      required: [true, 'Password is required '],
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      enum: ['user', 'admin'],
+      default: 'user',
     },
     verifyCode: {
       type: String,
-      required: [true, "Verify code is required"],
+      required: [true, 'Verify code is required'],
     },
     verifyCodeExpiry: {
       type: Date,
-      required: [true, "Verify code expiry is required"],
+      required: [true, 'Verify code expiry is required'],
     },
     isVerified: {
       type: Boolean,
@@ -52,7 +52,6 @@ const userSchema: Schema<User> = new Schema(
 );
 
 const UserModel =
-  (mongoose.models.User as mongoose.Model<User>) ||
-  mongoose.model("User", userSchema);
+  (mongoose.models.User as mongoose.Model<User>) || mongoose.model('User', userSchema);
 
 export default UserModel;

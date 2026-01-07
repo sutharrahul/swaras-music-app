@@ -1,14 +1,8 @@
-"use client";
-import axios from "axios";
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { Song } from "@/model/SongModel";
-import { useSession } from "next-auth/react";
+'use client';
+import axios from 'axios';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { Song } from '@/model/SongModel';
+import { useSession } from 'next-auth/react';
 
 interface SongeType extends Song {
   _id: string;
@@ -49,7 +43,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
     async function getAllSongs() {
       setLoading(true);
       try {
-        const { data } = await axios.get("/api/get-songs");
+        const { data } = await axios.get('/api/get-songs');
 
         if (data.data.length === 0 || !data.data) {
           setErrorMessage(data.message);
@@ -61,7 +55,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
         }
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch songs", err);
+        console.error('Failed to fetch songs', err);
         setLoading(false);
         return [];
       }
@@ -75,24 +69,22 @@ export function SongProvider({ children }: { children: ReactNode }) {
     async function GetPlaylist() {
       setLoading(true);
       try {
-        const { data } = await axios.get(
-          `/api/get-playlist?userId=${session?.user?._id}`
-        );
+        const { data } = await axios.get(`/api/get-playlist?userId=${session?.user?._id}`);
         const playListSongs = data?.data?.playListSong;
         setUserPlaylist(playListSongs);
       } catch (error) {
-        console.error("Failed to fetch playlist", error);
+        console.error('Failed to fetch playlist', error);
       } finally {
         setLoading(false);
       }
     }
-    if (status === "authenticated" && session?.user?._id) {
+    if (status === 'authenticated' && session?.user?._id) {
       GetPlaylist();
     }
   }, [session?.user?._id, status, setUserPlaylist, setLoading]);
 
   const playSong = (songId: string) => {
-    const selectSong = songData.find((song) => song._id === songId);
+    const selectSong = songData.find(song => song._id === songId);
     if (selectSong) {
       setCurrentSong(selectSong);
     }
@@ -112,7 +104,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleRepeat = () => {
-    setRepeatMode((prev) => {
+    setRepeatMode(prev => {
       if (prev === 'off') return 'all';
       if (prev === 'all') return 'one';
       return 'off';
@@ -121,9 +113,9 @@ export function SongProvider({ children }: { children: ReactNode }) {
 
   const playNext = () => {
     if (!currentSong) return;
-    
-    const currentIndex = songData.findIndex((song) => song._id === currentSong._id);
-    
+
+    const currentIndex = songData.findIndex(song => song._id === currentSong._id);
+
     if (repeatMode === 'one') {
       // Replay the same song - trigger re-render by setting to null then back
       const currentSongRef = currentSong;
@@ -131,9 +123,9 @@ export function SongProvider({ children }: { children: ReactNode }) {
       setTimeout(() => setCurrentSong(currentSongRef), 0);
       return;
     }
-    
+
     const nextIndex = currentIndex + 1;
-    
+
     if (nextIndex < songData.length) {
       setCurrentSong(songData[nextIndex]);
     } else if (repeatMode === 'all') {
@@ -144,9 +136,9 @@ export function SongProvider({ children }: { children: ReactNode }) {
 
   const playPrevious = () => {
     if (!currentSong) return;
-    
-    const currentIndex = songData.findIndex((song) => song._id === currentSong._id);
-    
+
+    const currentIndex = songData.findIndex(song => song._id === currentSong._id);
+
     if (currentIndex > 0) {
       setCurrentSong(songData[currentIndex - 1]);
     } else if (repeatMode === 'all') {
@@ -179,7 +171,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
 
 export function useSong() {
   const context = useContext(SongContext);
-  if (!context) throw new Error("useSong must be used within a SongProvider");
+  if (!context) throw new Error('useSong must be used within a SongProvider');
 
   return context;
 }

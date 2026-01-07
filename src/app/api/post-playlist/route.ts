@@ -1,6 +1,6 @@
-import { ApiResponce } from "@/app/utils/ApiResponse";
-import dbConnect from "@/lib/dbConnection";
-import PlaylistModel from "@/model/PlaylistModel";
+import { ApiResponce } from '@/app/utils/ApiResponse';
+import dbConnect from '@/lib/dbConnection';
+import PlaylistModel from '@/model/PlaylistModel';
 
 export async function POST(request: Request) {
   dbConnect();
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
       const saveResponse = await savedUser.save();
 
-      return ApiResponce.success("User and Playlist add", saveResponse, 200);
+      return ApiResponce.success('User and Playlist add', saveResponse, 200);
     }
 
     const songInPlaylist = await PlaylistModel.findOne({
@@ -25,15 +25,15 @@ export async function POST(request: Request) {
       playListSong: songId,
     });
     if (songInPlaylist) {
-      return ApiResponce.error("Song is already exist in playlist", 409);
+      return ApiResponce.error('Song is already exist in playlist', 409);
     }
 
     user?.playListSong.push(songId);
     const saveResponse = await user.save();
 
-    return ApiResponce.success("Song add to playlist", saveResponse, 200);
+    return ApiResponce.success('Song add to playlist', saveResponse, 200);
   } catch (error) {
-    console.error("Error adding song to playlist:", error);
-    return ApiResponce.error("Faild add song to playlist", 500);
+    console.error('Error adding song to playlist:', error);
+    return ApiResponce.error('Faild add song to playlist', 500);
   }
 }

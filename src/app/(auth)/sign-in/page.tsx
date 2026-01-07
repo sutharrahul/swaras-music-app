@@ -1,38 +1,38 @@
-"use client";
+'use client';
 
-import { Eye, EyeOff } from "lucide-react";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
-import toast from "react-hot-toast";
-import { LoaderCircle } from "lucide-react";
+import { Eye, EyeOff } from 'lucide-react';
+import { signIn } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
+import { LoaderCircle } from 'lucide-react';
 
 export default function SignIn() {
   const [emailOrUsername, setEmailOrUsername] = useState<string>();
   const [password, setPassword] = useState<string>();
-  const [seePassword, setSeePassword] = useState("password");
+  const [seePassword, setSeePassword] = useState('password');
   const [isSignin, setIsSignin] = useState<boolean>(false);
   const router = useRouter();
 
   const handleSignIn = async () => {
     setIsSignin(true);
     try {
-      const result = await signIn("credentials", {
+      const result = await signIn('credentials', {
         identifier: emailOrUsername,
         password: password,
       });
 
-      console.log("show result ", result);
+      console.log('show result ', result);
 
       if (result?.error) {
-        toast.error("Invalid Id and Password");
+        toast.error('Invalid Id and Password');
       }
       if (result?.url) {
-        router.replace("/");
+        router.replace('/');
       }
     } catch (error: any) {
-      toast.error("Somthing went wrong", error);
+      toast.error('Somthing went wrong', error);
     } finally {
       setIsSignin(false);
     }
@@ -40,10 +40,10 @@ export default function SignIn() {
 
   const passwordVisible = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (seePassword === "password") {
-      setSeePassword("text");
+    if (seePassword === 'password') {
+      setSeePassword('text');
     } else {
-      setSeePassword("password");
+      setSeePassword('password');
     }
   };
 
@@ -63,26 +63,24 @@ export default function SignIn() {
                 <input
                   type="text"
                   value={emailOrUsername}
-                  onChange={(e) => setEmailOrUsername(e.target.value)}
+                  onChange={e => setEmailOrUsername(e.target.value)}
                   className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   placeholder="username or email"
                 />
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-white ">
-                  Password
-                </label>
+                <label className="block mb-2 text-sm font-medium text-white ">Password</label>
                 <div className="flex items-center relative">
                   <input
                     type={seePassword}
                     id="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   />
                   <span className="absolute right-2" onClick={passwordVisible}>
-                    {seePassword === "password" ? <Eye /> : <EyeOff />}
+                    {seePassword === 'password' ? <Eye /> : <EyeOff />}
                   </span>
                 </div>
               </div>
@@ -96,16 +94,13 @@ export default function SignIn() {
                     Sing In...
                   </span>
                 ) : (
-                  "Sing in"
+                  'Sing in'
                 )}
               </button>
               <p className="text-sm font-light text-white">
                 Don&rsquo;t have an account yet?
-                <Link
-                  href="/sign-up"
-                  className="font-medium text-[#B40000] hover:underline"
-                >
-                  {" "}
+                <Link href="/sign-up" className="font-medium text-[#B40000] hover:underline">
+                  {' '}
                   Sign-up
                 </Link>
               </p>

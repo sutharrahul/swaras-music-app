@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface Playlist extends Document {
   playlistUser: Schema.Types.ObjectId;
@@ -8,19 +8,19 @@ export interface Playlist extends Document {
 const playlistSchema: Schema<Playlist> = new Schema({
   playlistUser: {
     type: Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
   },
   playListSong: [
     {
       type: Schema.Types.ObjectId,
-      ref: "Song",
+      ref: 'Song',
     },
   ],
 });
 
 const PlaylistModel =
   (mongoose.models.Playlist as mongoose.Model<Playlist>) ||
-  mongoose.model("Playlist", playlistSchema);
+  mongoose.model('Playlist', playlistSchema);
 
 export default PlaylistModel;

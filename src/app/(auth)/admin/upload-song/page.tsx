@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LoaderCircle } from "lucide-react";
-import axios from "axios";
-import toast from "react-hot-toast";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
@@ -14,40 +14,40 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (status !== 'authenticated') return;
 
-    if (session?.user.role !== "admin") {
-      router.replace("/");
+    if (session?.user.role !== 'admin') {
+      router.replace('/');
     }
   }, [session, status, router]);
 
   const handleUpload = async () => {
     if (!uploadSong) {
-      toast.error("Please select a song first.");
+      toast.error('Please select a song first.');
       return;
     }
     setUploading(true);
     const formData = new FormData();
-    formData.append("file", uploadSong);
+    formData.append('file', uploadSong);
 
     try {
-      const { data } = await axios.post("/api/upload-song", formData);
+      const { data } = await axios.post('/api/upload-song', formData);
       if (data?.success) {
         toast.success(data?.message);
         setUploadSong(null);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || "Server error");
+        toast.error(error.response?.data?.message || 'Server error');
       } else {
-        toast.error("Something went wrong");
+        toast.error('Something went wrong');
       }
     } finally {
       setUploading(false);
     }
   };
 
-  if (status === "loading" || !session) {
+  if (status === 'loading' || !session) {
     return (
       <div className="h-screen flex items-center justify-center text-white">
         <LoaderCircle className="animate-spin w-6 h-6 mr-2" />
@@ -67,20 +67,15 @@ export default function AdminPage() {
               </h1>
               <div className="space-y-4 md:space-y-6 h-44">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-white">
-                    Upload file
-                  </label>
+                  <label className="block mb-2 text-sm font-medium text-white">Upload file</label>
                   <input
                     type="file"
-                    onChange={(e) => setUploadSong(e.target.files?.[0])}
+                    onChange={e => setUploadSong(e.target.files?.[0])}
                     className="text-sm font-light rounded-lg block w-full p-2.5 bg-[#262626] border-gray-600  placeholder:font- text-white placeholder:bg-[#262626] placeholder:font-light"
                   />
                   {uploadSong && (
                     <p className="mt-3 text-sm">
-                      Selected file:{" "}
-                      <span className="text-[#c50707] ">
-                        {uploadSong?.name}
-                      </span>
+                      Selected file: <span className="text-[#c50707] ">{uploadSong?.name}</span>
                     </p>
                   )}
                 </div>
@@ -96,7 +91,7 @@ export default function AdminPage() {
                       Uploading...
                     </span>
                   ) : (
-                    "Upload"
+                    'Upload'
                   )}
                 </button>
               </div>
