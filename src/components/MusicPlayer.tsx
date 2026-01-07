@@ -2,16 +2,17 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useSong } from "@/context/SongContextProvider";
 import NextButton from "@/assets/Icons/NextButton";
-import { Pause, Play, Volume, Volume1, Volume2, VolumeX } from "lucide-react";
+import { Pause, Play, Volume, Volume1, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart } from "lucide-react";
 import PreviousButton from "@/assets/Icons/PreviousButton";
 import { formatTime } from "@/app/utils/formatTime";
 import { truncateByLetters } from "@/app/utils/truncateByLetters";
 
 export default function MusicPlayer() {
-  const { currentSong, songData, playSong } = useSong();
+  const { currentSong, songData, playSong, isShuffled, toggleShuffle, repeatMode, toggleRepeat, playNext, playPrevious } = useSong();
   const [currectTime, setCurrectTime] = useState<number>(0);
   const [volume, setVolume] = useState(1);
-  const [isPlaying, setIsPlaying] = useState<boolean>();
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // play paush button
@@ -58,6 +59,49 @@ export default function MusicPlayer() {
     }
   }, [volume]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Prevent shortcuts when typing in input fields
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case ' ':
+          e.preventDefault();
+          toggle();
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          nextSong();
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          previousSong();
+          break;
+        case 'm':
+          e.preventDefault();
+          mute();
+          break;
+        case 's':
+          e.preventDefault();
+          toggleShuffle();
+          break;
+        case 'r':
+          e.preventDefault();
+          toggleRepeat();
+          break;
+        case 'l':
+          e.preventDefault();
+          setIsFavorite(!isFavorite);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isPlaying, isFavorite]);
 
   const mute = () => {
     if (volume == 0) {
@@ -90,38 +134,22 @@ export default function MusicPlayer() {
 
   // play next song
   const nextSong = () => {
-    if (!currentSong) return;
-    const currentPlayingSong = songData.findIndex(
-      (song) => song?._id === currentSong?._id
-    );
-    const nextSong = songData[currentPlayingSong + 1];
-
-    if (nextSong) {
-      playSong(nextSong?._id);
-      setIsPlaying(true);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      setIsPlaying(false);
-    }
+    playNext();
+    setIsPlaying(true);
   };
 
-  // Play preivouse song
+  // Play previous song
   const previousSong = () => {
-    if (!currentSong) return;
-    const currentPlayingSongIndex = songData.findIndex(
-      (song) => song?._id === currentSong?._id
-    );
-
-    if (currentPlayingSongIndex === 0) return;
-
-    const playPreviousSong = songData[currentPlayingSongIndex - 1];
-
-    if (!playPreviousSong) return;
-
-    playSong(playPreviousSong?._id);
+    if (!currentSong || !audioRef.current) return;
+    
+    // If we're more than 3 seconds into the song, restart it
+    if (audioRef.current.currentTime > 3) {
+      audioRef.current.currentTime = 0;
+      return;
+    }
+    
+    playPrevious();
+    setIsPlaying(true);
   };
 
   // auto play next song
@@ -129,11 +157,20 @@ export default function MusicPlayer() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio?.addEventListener("ended", nextSong);
-    return () => {
-      audio?.removeEventListener("ended", nextSong);
+    const handleEnded = () => {
+      if (repeatMode === 'one') {
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        nextSong();
+      }
     };
-  }, [currentSong, songData, playSong]);
+
+    audio.addEventListener("ended", handleEnded);
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [currentSong, songData, repeatMode]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -164,41 +201,24 @@ export default function MusicPlayer() {
   return (
     <>
       {currentSong && (
-        <div className="absolute bottom-4  left-1/2 -translate-x-1/2 z-10">
-          <div className="flex flex-col w-[330px] md:w-[550px] items-center md:flex-row bg-[#141414]/90 gap-4 md:gap-16 py-8 px-5 md:py-3 md:px-8 rounded-3xl justify-center">
-            <audio
-              ref={audioRef}
-              src={currentSong?.songFile}
-              onLoadedMetadata={() => {
-                if (audioRef.current) {
-                  audioRef.current.volume = volume;
-                }
-              }}
-            />
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-b from-[#1a0000] to-[#0a0a0a] border-t border-[#B40000]/20">
+          <audio
+            ref={audioRef}
+            src={currentSong?.songFile}
+            onLoadedMetadata={() => {
+              if (audioRef.current) {
+                audioRef.current.volume = volume;
+              }
+            }}
+          />
 
-            {/* SongInfo */}
-            <div className="flex flex-col gap-3 justify-center items-center md:w-[40%]">
-              <span className="text-sm text-center">Now Playing</span>
-              <img
-                className="h-20 md:h-28 rounded-md"
-                src={currentSong?.coverImage}
-                alt={currentSong?.coverImage}
-              />
-              <div className="flex flex-col items-center">
-                <span className="text-sm ">
-                  {truncateByLetters(currentSong?.songName, 20)}
-                </span>
-                <div className="relative w-40 overflow-hidden">
-                  <span className="text-xs px-5 font-light animate-marquee">
-                    {currentSong.singerName.join(", ")}
-                  </span>
-                </div>
-              </div>
-            </div>
-            {/* Song play */}
-            <div className="flex flex-col justify-center gap-4 md:gap-8 md:w-[60%] w-full">
-              <div className="flex items-center gap-6 text-sm font-light">
-                <span>{formatTime(currectTime)}</span>
+          {/* Main Player Container */}
+          <div className="max-w-screen-2xl mx-auto px-4 py-3">
+            {/* Mobile Layout */}
+            <div className="flex flex-col gap-2 md:hidden">
+              {/* Progress Bar - Top on mobile */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-gray-400 min-w-[40px]">{formatTime(currectTime)}</span>
                 <input
                   ref={progressRef}
                   type="range"
@@ -209,43 +229,171 @@ export default function MusicPlayer() {
                     handleProgressBar(e);
                     updateSliderBackground(e.currentTarget);
                   }}
-                  className="music-range"
+                  className="music-range flex-1"
                 />
-                <span>{formatTime(currentSong?.duration)}</span>
+                <span className="text-gray-400 min-w-[40px]">{formatTime(currentSong?.duration)}</span>
               </div>
-              {/* Controls */}
-              <div className="flex justify-center gap-14 items-center w-full">
-                <PreviousButton
-                  className="h-5 cursor-pointer"
-                  onClick={previousSong}
+
+              {/* Song Info + Controls */}
+              <div className="flex items-center justify-between gap-3">
+                {/* Album Art + Info */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <img
+                    className="h-14 w-14 rounded-md object-cover flex-shrink-0"
+                    src={currentSong?.coverImage}
+                    alt={currentSong?.songName}
+                  />
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-sm font-medium truncate text-white">
+                      {truncateByLetters(currentSong?.songName, 25)}
+                    </span>
+                    <span className="text-xs text-gray-400 truncate">
+                      {currentSong.singerName.join(", ")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setIsFavorite(!isFavorite)}
+                    className="p-1 hover:scale-110 transition-transform"
+                  >
+                    <Heart
+                      className={`h-5 w-5 ${isFavorite ? 'fill-[#B40000] text-[#B40000]' : 'text-gray-400'}`}
+                    />
+                  </button>
+                  <button onClick={previousSong} className="p-1 hover:scale-110 transition-transform">
+                    <PreviousButton className="h-4 w-4 text-white" />
+                  </button>
+                  <button onClick={toggle} className="p-2 bg-gradient-to-r from-[#800000] to-[#B40000] rounded-full hover:scale-105 transition-transform">
+                    {isPlaying ? (
+                      <Pause className="h-5 w-5 text-white" fill="white" />
+                    ) : (
+                      <Play className="h-5 w-5 text-white" fill="white" />
+                    )}
+                  </button>
+                  <button onClick={nextSong} className="p-1 hover:scale-110 transition-transform">
+                    <NextButton className="h-4 w-4 text-white" />
+                  </button>
+                  <button
+                    onClick={toggleShuffle}
+                    className={`p-1 hover:scale-110 transition-transform ${isShuffled ? 'text-[#B40000]' : 'text-gray-400'}`}
+                  >
+                    <Shuffle className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden md:grid md:grid-cols-[1fr_2fr_1fr] md:gap-4 md:items-center">
+              {/* Left: Song Info */}
+              <div className="flex items-center gap-4 min-w-0">
+                <img
+                  className="h-16 w-16 rounded-md object-cover flex-shrink-0"
+                  src={currentSong?.coverImage}
+                  alt={currentSong?.songName}
                 />
-                {isPlaying ? (
-                  <Pause
-                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md cursor-pointer"
-                    onClick={toggle}
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-sm font-medium truncate text-white">
+                    {currentSong?.songName}
+                  </span>
+                  <span className="text-xs text-gray-400 truncate">
+                    {currentSong.singerName.join(", ")}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsFavorite(!isFavorite)}
+                  className="p-2 hover:scale-110 transition-transform flex-shrink-0"
+                >
+                  <Heart
+                    className={`h-5 w-5 ${isFavorite ? 'fill-[#B40000] text-[#B40000]' : 'text-gray-400'}`}
                   />
-                ) : (
-                  <Play
-                    className="bg-gradient-to-r from-[#800000] to-[#B40000] h-10 w-10 p-1 rounded-md cursor-pointer"
-                    onClick={toggle}
-                  />
-                )}
-                <button onClick={nextSong}>
-                  <NextButton className="h-5 cursor-pointer" />
                 </button>
               </div>
-              <div className="hidden md:flex md:items-center w-32 gap-3">
-                <div onClick={mute}>
-                  {volume >= 0.6 ? (
-                    <Volume2 />
-                  ) : volume >= 0.1 ? (
-                    <Volume1 />
-                  ) : volume >= 0.01 ? (
-                    <Volume />
-                  ) : (
-                    <VolumeX />
-                  )}
+
+              {/* Center: Controls + Progress */}
+              <div className="flex flex-col gap-2">
+                {/* Playback Controls */}
+                <div className="flex items-center justify-center gap-4">
+                  <button
+                    onClick={toggleShuffle}
+                    className={`p-2 hover:scale-110 transition-transform ${isShuffled ? 'text-[#B40000]' : 'text-gray-400'}`}
+                    title="Shuffle (S)"
+                  >
+                    <Shuffle className="h-4 w-4" />
+                  </button>
+                  <button 
+                    onClick={previousSong} 
+                    className="p-2 hover:scale-110 transition-transform"
+                    title="Previous (←)"
+                  >
+                    <PreviousButton className="h-5 w-5 text-gray-300" />
+                  </button>
+                  <button 
+                    onClick={toggle} 
+                    className="p-3 bg-gradient-to-r from-[#800000] to-[#B40000] rounded-full hover:scale-105 transition-transform"
+                    title="Play/Pause (Space)"
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-6 w-6 text-white" fill="white" />
+                    ) : (
+                      <Play className="h-6 w-6 text-white" fill="white" />
+                    )}
+                  </button>
+                  <button 
+                    onClick={nextSong} 
+                    className="p-2 hover:scale-110 transition-transform"
+                    title="Next (→)"
+                  >
+                    <NextButton className="h-5 w-5 text-gray-300" />
+                  </button>
+                  <button
+                    onClick={toggleRepeat}
+                    className={`p-2 hover:scale-110 transition-transform ${repeatMode !== 'off' ? 'text-[#B40000]' : 'text-gray-400'}`}
+                    title="Repeat (R)"
+                  >
+                    {repeatMode === 'one' ? (
+                      <Repeat1 className="h-4 w-4" />
+                    ) : (
+                      <Repeat className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
+
+                {/* Progress Bar */}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-400 min-w-[40px] text-right">{formatTime(currectTime)}</span>
+                  <input
+                    ref={progressRef}
+                    type="range"
+                    min="0"
+                    max={currentSong?.duration}
+                    value={currectTime}
+                    onChange={(e) => {
+                      handleProgressBar(e);
+                      updateSliderBackground(e.currentTarget);
+                    }}
+                    className="music-range flex-1"
+                  />
+                  <span className="text-gray-400 min-w-[40px]">{formatTime(currentSong?.duration)}</span>
+                </div>
+              </div>
+
+              {/* Right: Volume Control */}
+              <div className="flex items-center justify-end gap-3">
+                <button onClick={mute} className="p-2 hover:scale-110 transition-transform" title="Mute (M)">
+                  {volume >= 0.6 ? (
+                    <Volume2 className="h-5 w-5 text-gray-300" />
+                  ) : volume >= 0.1 ? (
+                    <Volume1 className="h-5 w-5 text-gray-300" />
+                  ) : volume >= 0.01 ? (
+                    <Volume className="h-5 w-5 text-gray-300" />
+                  ) : (
+                    <VolumeX className="h-5 w-5 text-gray-300" />
+                  )}
+                </button>
                 <input
                   ref={volumeRef}
                   type="range"
@@ -257,7 +405,7 @@ export default function MusicPlayer() {
                     handleVolumeBar(e);
                     updateSliderBackground(e.currentTarget);
                   }}
-                  className="flex-1 music-range"
+                  className="music-range w-24"
                 />
               </div>
             </div>

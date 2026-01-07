@@ -6,6 +6,7 @@ import { SongProvider } from "@/context/SongContextProvider";
 import { Toaster } from "react-hot-toast";
 import MusicPlayer from "@/components/MusicPlayer";
 import Navbar from "@/components/Navbar";
+import Header from "@/components/Header";
 
 
 
@@ -46,7 +47,8 @@ export default function RootLayout({
             />
             <Navbar />
             <div className="flex-1 h-full relative overflow-hidden bg-black">
-              <div className="h-full overflow-y-auto pr-2 pb-28">
+              <Header />
+              <div className="h-full overflow-y-auto pr-2 pb-28 pt-20">
                 {children}
               </div>
               <MusicPlayer />

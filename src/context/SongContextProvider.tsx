@@ -14,6 +14,8 @@ interface SongeType extends Song {
   _id: string;
 }
 
+type RepeatMode = 'off' | 'all' | 'one';
+
 type SongDataType = {
   songData: SongeType[];
   loading: boolean;
@@ -21,6 +23,12 @@ type SongDataType = {
   currentSong: SongeType | null;
   playSong: (songId: string) => void;
   userPlaylist: SongeType[];
+  isShuffled: boolean;
+  toggleShuffle: () => void;
+  repeatMode: RepeatMode;
+  toggleRepeat: () => void;
+  playNext: () => void;
+  playPrevious: () => void;
 };
 
 export const SongContext = createContext<SongDataType | undefined>(undefined);
@@ -31,6 +39,9 @@ export function SongProvider({ children }: { children: ReactNode }) {
   const [erroMessage, setErrorMessage] = useState<string | undefined>();
   const [loading, setLoading] = useState<boolean>(false);
   const [currentSong, setCurrentSong] = useState<SongeType | null>(null);
+  const [isShuffled, setIsShuffled] = useState<boolean>(false);
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
+  const [originalOrder, setOriginalOrder] = useState<SongeType[]>([]);
   const { data: session, status } = useSession();
 
   // get-all song
@@ -45,6 +56,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
           setSongData([]);
         } else {
           setSongData(data.data);
+          setOriginalOrder(data.data);
           setErrorMessage(undefined);
         }
         setLoading(false);
@@ -86,6 +98,63 @@ export function SongProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const toggleShuffle = () => {
+    if (!isShuffled) {
+      // Shuffle the songs
+      const shuffled = [...songData].sort(() => Math.random() - 0.5);
+      setSongData(shuffled);
+      setIsShuffled(true);
+    } else {
+      // Restore original order
+      setSongData(originalOrder);
+      setIsShuffled(false);
+    }
+  };
+
+  const toggleRepeat = () => {
+    setRepeatMode((prev) => {
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
+    });
+  };
+
+  const playNext = () => {
+    if (!currentSong) return;
+    
+    const currentIndex = songData.findIndex((song) => song._id === currentSong._id);
+    
+    if (repeatMode === 'one') {
+      // Replay the same song - trigger re-render by setting to null then back
+      const currentSongRef = currentSong;
+      setCurrentSong(null);
+      setTimeout(() => setCurrentSong(currentSongRef), 0);
+      return;
+    }
+    
+    const nextIndex = currentIndex + 1;
+    
+    if (nextIndex < songData.length) {
+      setCurrentSong(songData[nextIndex]);
+    } else if (repeatMode === 'all') {
+      // Loop back to the first song
+      setCurrentSong(songData[0]);
+    }
+  };
+
+  const playPrevious = () => {
+    if (!currentSong) return;
+    
+    const currentIndex = songData.findIndex((song) => song._id === currentSong._id);
+    
+    if (currentIndex > 0) {
+      setCurrentSong(songData[currentIndex - 1]);
+    } else if (repeatMode === 'all') {
+      // Loop to the last song
+      setCurrentSong(songData[songData.length - 1]);
+    }
+  };
+
   return (
     <SongContext.Provider
       value={{
@@ -95,6 +164,12 @@ export function SongProvider({ children }: { children: ReactNode }) {
         currentSong,
         playSong,
         userPlaylist,
+        isShuffled,
+        toggleShuffle,
+        repeatMode,
+        toggleRepeat,
+        playNext,
+        playPrevious,
       }}
     >
       {children}
