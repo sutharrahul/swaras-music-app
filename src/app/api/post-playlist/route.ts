@@ -1,39 +1,74 @@
 import { ApiResponce } from '@/app/utils/ApiResponse';
-import dbConnect from '@/lib/dbConnection';
-import PlaylistModel from '@/model/PlaylistModel';
+import prisma from '@/lib/prisma';
 
 export async function POST(request: Request) {
-  dbConnect();
   try {
-    const { userId, songId } = await request.json();
+    const { userId, playlistId, songId, playlistName } = await request.json();
 
-    const user = await PlaylistModel.findOne({ playlistUser: userId });
-
-    if (!user) {
-      const savedUser = new PlaylistModel({
-        playlistUser: userId,
-        playListSong: [songId],
+    // If playlistId is provided, add song to existing playlist
+    if (playlistId) {
+      // Check if song is already in playlist
+      const existingSong = await prisma.playlistSong.findFirst({
+        where: {
+          playlistId,
+          songId,
+        },
       });
 
-      const saveResponse = await savedUser.save();
+      if (existingSong) {
+        return ApiResponce.error('Song is already in this playlist', 409);
+      }
 
-      return ApiResponce.success('User and Playlist add', saveResponse, 200);
+      // Get the max position in the playlist
+      const maxPosition = await prisma.playlistSong.aggregate({
+        where: { playlistId },
+        _max: { position: true },
+      });
+
+      // Add song to playlist
+      const playlistSong = await prisma.playlistSong.create({
+        data: {
+          playlistId,
+          songId,
+          position: (maxPosition._max.position || 0) + 1,
+        },
+        include: {
+          song: true,
+          playlist: true,
+        },
+      });
+
+      return ApiResponce.success('Song added to playlist', playlistSong, 200);
     }
 
-    const songInPlaylist = await PlaylistModel.findOne({
-      playlistUser: userId,
-      playListSong: songId,
+    // If no playlistId, create new playlist with the song
+    if (!playlistName) {
+      return ApiResponce.error('Playlist name is required for new playlist', 400);
+    }
+
+    const newPlaylist = await prisma.playlist.create({
+      data: {
+        userId,
+        name: playlistName,
+        playlistSongs: {
+          create: {
+            songId,
+            position: 1,
+          },
+        },
+      },
+      include: {
+        playlistSongs: {
+          include: {
+            song: true,
+          },
+        },
+      },
     });
-    if (songInPlaylist) {
-      return ApiResponce.error('Song is already exist in playlist', 409);
-    }
 
-    user?.playListSong.push(songId);
-    const saveResponse = await user.save();
-
-    return ApiResponce.success('Song add to playlist', saveResponse, 200);
+    return ApiResponce.success('Playlist created and song added', newPlaylist, 201);
   } catch (error) {
     console.error('Error adding song to playlist:', error);
-    return ApiResponce.error('Faild add song to playlist', 500);
+    return ApiResponce.error('Failed to add song to playlist', 500);
   }
 }

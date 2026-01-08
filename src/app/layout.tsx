@@ -1,13 +1,12 @@
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
-import AuthProvider from '@/context/AuthProviders';
 import { SongProvider } from '@/context/SongContextProvider';
 import { Toaster } from 'react-hot-toast';
 import MusicPlayer from '@/components/MusicPlayer';
 import Navbar from '@/components/Navbar';
 import Header from '@/components/Header';
-
+import { ClerkProvider } from '@clerk/nextjs';
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
@@ -27,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full overflow-hidden">
-      <AuthProvider>
+      <ClerkProvider>
         <SongProvider>
           <body
             className={`${poppins.className}  antialiased flex bg-[#0E0E0E] h-full overflow-hidden`}
@@ -50,7 +49,7 @@ export default function RootLayout({
             </div>
           </body>
         </SongProvider>
-      </AuthProvider>
+      </ClerkProvider>
     </html>
   );
 }

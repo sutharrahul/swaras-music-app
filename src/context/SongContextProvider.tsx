@@ -1,11 +1,11 @@
 'use client';
 import axios from 'axios';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { Song } from '@/model/SongModel';
+import { Song } from '@/types/prisma';
 import { useSession } from 'next-auth/react';
 
 interface SongeType extends Song {
-  _id: string;
+  // Prisma uses 'id' instead of '_id'
 }
 
 type RepeatMode = 'off' | 'all' | 'one';
@@ -84,7 +84,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
   }, [session?.user?._id, status, setUserPlaylist, setLoading]);
 
   const playSong = (songId: string) => {
-    const selectSong = songData.find(song => song._id === songId);
+    const selectSong = songData.find(song => song.id === songId);
     if (selectSong) {
       setCurrentSong(selectSong);
     }
@@ -114,7 +114,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
   const playNext = () => {
     if (!currentSong) return;
 
-    const currentIndex = songData.findIndex(song => song._id === currentSong._id);
+    const currentIndex = songData.findIndex(song => song.id === currentSong.id);
 
     if (repeatMode === 'one') {
       // Replay the same song - trigger re-render by setting to null then back
@@ -137,7 +137,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
   const playPrevious = () => {
     if (!currentSong) return;
 
-    const currentIndex = songData.findIndex(song => song._id === currentSong._id);
+    const currentIndex = songData.findIndex(song => song.id === currentSong.id);
 
     if (currentIndex > 0) {
       setCurrentSong(songData[currentIndex - 1]);

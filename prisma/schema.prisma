@@ -1,15 +1,125 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SignupMethod {
+  EMAIL
+  GOOGLE
+}
+
+// Models
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  username        String?      @unique
+  firstName       String?
+  lastName        String?
+  role            UserRole     @default(USER)
+  status          UserStatus   @default(ACTIVE)
+  profileImageUrl String?      @map("profile_image_url")
+  vendorId        String?      @unique @map("vendor_id")
+  vendorName      String       @default("clerk") @map("vendor_name")
+  vendorData      Json?        @map("vendor_data")
+  signupMethod    SignupMethod @default(EMAIL) @map("signup_method")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  uploadedSongs   Song[]
+  playlists       Playlist[]
+  likes           Like[]
+
+  @@map("users")
+}
+
+model Song {
+  id              String   @id @default(uuid())
+  title           String
+  artist          String[] // Array of artist names
+  album           String?
+  composers       String[] // Array of composer names
+  duration        Int      // Duration in seconds
+  coverUrl        String   @map("cover_url")
+  audioUrl        String   @map("audio_url")
+  uploadedByUserId String  @map("uploaded_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  uploadedBy      User           @relation(fields: [uploadedByUserId], references: [id], onDelete: Cascade)
+  playlistSongs   PlaylistSong[]
+  likes           Like[]
+
+  @@index([uploadedByUserId])
+  @@map("songs")
+}
+
+model Playlist {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlistSongs PlaylistSong[]
+
+  @@index([userId])
+  @@map("playlists")
+}
+
+model PlaylistSong {
+  id         String   @id @default(uuid())
+  playlistId String   @map("playlist_id")
+  songId     String   @map("song_id")
+  position   Int?     // Optional ordering within playlist
+  addedAt    DateTime @default(now()) @map("added_at")
+
+  // Relations
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song     Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, songId]) // A song can only be added once per playlist
+  @@index([playlistId])
+  @@index([songId])
+  @@map("playlist_songs")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  songId    String   @map("song_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, songId]) // A user can only like a song once
+  @@index([userId])
+  @@index([songId])
+  @@map("likes")
 }

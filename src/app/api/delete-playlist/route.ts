@@ -1,37 +1,42 @@
 import { ApiResponce } from '@/app/utils/ApiResponse';
-import dbConnect from '@/lib/dbConnection';
-import PlaylistModel from '@/model/PlaylistModel';
+import prisma from '@/lib/prisma';
 
 export async function DELETE(request: Request) {
-  dbConnect();
   try {
-    const { userId, songId } = await request.json();
+    const { playlistId, songId, deletePlaylist } = await request.json();
 
-    if (!userId && !songId) {
-      return ApiResponce.error('User Id or Song Id missing ', 401);
+    if (!playlistId) {
+      return ApiResponce.error('Playlist ID is required', 400);
     }
 
-    const updatedPlaylist = await PlaylistModel.findOneAndUpdate(
-      {
-        playlistUser: userId,
-      },
-      {
-        $pull: {
-          playListSong: songId,
-        },
-      },
-      {
-        new: true,
-      }
-    );
+    // Delete entire playlist
+    if (deletePlaylist) {
+      const deletedPlaylist = await prisma.playlist.delete({
+        where: { id: playlistId },
+      });
 
-    if (!updatedPlaylist) {
-      return ApiResponce.error('Playlist not found', 401);
+      return ApiResponce.success('Playlist deleted successfully', deletedPlaylist, 200);
     }
 
-    return ApiResponce.success('Song removed', updatedPlaylist, 201);
+    // Remove song from playlist
+    if (!songId) {
+      return ApiResponce.error('Song ID is required to remove a song', 400);
+    }
+
+    const deletedSong = await prisma.playlistSong.deleteMany({
+      where: {
+        playlistId,
+        songId,
+      },
+    });
+
+    if (deletedSong.count === 0) {
+      return ApiResponce.error('Song not found in playlist', 404);
+    }
+
+    return ApiResponce.success('Song removed from playlist', { deletedCount: deletedSong.count }, 200);
   } catch (error) {
-    console.error('Error removing song from playlist:', error);
-    return ApiResponce.error('Faild remove song from playlist', 500);
+    console.error('Error deleting from playlist:', error);
+    return ApiResponce.error('Failed to delete from playlist', 500);
   }
 }

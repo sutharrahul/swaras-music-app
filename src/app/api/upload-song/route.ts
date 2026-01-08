@@ -1,28 +1,28 @@
 import { ApiResponce } from '@/app/utils/ApiResponse';
 import cloudinary from '@/lib/cloudinary';
-import dbConnect from '@/lib/dbConnection';
-import SongModel from '@/model/SongModel';
+import prisma from '@/lib/prisma';
 import { parseBuffer } from 'music-metadata';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/options';
-import UserModel from '@/model/UserModel';
 
 export async function POST(request: Request) {
-  await dbConnect();
-
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session || !session.user?.email) {
     return ApiResponce.error('Unauthorized: Please log in', 401);
   }
 
-  const user = await UserModel.findOne({ email: session.user.email });
-
-  if (!user || user.role !== 'admin') {
-    return ApiResponce.error('Only admins can upload songs', 403);
-  }
-
   try {
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, role: true },
+    });
+
+    if (!user || user.role !== 'ADMIN') {
+      return ApiResponce.error('Only admins can upload songs', 403);
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     if (!file) {
@@ -33,12 +33,21 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Extract metadata from file
-
     const metadata = await parseBuffer(buffer, 'audio/mpeg');
     const { title, artist, album, picture, composer } = metadata.common;
 
-    // Upload song file to Cloudinary
+    // Normalize composer to string array
+    let composerArray: string[] = ['Unknown Composer'];
+    if (composer) {
+      if (Array.isArray(composer)) {
+        // Flatten if it's a nested array
+        composerArray = composer.flat().filter((c): c is string => typeof c === 'string');
+      } else if (typeof composer === 'string') {
+        composerArray = [composer];
+      }
+    }
 
+    // Upload song file to Cloudinary
     const uploadSong = await new Promise<{
       secure_url: string;
       duration?: number;
@@ -76,17 +85,30 @@ export async function POST(request: Request) {
       coverImageUrl = uploadImage.secure_url;
     }
 
-    const song = new SongModel({
-      songFile: uploadSong.secure_url,
-      duration: uploadSong?.duration,
-      songName: title || 'Unknown Title',
-      singerName: artist ? [artist] : ['Unknown Artist'],
-      composersName: composer || 'Unknown composer',
-      albumName: album || '',
-      coverImage: coverImageUrl || '',
+    // Create song in database
+    const newSong = await prisma.song.create({
+      data: {
+        title: title || 'Unknown Title',
+        artist: artist ? [artist] : ['Unknown Artist'],
+        composers: composerArray,
+        album: album || null,
+        duration: Math.round(uploadSong?.duration || 0),
+        coverUrl: coverImageUrl || '',
+        audioUrl: uploadSong.secure_url,
+        uploadedByUserId: user.id,
+      },
+      include: {
+        uploadedBy: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
-
-    const newSong = await song.save();
 
     return ApiResponce.success('Song uploaded with metadata', newSong, 201);
   } catch (error) {
