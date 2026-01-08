@@ -10,10 +10,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "6.19",
     "@react-email/components": "^0.0.41",
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.1",
+    "dotenv": "^17.2.3",
     "lucide-react": "^0.511.0",
     "mongoose": "^8.14.2",
     "music-metadata": "^11.2.3",
@@ -31,12 +33,13 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.7",
     "@types/bcrypt": "^5.0.2",
-    "@types/node": "^20",
+    "@types/node": "^20.19.27",
     "@types/react": "19.2.7",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
     "prettier": "^3.7.4",
+    "prisma": "6.19",
     "tailwindcss": "^4.1.7",
     "typescript": "^5"
   }
