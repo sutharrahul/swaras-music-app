@@ -6,11 +6,9 @@ import HomeIcon from '@/assets/Icons/HomeIcon';
 import LogoIcon from '@/assets/Icons/LogoIcon';
 import PlayListIcon from '@/assets/Icons/PlayListIcon';
 import { Menu, X, CloudUpload } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: session } = useSession();
 
   return (
     <div>
@@ -65,24 +63,8 @@ export default function Navbar() {
                 <HomeIcon />
                 <span>Home</span>
               </Link>
-              <Link
-                href={`/${session?.user?.username}/playlist`}
-                className="flex items-center gap-3 hover:text-[#B40000] transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <PlayListIcon />
-                <span>Playlists</span>
-              </Link>
-              {session?.user?.role === 'admin' && (
-                <Link
-                  href="/admin/upload-song"
-                  className="flex items-center gap-3 hover:text-[#B40000] transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <CloudUpload className="text-[#B40000] w-6 h-6" strokeWidth={3} />
-                  <span>Upload Song</span>
-                </Link>
-              )}
+             
+              
             </nav>
           </div>
         </div>

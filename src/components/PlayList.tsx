@@ -6,7 +6,6 @@ import { useSong } from '@/context/SongContextProvider';
 import { formatTime } from '@/app/utils/formatTime';
 import { CirclePlus, Trash2 } from 'lucide-react';
 import axios from 'axios';
-import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
 type SongDataType = {
@@ -27,7 +26,6 @@ type PlayListProps = {
 
 export default function PlayList({ songData, dataType }: PlayListProps) {
   const { playSong, currentSong } = useSong();
-  const { data: session } = useSession();
 
   const addSongToPlaylist = async (e: MouseEvent<SVGSVGElement>, songId: string) => {
     e.stopPropagation();

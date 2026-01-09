@@ -2,7 +2,6 @@
 import axios from 'axios';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Song } from '@/types/prisma';
-import { useSession } from 'next-auth/react';
 
 interface SongeType extends Song {
   // Prisma uses 'id' instead of '_id'
@@ -36,7 +35,6 @@ export function SongProvider({ children }: { children: ReactNode }) {
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
   const [originalOrder, setOriginalOrder] = useState<SongeType[]>([]);
-  const { data: session, status } = useSession();
 
   // get-all song
   useEffect(() => {
@@ -65,23 +63,23 @@ export function SongProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // get-playlist
-  useEffect(() => {
-    async function GetPlaylist() {
-      setLoading(true);
-      try {
-        const { data } = await axios.get(`/api/get-playlist?userId=${session?.user?._id}`);
-        const playListSongs = data?.data?.playListSong;
-        setUserPlaylist(playListSongs);
-      } catch (error) {
-        console.error('Failed to fetch playlist', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (status === 'authenticated' && session?.user?._id) {
-      GetPlaylist();
-    }
-  }, [session?.user?._id, status, setUserPlaylist, setLoading]);
+  // useEffect(() => {
+  //   async function GetPlaylist() {
+  //     setLoading(true);
+  //     try {
+  //       const { data } = await axios.get(`/api/get-playlist?userId=${session?.user?._id}`);
+  //       const playListSongs = data?.data?.playListSong;
+  //       setUserPlaylist(playListSongs);
+  //     } catch (error) {
+  //       console.error('Failed to fetch playlist', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+  //   if (status === 'authenticated' && session?.user?._id) {
+  //     GetPlaylist();
+  //   }
+  // }, [session?.user?._id, status, setUserPlaylist, setLoading]);
 
   const playSong = (songId: string) => {
     const selectSong = songData.find(song => song.id === songId);
