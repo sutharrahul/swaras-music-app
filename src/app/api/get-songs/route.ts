@@ -1,4 +1,4 @@
-import { ApiResponce } from '@/app/utils/ApiResponse';
+import { ApiResponse } from '@/app/utils/ApiResponse';
 import prisma from '@/lib/prisma';
 
 export async function GET() {
@@ -9,7 +9,6 @@ export async function GET() {
           select: {
             id: true,
             email: true,
-            username: true,
             firstName: true,
             lastName: true,
           },
@@ -21,12 +20,12 @@ export async function GET() {
     });
 
     if (allSongs.length === 0) {
-      return ApiResponce.success('No songs available', [], 200);
+      return ApiResponse.success('No songs available', [], 200);
     }
 
-    return ApiResponce.success('All songs fetch successfully', allSongs, 200);
+    return ApiResponse.success('All songs fetch successfully', allSongs, 200);
   } catch (error) {
     console.error('Error fetching songs:', error);
-    return ApiResponce.error('Something went wrong while try to fetch songs', 500);
+    return ApiResponse.error('Something went wrong while try to fetch songs', 500);
   }
 }

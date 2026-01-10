@@ -1,4 +1,4 @@
-import { ApiResponce } from '@/app/utils/ApiResponse';
+import { ApiResponse } from '@/app/utils/ApiResponse';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: Request) {
@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { userId, songId } = await request.json();
 
     if (!userId || !songId) {
-      return ApiResponce.error('userId and songId are required', 400);
+      return ApiResponse.error('userId and songId are required', 400);
     }
 
     // Check if already liked
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     });
 
     if (existingLike) {
-      return ApiResponce.error('Song already liked', 409);
+      return ApiResponse.error('Song already liked', 409);
     }
 
     // Create like
@@ -34,10 +34,10 @@ export async function POST(request: Request) {
       },
     });
 
-    return ApiResponce.success('Song liked successfully', like, 201);
+    return ApiResponse.success('Song liked successfully', like, 201);
   } catch (error) {
     console.error('Error liking song:', error);
-    return ApiResponce.error('Failed to like song', 500);
+    return ApiResponse.error('Failed to like song', 500);
   }
 }
 
@@ -46,7 +46,7 @@ export async function DELETE(request: Request) {
     const { userId, songId } = await request.json();
 
     if (!userId || !songId) {
-      return ApiResponce.error('userId and songId are required', 400);
+      return ApiResponse.error('userId and songId are required', 400);
     }
 
     // Delete like
@@ -59,9 +59,9 @@ export async function DELETE(request: Request) {
       },
     });
 
-    return ApiResponce.success('Song unliked successfully', deletedLike, 200);
+    return ApiResponse.success('Song unliked successfully', deletedLike, 200);
   } catch (error) {
     console.error('Error unliking song:', error);
-    return ApiResponce.error('Failed to unlike song', 500);
+    return ApiResponse.error('Failed to unlike song', 500);
   }
 }

@@ -1,4 +1,4 @@
-import { ApiResponce } from '@/app/utils/ApiResponse';
+import { ApiResponse } from '@/app/utils/ApiResponse';
 import prisma from '@/lib/prisma';
 
 export async function GET(request: Request) {
@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const userId = searchParams.get('userId');
 
     if (!userId) {
-      return ApiResponce.error('userId is required', 400);
+      return ApiResponse.error('userId is required', 400);
     }
 
     // Get all liked songs for a user
@@ -20,7 +20,6 @@ export async function GET(request: Request) {
               select: {
                 id: true,
                 email: true,
-                username: true,
                 firstName: true,
                 lastName: true,
               },
@@ -34,12 +33,12 @@ export async function GET(request: Request) {
     });
 
     if (likedSongs.length === 0) {
-      return ApiResponce.success('No liked songs found', [], 200);
+      return ApiResponse.success('No liked songs found', [], 200);
     }
 
-    return ApiResponce.success('Liked songs fetched successfully', likedSongs, 200);
+    return ApiResponse.success('Liked songs fetched successfully', likedSongs, 200);
   } catch (error) {
     console.error('Error fetching liked songs:', error);
-    return ApiResponce.error('Failed to fetch liked songs', 500);
+    return ApiResponse.error('Failed to fetch liked songs', 500);
   }
 }

@@ -1,4 +1,4 @@
-import { ApiResponce } from '@/app/utils/ApiResponse';
+import { ApiResponse } from '@/app/utils/ApiResponse';
 import prisma from '@/lib/prisma';
 
 export async function DELETE(request: Request) {
@@ -6,7 +6,7 @@ export async function DELETE(request: Request) {
     const { playlistId, songId, deletePlaylist } = await request.json();
 
     if (!playlistId) {
-      return ApiResponce.error('Playlist ID is required', 400);
+      return ApiResponse.error('Playlist ID is required', 400);
     }
 
     // Delete entire playlist
@@ -15,12 +15,12 @@ export async function DELETE(request: Request) {
         where: { id: playlistId },
       });
 
-      return ApiResponce.success('Playlist deleted successfully', deletedPlaylist, 200);
+      return ApiResponse.success('Playlist deleted successfully', deletedPlaylist, 200);
     }
 
     // Remove song from playlist
     if (!songId) {
-      return ApiResponce.error('Song ID is required to remove a song', 400);
+      return ApiResponse.error('Song ID is required to remove a song', 400);
     }
 
     const deletedSong = await prisma.playlistSong.deleteMany({
@@ -31,12 +31,12 @@ export async function DELETE(request: Request) {
     });
 
     if (deletedSong.count === 0) {
-      return ApiResponce.error('Song not found in playlist', 404);
+      return ApiResponse.error('Song not found in playlist', 404);
     }
 
-    return ApiResponce.success('Song removed from playlist', { deletedCount: deletedSong.count }, 200);
+    return ApiResponse.success('Song removed from playlist', { deletedCount: deletedSong.count }, 200);
   } catch (error) {
     console.error('Error deleting from playlist:', error);
-    return ApiResponce.error('Failed to delete from playlist', 500);
+    return ApiResponse.error('Failed to delete from playlist', 500);
   }
 }

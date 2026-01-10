@@ -1,4 +1,4 @@
-import { ApiResponce } from '@/app/utils/ApiResponse';
+import { ApiResponse } from '@/app/utils/ApiResponse';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: Request) {
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       });
 
       if (existingSong) {
-        return ApiResponce.error('Song is already in this playlist', 409);
+        return ApiResponse.error('Song is already in this playlist', 409);
       }
 
       // Get the max position in the playlist
@@ -38,12 +38,12 @@ export async function POST(request: Request) {
         },
       });
 
-      return ApiResponce.success('Song added to playlist', playlistSong, 200);
+      return ApiResponse.success('Song added to playlist', playlistSong, 200);
     }
 
     // If no playlistId, create new playlist with the song
     if (!playlistName) {
-      return ApiResponce.error('Playlist name is required for new playlist', 400);
+      return ApiResponse.error('Playlist name is required for new playlist', 400);
     }
 
     const newPlaylist = await prisma.playlist.create({
@@ -66,9 +66,9 @@ export async function POST(request: Request) {
       },
     });
 
-    return ApiResponce.success('Playlist created and song added', newPlaylist, 201);
+    return ApiResponse.success('Playlist created and song added', newPlaylist, 201);
   } catch (error) {
     console.error('Error adding song to playlist:', error);
-    return ApiResponce.error('Failed to add song to playlist', 500);
+    return ApiResponse.error('Failed to add song to playlist', 500);
   }
 }

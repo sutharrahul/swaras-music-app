@@ -1,4 +1,4 @@
-import { ApiResponce } from '@/app/utils/ApiResponse';
+import { ApiResponse } from '@/app/utils/ApiResponse';
 import prisma from '@/lib/prisma';
 
 export async function GET(request: Request) {
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const playlistId = searchParams.get('playlistId');
 
     if (!userId && !playlistId) {
-      return ApiResponce.error('userId or playlistId is required', 400);
+      return ApiResponse.error('userId or playlistId is required', 400);
     }
 
     // Get specific playlist by ID
@@ -20,7 +20,6 @@ export async function GET(request: Request) {
             select: {
               id: true,
               email: true,
-              username: true,
               firstName: true,
               lastName: true,
             },
@@ -37,10 +36,10 @@ export async function GET(request: Request) {
       });
 
       if (!playlist) {
-        return ApiResponce.error('Playlist not found', 404);
+        return ApiResponse.error('Playlist not found', 404);
       }
 
-      return ApiResponce.success('Playlist fetched successfully', playlist, 200);
+      return ApiResponse.success('Playlist fetched successfully', playlist, 200);
     }
 
     // Get all playlists for a user
@@ -62,12 +61,12 @@ export async function GET(request: Request) {
     });
 
     if (userPlaylists.length === 0) {
-      return ApiResponce.success('No playlists found', [], 200);
+      return ApiResponse.success('No playlists found', [], 200);
     }
 
-    return ApiResponce.success('User playlists fetched successfully', userPlaylists, 200);
+    return ApiResponse.success('User playlists fetched successfully', userPlaylists, 200);
   } catch (error) {
     console.error('Error fetching playlists:', error);
-    return ApiResponce.error('Failed to fetch playlists', 500);
+    return ApiResponse.error('Failed to fetch playlists', 500);
   }
 }
