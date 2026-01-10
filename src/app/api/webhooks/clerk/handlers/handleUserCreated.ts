@@ -16,7 +16,6 @@ export default async function handleUserCreated(userData: any) {
     }
 
     const email = extractPrimaryEmail(userData);
-    const username = userData?.username || null;
     const firstName = userData?.first_name || null;
     const lastName = userData?.last_name || null;
     const profileImageUrl = userData?.profile_image_url || userData?.image_url || null;
@@ -52,7 +51,6 @@ export default async function handleUserCreated(userData: any) {
     const createUser = await prisma.user.create({
       data: {
         email: email,
-        username: username,
         firstName: firstName,
         lastName: lastName,
         profileImageUrl: profileImageUrl,

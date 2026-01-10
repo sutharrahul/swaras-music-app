@@ -6,7 +6,6 @@ import prisma from '@/lib/prisma';
    export default async function handleUpdateUser(userData: any) {
       try {
         const email = extractPrimaryEmail(userData);
-        const username = userData?.username || null;
         const firstName = userData?.first_name || null;
         const lastName = userData?.last_name || null;
         const profileImageUrl = userData?.profile_image_url || userData?.image_url || null;
@@ -44,7 +43,6 @@ import prisma from '@/lib/prisma';
           where: { vendorId: vendorId },
           data: {
             email: email,
-            username: username,
             firstName: firstName,
             lastName: lastName,
             profileImageUrl: profileImageUrl,
