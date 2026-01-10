@@ -6,10 +6,10 @@ import prisma from '@/lib/prisma';
    export default async function handleUpdateUser(userData: any) {
       try {
         const email = extractPrimaryEmail(userData);
-        const username = userData?.username || '';
-        const firstName = userData?.first_name || '';
-        const lastName = userData?.last_name || '';
-        const profileImageUrl = userData?.profile_image_url || userData?.image_url || '';
+        const username = userData?.username || null;
+        const firstName = userData?.first_name || null;
+        const lastName = userData?.last_name || null;
+        const profileImageUrl = userData?.profile_image_url || userData?.image_url || null;
         const vendorId = userData.id;
 
         // check if user exists
@@ -56,5 +56,6 @@ import prisma from '@/lib/prisma';
         return ApiResponse.success('User updated successfully', updateUser);
       } catch (error) {
         console.error('Error handling user.updated event:', error);
+        throw error;
       }
     };

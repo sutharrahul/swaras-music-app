@@ -16,10 +16,10 @@ export default async function handleUserCreated(userData: any) {
     }
 
     const email = extractPrimaryEmail(userData);
-    const username = userData?.username || '';
-    const firstName = userData?.first_name || '';
-    const lastName = userData?.last_name || '';
-    const profileImageUrl = userData?.profile_image_url || userData?.image_url || '';
+    const username = userData?.username || null;
+    const firstName = userData?.first_name || null;
+    const lastName = userData?.last_name || null;
+    const profileImageUrl = userData?.profile_image_url || userData?.image_url || null;
     const vendorId = userData.id;
 
     // Determine if this is an OAuth signup
@@ -72,5 +72,6 @@ export default async function handleUserCreated(userData: any) {
     return ApiResponse.success('User created successfully', createUser);
   } catch (error) {
     console.error('Error handling user.created event:', error);
+    throw error;
   }
 }
