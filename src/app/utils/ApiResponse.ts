@@ -1,4 +1,4 @@
-export class ApiResponce {
+export class ApiResponse {
   static success(message: string, data?: any, status: number = 200) {
     const responseBody: { success: boolean; message: string; data?: any } = {
       success: true,
