@@ -46,5 +46,4 @@ const getOauthProvider = (externalAccounts: any[]): string | null => {
   return providerMap[provider] || provider;
 };
 
-
 export { extractPrimaryEmail, isEmailVerified, getOauthProvider };

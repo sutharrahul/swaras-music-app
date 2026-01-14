@@ -53,7 +53,11 @@ export async function DELETE(request: Request) {
       return ApiResponse.error('Song not found in playlist', 404);
     }
 
-    return ApiResponse.success('Song removed from playlist successfully', { deletedCount: deletedSong.count }, 200);
+    return ApiResponse.success(
+      'Song removed from playlist successfully',
+      { deletedCount: deletedSong.count },
+      200
+    );
   } catch (error) {
     console.error('Error removing song from playlist:', error);
     return ApiResponse.error('Failed to remove song from playlist', 500);

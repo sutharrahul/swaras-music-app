@@ -7,6 +7,7 @@ import MusicPlayer from '@/components/MusicPlayer';
 import Navbar from '@/components/Navbar';
 import Header from '@/components/Header';
 import { ClerkProvider } from '@clerk/nextjs';
+import { Providers } from '@/components/Providers';
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
@@ -27,28 +28,30 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full overflow-hidden">
       <ClerkProvider>
-        <SongProvider>
-          <body
-            className={`${poppins.className}  antialiased flex bg-[#0E0E0E] h-full overflow-hidden`}
-          >
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                style: {
-                  background: '#1f1f1f',
-                  color: '#fff',
-                },
-              }}
-              reverseOrder={false}
-            />
-            <Navbar />
-            <div className="flex-1 h-full relative overflow-hidden bg-black">
-              <Header />
-              <div className="h-full overflow-y-auto pr-2 pb-28 pt-20">{children}</div>
-              <MusicPlayer />
-            </div>
-          </body>
-        </SongProvider>
+        <Providers>
+          <SongProvider>
+            <body
+              className={`${poppins.className}  antialiased flex bg-[#0E0E0E] h-full overflow-hidden`}
+            >
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    background: '#1f1f1f',
+                    color: '#fff',
+                  },
+                }}
+                reverseOrder={false}
+              />
+              <Navbar />
+              <div className="flex-1 h-full relative overflow-hidden bg-black">
+                <Header />
+                <div className="h-full overflow-y-auto pr-2 pb-28 pt-20">{children}</div>
+                <MusicPlayer />
+              </div>
+            </body>
+          </SongProvider>
+        </Providers>
       </ClerkProvider>
     </html>
   );

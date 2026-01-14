@@ -2,7 +2,6 @@ import { ApiResponse } from '@/app/utils/ApiResponse';
 import { extractPrimaryEmail, getOauthProvider, isEmailVerified } from './clerkUserUtils';
 import prisma from '@/lib/prisma';
 
-
 export default async function handleUserCreated(userData: any) {
   try {
     // check if user already exists

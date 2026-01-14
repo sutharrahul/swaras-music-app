@@ -1,7 +1,13 @@
 // Type definitions for Prisma models
 // These types are generated from the Prisma schema
 
-import { Song as PrismaSong, User as PrismaUser, Playlist as PrismaPlaylist, Like as PrismaLike, PlaylistSong as PrismaPlaylistSong } from '../../generated/prisma';
+import {
+  Song as PrismaSong,
+  User as PrismaUser,
+  Playlist as PrismaPlaylist,
+  Like as PrismaLike,
+  PlaylistSong as PrismaPlaylistSong,
+} from '../../generated/prisma';
 
 // Export Prisma types
 export type Song = PrismaSong;

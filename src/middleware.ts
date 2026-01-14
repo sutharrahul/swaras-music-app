@@ -1,39 +1,51 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-// import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-// const isPublicRoute = createRouteMatcher(['/','/sign-in', '/sign-up', '/api/webhooks/clerk']);
+// Public routes - accessible to everyone (authenticated or not)
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/sign-in', 
+  '/sign-up', 
+  '/api/webhooks/clerk',
+  '/api/get-songs',
+  '/api/search'
+]);
 
+// Admin-only routes
+const isAdminRoute = createRouteMatcher([
+  '/admin(.*)',
+  '/api/upload-song',
+  '/api/admin(.*)'
+]);
 
-// // This is an ASYNC function
-// export default clerkMiddleware(async (auth, req) => {
-//   // 1. You MUST AWAIT the auth() call to get the auth state
-//   const { userId } = await auth(); // <-- This is the fix
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
 
-//   // 2. Logic for LOGGED-IN users
-//   if (userId) {
-//     // Redirect signed-in users away from sign-in and sign-up pages
-//     const isAuthRoute =
-//       req.nextUrl.pathname === '/sign-in' ||
-//       req.nextUrl.pathname === '/sign-up';
+  // Redirect logged-in users away from auth pages
+  if (userId) {
+    const isAuthRoute =
+      req.nextUrl.pathname === '/sign-in' ||
+      req.nextUrl.pathname === '/sign-up';
 
-//     if (isAuthRoute) {
-//       const dashboardUrl = new URL('/dashboard', req.url);
-//       return NextResponse.redirect(dashboardUrl);
-//     }
-//     // Allow signed-in users to visit home route ('/') and other routes
-//   }
+    if (isAuthRoute) {
+      const homeUrl = new URL('/', req.url);
+      return NextResponse.redirect(homeUrl);
+    }
+  }
 
-//   // 3. Logic for LOGGED-OUT users
-//   if (!isPublicRoute(req)) {
-//     // You also await auth.protect()
-//     await auth.protect();
-//   }
+  // Protect admin routes - require authentication and admin role
+  if (isAdminRoute(req)) {
+    await auth.protect();
+    // Note: Additional admin role check is done in the route handlers
+  }
 
-//   // 4. Allow other requests
-//   return NextResponse.next();
-// });
+  // Protect all other non-public routes
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
 
-export default clerkMiddleware();
+  return NextResponse.next();
+});
 
 
 export const config = {

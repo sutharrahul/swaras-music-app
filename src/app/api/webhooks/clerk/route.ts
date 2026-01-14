@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
     console.log('Received webhook request from Clerk', req);
     const event = await verifyWebhook(req);
 
-
     const { id } = event.data as any;
 
     const eventType = event.type;
@@ -18,7 +17,6 @@ export async function POST(req: NextRequest) {
     if (!id || !eventType) {
       return ApiResponse.error('Invalid webhook payload', 400);
     }
-
 
     // Handle different event types
 
@@ -36,8 +34,6 @@ export async function POST(req: NextRequest) {
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
-
-
 
     return ApiResponse.success('Webhook processed successfully');
   } catch (err) {

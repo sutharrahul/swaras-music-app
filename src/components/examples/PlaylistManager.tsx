@@ -1,6 +1,6 @@
 /**
  * Example Component: Playlist Manager
- * 
+ *
  * This component demonstrates how to use the TanStack Query hooks
  * for managing playlists in the Swaras Music App.
  */
@@ -31,7 +31,6 @@ export default function PlaylistManager() {
   // Mutations
   const {
     createPlaylistMutation,
-    addSongToPlaylistMutation,
     deletePlaylistMutation,
     removeSongFromPlaylistMutation,
   } = usePlaylistMutations();
@@ -104,16 +103,14 @@ export default function PlaylistManager() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Playlists List */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">
-            My Playlists ({playlists.length})
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">My Playlists ({playlists.length})</h2>
 
           {/* Create Playlist Form */}
           <div className="mb-4 p-4 bg-gray-100 rounded-lg">
             <input
               type="text"
               value={newPlaylistName}
-              onChange={(e) => setNewPlaylistName(e.target.value)}
+              onChange={e => setNewPlaylistName(e.target.value)}
               placeholder="New playlist name"
               className="w-full px-3 py-2 border rounded mb-2"
             />
@@ -144,7 +141,7 @@ export default function PlaylistManager() {
                     </p>
                   </div>
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       handleDeletePlaylist(playlist.id);
                     }}
@@ -167,9 +164,7 @@ export default function PlaylistManager() {
                 <div>Loading details...</div>
               ) : (
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">
-                    {playlistDetails?.data?.name}
-                  </h3>
+                  <h3 className="text-lg font-semibold">{playlistDetails?.data?.name}</h3>
                   <p className="text-sm text-gray-600 mb-4">
                     Created by: {playlistDetails?.data?.user?.firstName}{' '}
                     {playlistDetails?.data?.user?.lastName}
@@ -184,14 +179,10 @@ export default function PlaylistManager() {
                       >
                         <div>
                           <p className="font-medium">{ps.song.title}</p>
-                          <p className="text-xs text-gray-500">
-                            Position: {ps.position}
-                          </p>
+                          <p className="text-xs text-gray-500">Position: {ps.position}</p>
                         </div>
                         <button
-                          onClick={() =>
-                            handleRemoveSong(selectedPlaylistId, ps.song.id)
-                          }
+                          onClick={() => handleRemoveSong(selectedPlaylistId, ps.song.id)}
                           disabled={removeSongFromPlaylistMutation.isPending}
                           className="text-red-500 hover:text-red-700 text-sm"
                         >
@@ -204,9 +195,7 @@ export default function PlaylistManager() {
               )}
             </>
           ) : (
-            <div className="text-gray-500 text-center mt-10">
-              Select a playlist to view details
-            </div>
+            <div className="text-gray-500 text-center mt-10">Select a playlist to view details</div>
           )}
         </div>
       </div>

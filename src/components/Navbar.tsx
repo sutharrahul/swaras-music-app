@@ -5,7 +5,7 @@ import Link from 'next/link';
 import HomeIcon from '@/assets/Icons/HomeIcon';
 import LogoIcon from '@/assets/Icons/LogoIcon';
 import PlayListIcon from '@/assets/Icons/PlayListIcon';
-import { Menu, X, CloudUpload } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,8 +63,15 @@ export default function Navbar() {
                 <HomeIcon />
                 <span>Home</span>
               </Link>
-             
-              
+
+              <Link
+                href="/playlist"
+                className="flex items-center gap-3 hover:text-[#B40000] transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <PlayListIcon />
+                <span>My Playlists</span>
+              </Link>
             </nav>
           </div>
         </div>

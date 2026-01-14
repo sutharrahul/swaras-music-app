@@ -13,7 +13,7 @@ const successHandler = (response: AxiosResponse) => {
   const status = chalk.bgGreen(chalk.bold(response?.status));
   const data = JSON.stringify(response?.data, null, 4);
   let timeTaken = Infinity;
-  // @ts-expect-error
+  // @ts-expect-error - metadata is a custom property added to axios config for logging
   const metadata = config?.metadata;
   if (metadata?.startTime) {
     timeTaken = (+new Date() - metadata?.startTime) / 1000;
@@ -34,7 +34,7 @@ const errorHandler = async (error: AxiosError): Promise<AxiosError> => {
   const data = JSON.stringify(response?.data, null, 4);
 
   let timeTaken = Infinity;
-  // @ts-expect-error
+  // @ts-expect-error - metadata is a custom property added to axios config for logging
   const metadata = config?.metadata;
   if (metadata?.startTime) {
     timeTaken = (+new Date() - metadata?.startTime) / 1000;

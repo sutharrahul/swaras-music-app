@@ -41,12 +41,8 @@ export function usePlaylist(playlistId: string, enabled = true) {
 
 export function usePlaylistMutations() {
   const queryClient = useQueryClient();
-  const {
-    createPlaylist,
-    addSongToPlaylist,
-    deletePlaylist,
-    removeSongFromPlaylist,
-  } = usePlaylistApi();
+  const { createPlaylist, addSongToPlaylist, deletePlaylist, removeSongFromPlaylist } =
+    usePlaylistApi();
 
   /**
    * Create a new playlist
@@ -77,8 +73,7 @@ export function usePlaylistMutations() {
    * Delete a playlist
    */
   const deletePlaylistMutation = useMutation({
-    mutationFn: (data: { playlistId: string; userId: string }) =>
-      deletePlaylist(data.playlistId),
+    mutationFn: (data: { playlistId: string; userId: string }) => deletePlaylist(data.playlistId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: PLAYLIST_KEYS.user(variables.userId) });
       queryClient.invalidateQueries({
@@ -92,8 +87,7 @@ export function usePlaylistMutations() {
    * Remove a song from a playlist
    */
   const removeSongFromPlaylistMutation = useMutation({
-    mutationFn: (data: { playlistId: string; songId: string }) =>
-      removeSongFromPlaylist(data),
+    mutationFn: (data: { playlistId: string; songId: string }) => removeSongFromPlaylist(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: PLAYLIST_KEYS.detail(variables.playlistId),

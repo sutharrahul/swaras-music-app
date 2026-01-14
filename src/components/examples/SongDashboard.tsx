@@ -1,6 +1,6 @@
 /**
  * Example Component: Song Management Dashboard
- * 
+ *
  * This component demonstrates how to use the TanStack Query hooks
  * for managing songs in the Swaras Music App.
  */
@@ -78,7 +78,7 @@ export default function SongDashboard() {
             <input
               type="file"
               accept="audio/*"
-              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              onChange={e => setSelectedFile(e.target.files?.[0] || null)}
               className="flex-1"
             />
             <button
@@ -96,31 +96,22 @@ export default function SongDashboard() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">All Songs ({songs.length})</h2>
         {songs.map((song: any) => (
-          <div
-            key={song.id}
-            className="p-4 border rounded-lg flex justify-between items-center"
-          >
+          <div key={song.id} className="p-4 border rounded-lg flex justify-between items-center">
             <div>
               <h3 className="font-semibold">{song.title}</h3>
               <p className="text-sm text-gray-600">
                 {song.uploadedBy?.firstName} {song.uploadedBy?.lastName}
               </p>
-              <p className="text-xs text-gray-500">
-                {song._count?.likes || 0} likes
-              </p>
+              <p className="text-xs text-gray-500">{song._count?.likes || 0} likes</p>
             </div>
 
             {user && (
               <button
                 onClick={() => handleLikeToggle(song.id, false)} // You'd check if actually liked
-                disabled={
-                  likeSongMutation.isPending || unlikeSongMutation.isPending
-                }
+                disabled={likeSongMutation.isPending || unlikeSongMutation.isPending}
                 className="px-4 py-2 bg-pink-500 text-white rounded disabled:bg-gray-400"
               >
-                {likeSongMutation.isPending || unlikeSongMutation.isPending
-                  ? '...'
-                  : '♥ Like'}
+                {likeSongMutation.isPending || unlikeSongMutation.isPending ? '...' : '♥ Like'}
               </button>
             )}
           </div>

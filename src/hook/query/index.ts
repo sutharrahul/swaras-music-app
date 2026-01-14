@@ -4,12 +4,7 @@
  */
 
 // Song Queries
-export {
-  useSongs,
-  useLikedSongs,
-  useSongMutations,
-  SONG_KEYS,
-} from './useSongQueries';
+export { useSongs, useLikedSongs, useSongMutations, SONG_KEYS } from './useSongQueries';
 
 // Playlist Queries
 export {

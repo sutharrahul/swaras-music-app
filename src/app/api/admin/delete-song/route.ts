@@ -8,10 +8,10 @@ function extractPublicId(url: string): string | null {
     // Example URL: https://res.cloudinary.com/demo/video/upload/v1234567890/folder/sample.mp3
     const parts = url.split('/upload/');
     if (parts.length < 2) return null;
-    
+
     const pathParts = parts[1].split('/').slice(1); // Skip version (v1234567890)
     const publicId = pathParts.join('/').split('.')[0]; // Remove extension
-    
+
     return publicId || null;
   } catch (error) {
     console.error('Error extracting public_id:', error);
@@ -87,10 +87,14 @@ export async function DELETE(request: Request) {
       where: { id: songId },
     });
 
-    return ApiResponse.success('Song deleted successfully', {
-      id: deletedSong.id,
-      title: deletedSong.title,
-    }, 200);
+    return ApiResponse.success(
+      'Song deleted successfully',
+      {
+        id: deletedSong.id,
+        title: deletedSong.title,
+      },
+      200
+    );
   } catch (error) {
     console.error('Error deleting song:', error);
     return ApiResponse.error('Failed to delete song', 500);
