@@ -13,6 +13,11 @@ export async function GET() {
             lastName: true,
           },
         },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',

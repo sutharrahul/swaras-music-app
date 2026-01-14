@@ -4,8 +4,9 @@ import React, { MouseEvent } from 'react';
 import { truncateByLetters } from '@/app/utils/truncateByLetters';
 import { useSong } from '@/context/SongContextProvider';
 import { formatTime } from '@/app/utils/formatTime';
-import { CirclePlus, Trash2 } from 'lucide-react';
+import { CirclePlus, Trash2, Heart } from 'lucide-react';
 import axios from 'axios';
+import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
 type SongDataType = {
@@ -17,6 +18,9 @@ type SongDataType = {
   composersName: string[];
   albumName?: string;
   coverImage?: string;
+  _count?: {
+    likes: number;
+  };
 };
 
 type PlayListProps = {
@@ -26,6 +30,7 @@ type PlayListProps = {
 
 export default function PlayList({ songData, dataType }: PlayListProps) {
   const { playSong, currentSong } = useSong();
+  const { data: session } = useSession();
 
   const addSongToPlaylist = async (e: MouseEvent<SVGSVGElement>, songId: string) => {
     e.stopPropagation();
@@ -102,6 +107,14 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
                 {truncateByLetters(songData.singerName.join(' ,'), 35)}
               </p>
               <p className="text-gray-400 text-xs md:text-sm truncate">{songData.albumName}</p>
+            </div>
+
+            {/* Like Count */}
+            <div className="flex items-center gap-1 mx-2 md:mx-4">
+              <Heart className="h-3 w-3 md:h-4 md:w-4 text-[#B40000] fill-[#B40000]" />
+              <span className="text-gray-400 text-xs md:text-sm">
+                {songData._count?.likes || 0}
+              </span>
             </div>
 
             <span className="text-gray-400 text-sm mx-4 hidden md:inline">

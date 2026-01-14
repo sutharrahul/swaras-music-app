@@ -24,6 +24,11 @@ export async function GET(request: Request) {
                 lastName: true,
               },
             },
+            _count: {
+              select: {
+                likes: true,
+              },
+            },
           },
         },
       },

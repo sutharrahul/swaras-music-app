@@ -15,6 +15,9 @@ export type SongWithRelations = Song & {
   uploadedBy?: User;
   likes?: Like[];
   playlistSongs?: PlaylistSong[];
+  _count?: {
+    likes: number;
+  };
 };
 
 export type PlaylistWithRelations = Playlist & {

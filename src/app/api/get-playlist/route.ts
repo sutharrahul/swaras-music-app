@@ -26,7 +26,15 @@ export async function GET(request: Request) {
           },
           playlistSongs: {
             include: {
-              song: true,
+              song: {
+                include: {
+                  _count: {
+                    select: {
+                      likes: true,
+                    },
+                  },
+                },
+              },
             },
             orderBy: {
               position: 'asc',
@@ -48,7 +56,15 @@ export async function GET(request: Request) {
       include: {
         playlistSongs: {
           include: {
-            song: true,
+            song: {
+              include: {
+                _count: {
+                  select: {
+                    likes: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: {
             position: 'asc',

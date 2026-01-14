@@ -1,10 +1,10 @@
 'use client';
 import axios from 'axios';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { Song } from '@/types/prisma';
+import { SongWithRelations } from '@/types/prisma';
 
-interface SongeType extends Song {
-  // Prisma uses 'id' instead of '_id'
+interface SongeType extends SongWithRelations {
+  _id?: string; // For backward compatibility with MongoDB _id
 }
 
 type RepeatMode = 'off' | 'all' | 'one';

@@ -21,10 +21,10 @@ export async function DELETE(request: Request) {
       return ApiResponse.error('User not found', 404);
     }
 
-    const { playlistId } = await request.json();
+    const { playlistId, songId } = await request.json();
 
-    if (!playlistId) {
-      return ApiResponse.error('Playlist ID is required', 400);
+    if (!playlistId || !songId) {
+      return ApiResponse.error('Playlist ID and Song ID are required', 400);
     }
 
     // Verify playlist exists and belongs to the user
@@ -38,17 +38,24 @@ export async function DELETE(request: Request) {
     }
 
     if (playlist.userId !== user.id) {
-      return ApiResponse.error('Forbidden: You can only delete your own playlists', 403);
+      return ApiResponse.error('Forbidden: You can only modify your own playlists', 403);
     }
 
-    // Delete entire playlist (cascade will delete all playlistSongs)
-    const deletedPlaylist = await prisma.playlist.delete({
-      where: { id: playlistId },
+    // Remove song from playlist
+    const deletedSong = await prisma.playlistSong.deleteMany({
+      where: {
+        playlistId,
+        songId,
+      },
     });
 
-    return ApiResponse.success('Playlist deleted successfully', deletedPlaylist, 200);
+    if (deletedSong.count === 0) {
+      return ApiResponse.error('Song not found in playlist', 404);
+    }
+
+    return ApiResponse.success('Song removed from playlist successfully', { deletedCount: deletedSong.count }, 200);
   } catch (error) {
-    console.error('Error deleting playlist:', error);
-    return ApiResponse.error('Failed to delete playlist', 500);
+    console.error('Error removing song from playlist:', error);
+    return ApiResponse.error('Failed to remove song from playlist', 500);
   }
 }
