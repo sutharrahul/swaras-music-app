@@ -4,8 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Search, Music, List } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { useSong } from '@/context/SongContextProvider';
+import { useUser, UserButton } from '@clerk/nextjs';
+import Link from 'next/link';
 
 interface SearchResult {
   songs: Array<{
@@ -24,6 +27,7 @@ interface SearchResult {
 export default function Header() {
   const router = useRouter();
   const { playSong } = useSong();
+  const { isSignedIn } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -177,8 +181,36 @@ export default function Header() {
           )}
         </div>
 
-        {/* Right side - Placeholder for user actions */}
-        <div className="ml-4">{/* Future: User profile, notifications, etc. */}</div>
+        {/* Right side - User Actions */}
+        <div className="ml-4 flex items-center gap-3">
+          {isSignedIn ? (
+            <UserButton 
+              appearance={{
+                elements: {
+                  avatarBox: 'w-9 h-9'
+                }
+              }}
+            />
+          ) : (
+            <>
+              <Link href="/sign-in">
+                <Button 
+                  variant="ghost" 
+                  className="text-white hover:bg-[#262626] hover:text-white"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button 
+                  className="bg-[#B40000] hover:bg-[#8B0000] text-white"
+                >
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );
