@@ -2,7 +2,7 @@ import Axios, { AxiosError, AxiosResponse } from 'axios';
 import chalk from 'chalk';
 
 const axiosInstance = Axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+  // baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   timeout: 1000 * 60,
 });
 
