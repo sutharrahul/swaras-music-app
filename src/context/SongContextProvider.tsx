@@ -1,7 +1,7 @@
 'use client';
-import axios from 'axios';
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 import { SongWithRelations } from '@/types/prisma';
+import { useSongs } from '@/hook/query';
 
 interface SongeType extends SongWithRelations {
   _id?: string; // For backward compatibility with MongoDB _id
@@ -9,80 +9,40 @@ interface SongeType extends SongWithRelations {
 
 type RepeatMode = 'off' | 'all' | 'one';
 
-type SongDataType = {
-  songData: SongeType[];
-  loading: boolean;
-  erroMessage: string | undefined;
+type MusicPlayerContextType = {
+  // UI State (managed by context)
   currentSong: SongeType | null;
   playSong: (songId: string) => void;
-  userPlaylist: SongeType[];
   isShuffled: boolean;
   toggleShuffle: () => void;
   repeatMode: RepeatMode;
   toggleRepeat: () => void;
   playNext: () => void;
   playPrevious: () => void;
+  // Server State (from TanStack Query)
+  songData: SongeType[];
+  loading: boolean;
+  error: string | undefined;
 };
 
-export const SongContext = createContext<SongDataType | undefined>(undefined);
+export const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
 
-export function SongProvider({ children }: { children: ReactNode }) {
-  const [songData, setSongData] = useState<SongeType[]>([]);
-  const [userPlaylist, setUserPlaylist] = useState<SongeType[]>([]);
-  const [erroMessage, setErrorMessage] = useState<string | undefined>();
-  const [loading, setLoading] = useState<boolean>(false);
+export function MusicPlayerProvider({ children }: { children: ReactNode }) {
+  // ============== TanStack Query (Server State) ==============
+  const { data: songsResponse, isLoading, error } = useSongs();
+  const songData = songsResponse?.data || [];
+
+  // ============== UI State (Context) ==============
   const [currentSong, setCurrentSong] = useState<SongeType | null>(null);
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
-  const [originalOrder, setOriginalOrder] = useState<SongeType[]>([]);
+  const [shuffledSongs, setShuffledSongs] = useState<SongeType[]>([]);
 
-  // get-all song
-  useEffect(() => {
-    async function getAllSongs() {
-      setLoading(true);
-      try {
-        const { data } = await axios.get('/api/get-songs');
-
-        if (data.data.length === 0 || !data.data) {
-          setErrorMessage(data.message);
-          setSongData([]);
-        } else {
-          setSongData(data.data);
-          setOriginalOrder(data.data);
-          setErrorMessage(undefined);
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to fetch songs', err);
-        setLoading(false);
-        return [];
-      }
-    }
-
-    getAllSongs();
-  }, []);
-
-  // get-playlist
-  // useEffect(() => {
-  //   async function GetPlaylist() {
-  //     setLoading(true);
-  //     try {
-  //       const { data } = await axios.get(`/api/get-playlist?userId=${session?.user?._id}`);
-  //       const playListSongs = data?.data?.playListSong;
-  //       setUserPlaylist(playListSongs);
-  //     } catch (error) {
-  //       console.error('Failed to fetch playlist', error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  //   if (status === 'authenticated' && session?.user?._id) {
-  //     GetPlaylist();
-  //   }
-  // }, [session?.user?._id, status, setUserPlaylist, setLoading]);
+  // Get the current playlist (shuffled or original)
+  const currentPlaylist = isShuffled ? shuffledSongs : songData;
 
   const playSong = (songId: string) => {
-    const selectSong = songData.find(song => song.id === songId);
+    const selectSong = currentPlaylist.find((song: SongeType) => song.id === songId);
     if (selectSong) {
       setCurrentSong(selectSong);
     }
@@ -92,11 +52,10 @@ export function SongProvider({ children }: { children: ReactNode }) {
     if (!isShuffled) {
       // Shuffle the songs
       const shuffled = [...songData].sort(() => Math.random() - 0.5);
-      setSongData(shuffled);
+      setShuffledSongs(shuffled);
       setIsShuffled(true);
     } else {
       // Restore original order
-      setSongData(originalOrder);
       setIsShuffled(false);
     }
   };
@@ -112,7 +71,7 @@ export function SongProvider({ children }: { children: ReactNode }) {
   const playNext = () => {
     if (!currentSong) return;
 
-    const currentIndex = songData.findIndex(song => song.id === currentSong.id);
+    const currentIndex = currentPlaylist.findIndex((song: SongeType) => song.id === currentSong.id);
 
     if (repeatMode === 'one') {
       // Replay the same song - trigger re-render by setting to null then back
@@ -124,52 +83,62 @@ export function SongProvider({ children }: { children: ReactNode }) {
 
     const nextIndex = currentIndex + 1;
 
-    if (nextIndex < songData.length) {
-      setCurrentSong(songData[nextIndex]);
+    if (nextIndex < currentPlaylist.length) {
+      setCurrentSong(currentPlaylist[nextIndex]);
     } else if (repeatMode === 'all') {
       // Loop back to the first song
-      setCurrentSong(songData[0]);
+      setCurrentSong(currentPlaylist[0]);
     }
   };
 
   const playPrevious = () => {
     if (!currentSong) return;
 
-    const currentIndex = songData.findIndex(song => song.id === currentSong.id);
+    const currentIndex = currentPlaylist.findIndex((song: SongeType) => song.id === currentSong.id);
 
     if (currentIndex > 0) {
-      setCurrentSong(songData[currentIndex - 1]);
+      setCurrentSong(currentPlaylist[currentIndex - 1]);
     } else if (repeatMode === 'all') {
       // Loop to the last song
-      setCurrentSong(songData[songData.length - 1]);
+      setCurrentSong(currentPlaylist[currentPlaylist.length - 1]);
     }
   };
 
   return (
-    <SongContext.Provider
+    <MusicPlayerContext.Provider
       value={{
-        loading,
-        songData,
-        erroMessage,
+        // UI State
         currentSong,
         playSong,
-        userPlaylist,
         isShuffled,
         toggleShuffle,
         repeatMode,
         toggleRepeat,
         playNext,
         playPrevious,
+        // Server State (from TanStack Query)
+        songData,
+        loading: isLoading,
+        error: error?.message,
       }}
     >
       {children}
-    </SongContext.Provider>
+    </MusicPlayerContext.Provider>
   );
 }
 
-export function useSong() {
-  const context = useContext(SongContext);
-  if (!context) throw new Error('useSong must be used within a SongProvider');
-
+// Hook to use the music player context
+export function useMusicPlayer() {
+  const context = useContext(MusicPlayerContext);
+  if (!context) throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');
   return context;
 }
+
+// Backward compatibility - keep old hook name
+export function useSong() {
+  return useMusicPlayer();
+}
+
+// Re-export provider with old name for backward compatibility
+export const SongProvider = MusicPlayerProvider;
+export const SongContext = MusicPlayerContext;
