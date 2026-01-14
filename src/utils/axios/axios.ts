@@ -6,7 +6,7 @@ const axiosInstance = Axios.create({
   timeout: 1000 * 60,
 });
 
-const successHandler = response => {
+const successHandler = (response: AxiosResponse) => {
   const config = response?.config;
   const method = chalk.green(chalk.bold(config.method?.toUpperCase()));
   const url = chalk.green(chalk.italic(config.baseURL?.toLowerCase(), config.url));
@@ -25,7 +25,7 @@ const successHandler = response => {
   return response;
 };
 
-const errorHandler = async error => {
+const errorHandler = async (error: AxiosError): Promise<AxiosError> => {
   const response = error?.response;
   const config = error?.response?.config;
   const method = chalk.green(chalk.bold(config?.method?.toUpperCase()));
@@ -48,7 +48,7 @@ const errorHandler = async error => {
   return Promise.reject(error);
 };
 
-const requestHandler = config => {
+const requestHandler = (config: any) => {
   config.metadata = { startTime: new Date() };
 
   const method = chalk.green(chalk.bold(config.method?.toUpperCase()));
@@ -66,12 +66,12 @@ const requestHandler = config => {
 };
 
 axiosInstance.interceptors.response.use(
-  response => successHandler(response),
-  error => errorHandler(error)
+  (response: AxiosResponse) => successHandler(response),
+  (error: AxiosError) => errorHandler(error)
 );
 
 axiosInstance.interceptors.request.use(
-  config => requestHandler(config),
+  (config: any) => requestHandler(config),
   error => Promise.reject(error)
 );
 
