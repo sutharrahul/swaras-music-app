@@ -16,3 +16,6 @@ export {
 
 // Admin Queries
 export { useAdminMutations } from './useAdminQueries';
+
+// User Queries
+export { useUserQueries } from './useUserQueries';

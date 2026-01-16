@@ -2,13 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Music, List } from 'lucide-react';
+import { Search, Music, List, Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { useSong } from '@/context/SongContextProvider';
 import { useUser, UserButton } from '@clerk/nextjs';
-import Link from 'next/link';
+import Auth from './Auth';
+import { useUserQueries } from '@/hook/query';
 
 interface SearchResult {
   songs: Array<{
@@ -28,6 +28,10 @@ export default function Header() {
   const router = useRouter();
   const { playSong } = useSong();
   const { isSignedIn } = useUser();
+  const { useCheckAdmin } = useUserQueries();
+  const { data: adminData } = useCheckAdmin();
+  const isAdmin = adminData?.data?.isAdmin || false;
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -183,6 +187,16 @@ export default function Header() {
 
         {/* Right side - User Actions */}
         <div className="ml-4 flex items-center gap-3">
+          {isSignedIn && isAdmin && (
+            <button
+              onClick={() => router.push('/admin/upload-song')}
+              className="flex items-center gap-2 px-4 py-2 bg-[#B40000] hover:bg-[#900000] text-white rounded-lg transition-colors font-medium"
+            >
+              <Upload className="w-4 h-4" />
+              <span className="hidden sm:inline">Upload Songs</span>
+            </button>
+          )}
+          
           {isSignedIn ? (
             <UserButton 
               appearance={{
@@ -193,21 +207,7 @@ export default function Header() {
             />
           ) : (
             <>
-              <Link href="/sign-in">
-                <Button 
-                  variant="ghost" 
-                  className="text-white hover:bg-[#262626] hover:text-white"
-                >
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/sign-up">
-                <Button 
-                  className="bg-[#B40000] hover:bg-[#8B0000] text-white"
-                >
-                  Sign Up
-                </Button>
-              </Link>
+             <Auth/>
             </>
           )}
         </div>

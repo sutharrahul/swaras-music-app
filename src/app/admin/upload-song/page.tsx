@@ -3,9 +3,10 @@
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { LoaderCircle, Upload, CheckCircle, XCircle, Music } from 'lucide-react';
+import { LoaderCircle, Upload, CheckCircle, XCircle, Music, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useUserQueries } from '@/hook/query';
 
 interface JobStatus {
   id: string;
@@ -24,6 +25,8 @@ interface JobStatus {
 export default function AdminPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const { useCheckAdmin } = useUserQueries();
+  const { data: adminData, isLoading: isCheckingAdmin, error: adminError } = useCheckAdmin();
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [currentJob, setCurrentJob] = useState<JobStatus | null>(null);
@@ -35,8 +38,15 @@ export default function AdminPage() {
     // Redirect non-users
     if (!user) {
       router.replace('/sign-in');
+      return;
     }
-  }, [user, isLoaded, router]);
+
+    // Redirect non-admin users
+    if (adminData && !adminData.data?.isAdmin) {
+      toast.error('Access denied. Admin privileges required.');
+      router.replace('/');
+    }
+  }, [user, isLoaded, adminData, router]);
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -143,11 +153,44 @@ export default function AdminPage() {
     setSelectedFiles(files);
   };
 
-  if (!isLoaded || !user) {
+  if (!isLoaded || !user || isCheckingAdmin) {
     return (
       <div className="h-screen flex items-center justify-center text-white">
         <LoaderCircle className="animate-spin w-6 h-6 mr-2" />
         Loading admin access...
+      </div>
+    );
+  }
+
+  // Show error if admin check failed
+  if (adminError) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center text-white gap-4">
+        <AlertCircle className="w-12 h-12 text-red-500" />
+        <p className="text-xl">Failed to verify admin access</p>
+        <button
+          onClick={() => router.push('/')}
+          className="px-4 py-2 bg-[#B40000] rounded-lg hover:bg-[#900000] transition"
+        >
+          Go Home
+        </button>
+      </div>
+    );
+  }
+
+  // Show access denied if not admin
+  if (adminData && !adminData.data?.isAdmin) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center text-white gap-4">
+        <AlertCircle className="w-12 h-12 text-red-500" />
+        <p className="text-xl">Access Denied</p>
+        <p className="text-gray-400">You need admin privileges to access this page</p>
+        <button
+          onClick={() => router.push('/')}
+          className="px-4 py-2 bg-[#B40000] rounded-lg hover:bg-[#900000] transition"
+        >
+          Go Home
+        </button>
       </div>
     );
   }

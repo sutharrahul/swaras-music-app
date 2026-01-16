@@ -8,6 +8,7 @@ import { CirclePlus, Trash2, Heart } from 'lucide-react';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
 import toast from 'react-hot-toast';
+import { useUserQueries } from '@/hook/query';
 
 type SongDataType = {
   id: string;
@@ -31,10 +32,15 @@ type PlayListProps = {
 export default function PlayList({ songData, dataType }: PlayListProps) {
   const { playSong, currentSong } = useSong();
   const { user } = useUser();
+  const { useCheckAdmin } = useUserQueries();
+  const { data: adminData } = useCheckAdmin();
+  const isAdmin = adminData?.data?.isAdmin || false;
+  
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+  const [deletingSongId, setDeletingSongId] = useState<string | null>(null);
 
   const loadPlaylists = async () => {
     try {
@@ -110,6 +116,44 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
     }
   };
 
+  const deleteSongPermanently = async (e: MouseEvent<SVGSVGElement>, songId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (!isAdmin) {
+      toast.error('Admin privileges required');
+      return;
+    }
+
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to permanently delete this song? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeletingSongId(songId);
+      const userId = adminData?.data?.userId;
+
+      const { data } = await axios.delete('/api/admin/delete-song', {
+        data: { songId, userId },
+      });
+
+      if (data.success) {
+        toast.success('Song deleted successfully');
+        window.location.reload(); // Reload to update the list
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMsg = error.response?.data?.message || 'Failed to delete song';
+        toast.error(errorMsg);
+      } else {
+        toast.error('Something went wrong');
+      }
+    } finally {
+      setDeletingSongId(null);
+    }
+  };
+
   return (
     <>
       <ul className="space-y-1 px-2 md:px-8">
@@ -160,21 +204,38 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
             </div>
 
             {/* Action Icon */}
-            <div>
+            <div className="flex items-center gap-2">
               {dataType === 'allsong' ? (
-                <div className="relative group">
-                  <div className="absolute bottom-full bg-[#141414] mb-2 left-1/2 -translate-x-1/2 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                    Add to playlist
+                <>
+                  <div className="relative group">
+                    <div className="absolute bottom-full bg-[#141414] mb-2 left-1/2 -translate-x-1/2 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                      Add to playlist
+                    </div>
+                    <CirclePlus
+                      onClick={e => addSongToPlaylist(e, song.id)}
+                      className="h-5 w-5 md:h-7 md:w-7 text-gray-300 hover:text-white cursor-pointer"
+                    />
                   </div>
-                  <CirclePlus
-                    onClick={e => addSongToPlaylist(e, song.id)}
-                    className="h-5 w-5 md:h-7 md:w-7 ml-4 text-gray-300 hover:text-white cursor-pointer"
-                  />
-                </div>
+                  
+                  {/* Admin Delete Button */}
+                  {isAdmin && (
+                    <div className="relative group">
+                      <div className="absolute bottom-full bg-[#141414] mb-2 left-1/2 -translate-x-1/2 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        Delete song (Admin)
+                      </div>
+                      <Trash2
+                        onClick={e => deleteSongPermanently(e, song.id)}
+                        className={`h-5 w-5 md:h-6 md:w-6 text-red-500 hover:text-red-600 cursor-pointer ${
+                          deletingSongId === song.id ? 'opacity-50 cursor-wait' : ''
+                        }`}
+                      />
+                    </div>
+                  )}
+                </>
               ) : (
                 <Trash2
                   onClick={e => removeSongFromPlaylist(e, song.id)}
-                  className="h-4 w-4 md:h-7 md:w-7 ml-4 text-[#B40000] hover:text-red-600 cursor-pointer"
+                  className="h-4 w-4 md:h-7 md:w-7 text-[#B40000] hover:text-red-600 cursor-pointer"
                 />
               )}
             </div>

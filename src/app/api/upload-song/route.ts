@@ -99,12 +99,16 @@ async function processUploadJob(jobId: string, files: File[], userId: string) {
     const fileName = file.name;
 
     try {
+      console.log(`[Job ${jobId}] Processing file ${i + 1}/${files.length}: ${fileName}`);
+      
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
       // Extract metadata from file
       const metadata = await parseBuffer(buffer, file.type);
       const { title, artist, album, picture, composer } = metadata.common;
+
+      console.log(`[Job ${jobId}] Metadata extracted for ${fileName}:`, { title, artist, album });
 
       // Normalize composer to string array
       let composerArray: string[] = ['Unknown Composer'];
@@ -183,13 +187,15 @@ async function processUploadJob(jobId: string, files: File[], userId: string) {
         },
       });
 
+      console.log(`[Job ${jobId}] Song created successfully: ${newSong.title} (ID: ${newSong.id})`);
+
       uploadQueue.addResult(jobId, {
         success: true,
         fileName,
         song: newSong,
       });
     } catch (error) {
-      console.error(`Error uploading ${fileName}:`, error);
+      console.error(`[Job ${jobId}] Error uploading ${fileName}:`, error);
       uploadQueue.addResult(jobId, {
         success: false,
         fileName,
@@ -198,6 +204,7 @@ async function processUploadJob(jobId: string, files: File[], userId: string) {
     }
   }
 
+  console.log(`[Job ${jobId}] All files processed. Marking as completed.`);
   uploadQueue.markCompleted(jobId);
 }
 

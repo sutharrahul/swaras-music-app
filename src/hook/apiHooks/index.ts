@@ -8,3 +8,4 @@ export { default as useSongApi } from './useSongApi';
 export { default as usePlaylistApi } from './usePlaylistApi';
 export { default as useAdminApi } from './useAdminApi';
 export { useGetSongApi } from './useGetSongApi';
+export { default as useUserApi } from './useUserApi';
