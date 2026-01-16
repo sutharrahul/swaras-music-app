@@ -7,7 +7,7 @@ import {
   Playlist as PrismaPlaylist,
   Like as PrismaLike,
   PlaylistSong as PrismaPlaylistSong,
-} from '../../generated/prisma';
+} from '@prisma/client';
 
 // Export Prisma types
 export type Song = PrismaSong;
