@@ -41,6 +41,9 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
   const [playlists, setPlaylists] = useState<any[]>([]);
   const [loadingPlaylists, setLoadingPlaylists] = useState(false);
   const [deletingSongId, setDeletingSongId] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [creatingPlaylist, setCreatingPlaylist] = useState(false);
 
   const loadPlaylists = async () => {
     try {
@@ -90,6 +93,37 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
       } else {
         toast.error('Something went wrong');
       }
+    }
+  };
+
+  const handleCreatePlaylist = async () => {
+    if (!newPlaylistName.trim()) {
+      toast.error('Please enter a playlist name');
+      return;
+    }
+
+    try {
+      setCreatingPlaylist(true);
+      const { data } = await axios.post('/api/playlists', {
+        name: newPlaylistName.trim(),
+      });
+
+      if (data.success) {
+        toast.success('Playlist created successfully');
+        setNewPlaylistName('');
+        setShowCreateForm(false);
+        // Reload playlists
+        loadPlaylists();
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMsg = error.response?.data?.message || 'Failed to create playlist';
+        toast.error(errorMsg);
+      } else {
+        toast.error('Something went wrong');
+      }
+    } finally {
+      setCreatingPlaylist(false);
     }
   };
 
@@ -175,9 +209,11 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
                   className="w-9 h-9 md:w-12 md:h-12 object-cover rounded"
                 />
               ) : (
-                <div className="w-9 h-9 md:w-12 md:h-12 bg-gradient-to-br from-[#800000] to-[#B40000] rounded flex items-center justify-center">
-                  <Heart className="w-4 h-4 text-white" />
-                </div>
+                <img
+                  src="/assets/songicon.png"
+                  alt={song.title}
+                  className="w-9 h-9 md:w-12 md:h-12 object-cover rounded"
+                />
               )}
 
               <div className="flex flex-col md:grid md:grid-cols-3 md:gap-5 md:flex-1">
@@ -247,7 +283,11 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
       {showPlaylistModal && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-          onClick={() => setShowPlaylistModal(false)}
+          onClick={() => {
+            setShowPlaylistModal(false);
+            setShowCreateForm(false);
+            setNewPlaylistName('');
+          }}
         >
           <div
             className="bg-[#1a1a1a] rounded-lg p-6 max-w-md w-full mx-4"
@@ -257,30 +297,80 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
 
             {loadingPlaylists ? (
               <p className="text-gray-400 text-center py-4">Loading playlists...</p>
-            ) : playlists.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">
-                No playlists found. Create one first!
-              </p>
             ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {playlists.map(playlist => (
+              <>
+                {/* Create New Playlist Form */}
+                {showCreateForm ? (
+                  <div className="mb-4 p-4 bg-[#262626] rounded-lg">
+                    <h4 className="text-white font-medium mb-3">Create New Playlist</h4>
+                    <input
+                      type="text"
+                      value={newPlaylistName}
+                      onChange={e => setNewPlaylistName(e.target.value)}
+                      placeholder="Playlist name"
+                      className="w-full px-3 py-2 bg-[#1a1a1a] text-white rounded-lg border border-gray-700 focus:border-[#B40000] focus:outline-none mb-3"
+                      disabled={creatingPlaylist}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCreatePlaylist}
+                        disabled={creatingPlaylist}
+                        className="flex-1 py-2 bg-[#B40000] hover:bg-[#900000] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {creatingPlaylist ? 'Creating...' : 'Create'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowCreateForm(false);
+                          setNewPlaylistName('');
+                        }}
+                        disabled={creatingPlaylist}
+                        className="flex-1 py-2 bg-[#333] hover:bg-[#444] text-white rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                   <button
-                    key={playlist.id}
-                    onClick={() => handleAddToPlaylist(playlist.id)}
-                    className="w-full text-left p-3 hover:bg-[#262626] rounded-lg transition-colors"
+                    onClick={() => setShowCreateForm(true)}
+                    className="w-full mb-4 py-3 bg-[#B40000] hover:bg-[#900000] text-white rounded-lg transition-colors font-medium"
                   >
-                    <p className="text-white font-medium">{playlist.name}</p>
-                    <p className="text-gray-400 text-sm">{playlist._count.playlistSongs} songs</p>
+                    + Create New Playlist
                   </button>
-                ))}
-              </div>
+                )}
+
+                {/* Existing Playlists */}
+                {playlists.length === 0 ? (
+                  <p className="text-gray-400 text-center py-4">
+                    No playlists yet. Create one above!
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {playlists.map(playlist => (
+                      <button
+                        key={playlist.id}
+                        onClick={() => handleAddToPlaylist(playlist.id)}
+                        className="w-full text-left p-3 hover:bg-[#262626] rounded-lg transition-colors"
+                      >
+                        <p className="text-white font-medium">{playlist.name}</p>
+                        <p className="text-gray-400 text-sm">{playlist._count.playlistSongs} songs</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             <button
-              onClick={() => setShowPlaylistModal(false)}
+              onClick={() => {
+                setShowPlaylistModal(false);
+                setShowCreateForm(false);
+                setNewPlaylistName('');
+              }}
               className="mt-4 w-full py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg transition-colors"
             >
-              Cancel
+              Close
             </button>
           </div>
         </div>

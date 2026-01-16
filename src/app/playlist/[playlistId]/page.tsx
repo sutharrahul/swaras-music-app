@@ -97,9 +97,6 @@ export default function PlaylistDetailPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">{playlist.name}</h1>
-            {playlist.description && (
-              <p className="text-gray-400 text-lg mb-2">{playlist.description}</p>
-            )}
             <p className="text-gray-500">
               {playlist.playlistSongs.length} song{playlist.playlistSongs.length !== 1 ? 's' : ''}
             </p>

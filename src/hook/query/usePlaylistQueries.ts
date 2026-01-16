@@ -20,6 +20,9 @@ export function useUserPlaylists(userId: string, enabled = true) {
     queryFn: () => getUserPlaylists(userId),
     enabled: enabled && !!userId,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes cache
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 }
 

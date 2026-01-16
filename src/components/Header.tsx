@@ -127,9 +127,11 @@ export default function Header() {
                           className="w-10 h-10 rounded object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-gradient-to-br from-[#800000] to-[#B40000] flex items-center justify-center">
-                          <Music className="w-5 h-5 text-white" />
-                        </div>
+                        <img
+                          src="/assets/songicon.png"
+                          alt={song.title}
+                          className="w-10 h-10 rounded object-cover"
+                        />
                       )}
                       <div className="flex-1 text-left">
                         <p className="text-white text-sm font-medium truncate">{song.title}</p>
@@ -158,9 +160,6 @@ export default function Header() {
                       </div>
                       <div className="flex-1 text-left">
                         <p className="text-white text-sm font-medium truncate">{playlist.name}</p>
-                        {playlist.description && (
-                          <p className="text-gray-400 text-xs truncate">{playlist.description}</p>
-                        )}
                       </div>
                     </button>
                   ))}

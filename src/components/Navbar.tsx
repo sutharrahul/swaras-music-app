@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import HomeIcon from '@/assets/Icons/HomeIcon';
-import LogoIcon from '@/assets/Icons/LogoIcon';
 import PlayListIcon from '@/assets/Icons/PlayListIcon';
 import { Menu, X } from 'lucide-react';
 
@@ -42,7 +41,7 @@ export default function Navbar() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-2">
-                  <LogoIcon className="w-8 md:w-10" />
+                  <img src="/assets/swaraslogo.png" alt="SwarasLogo" className="w-8 md:w-10 h-8 md:h-10 object-contain" />
                   <h1 className="text-lg md:text-2xl font-bold">
                     <span className="bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
                       Swaras

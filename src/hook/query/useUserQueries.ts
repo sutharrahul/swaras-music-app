@@ -12,6 +12,9 @@ export function useUserQueries() {
       queryKey: ['admin-status'],
       queryFn: checkAdminStatus,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes cache
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
       retry: 1,
     });
   };

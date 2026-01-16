@@ -160,14 +160,9 @@ export default function MusicPlayer() {
 
   // Play previous song
   const previousSong = () => {
-    if (!currentSong || !audioRef.current) return;
+    if (!currentSong) return;
 
-    // If we're more than 3 seconds into the song, restart it
-    if (audioRef.current.currentTime > 3) {
-      audioRef.current.currentTime = 0;
-      return;
-    }
-
+    // Always go to previous song (removed restart logic)
     playPrevious();
     setIsPlaying(true);
   };
@@ -262,7 +257,7 @@ export default function MusicPlayer() {
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <img
                     className="h-14 w-14 rounded-md object-cover flex-shrink-0"
-                    src={currentSong?.coverUrl || '/assets/default-cover.png'}
+                    src={currentSong?.coverUrl || '/assets/songicon.png'}
                     alt={currentSong?.title}
                   />
                   <div className="flex flex-col min-w-0 flex-1">
@@ -320,7 +315,7 @@ export default function MusicPlayer() {
               <div className="flex items-center gap-4 min-w-0">
                 <img
                   className="h-14 w-14 rounded-md object-cover flex-shrink-0"
-                  src={currentSong?.coverUrl || '/assets/default-cover.png'}
+                  src={currentSong?.coverUrl || '/assets/songicon.png'}
                   alt={currentSong?.title}
                 />
                 <div className="flex flex-col min-w-0 flex-1">

@@ -28,7 +28,6 @@ export default function PlaylistsPage() {
   const [creating, setCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [newPlaylistDesc, setNewPlaylistDesc] = useState('');
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -66,14 +65,12 @@ export default function PlaylistsPage() {
       setCreating(true);
       const { data } = await axios.post('/api/playlists', {
         name: newPlaylistName,
-        description: newPlaylistDesc,
       });
 
       if (data?.success) {
         toast.success('Playlist created successfully!');
         setPlaylists(prev => [data.data, ...prev]);
         setNewPlaylistName('');
-        setNewPlaylistDesc('');
         setShowCreateForm(false);
       }
     } catch (error) {
@@ -138,7 +135,7 @@ export default function PlaylistsPage() {
           <Card className="bg-[#1a1a1a] border-gray-700">
             <CardHeader>
               <CardTitle className="text-white">Create New Playlist</CardTitle>
-              <CardDescription>Add a name and description for your playlist</CardDescription>
+              <CardDescription>Add a name for your playlist</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -146,14 +143,6 @@ export default function PlaylistsPage() {
                   placeholder="Playlist name"
                   value={newPlaylistName}
                   onChange={e => setNewPlaylistName(e.target.value)}
-                  className="bg-[#262626] border-gray-700 text-white"
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Description (optional)"
-                  value={newPlaylistDesc}
-                  onChange={e => setNewPlaylistDesc(e.target.value)}
                   className="bg-[#262626] border-gray-700 text-white"
                 />
               </div>
@@ -176,7 +165,6 @@ export default function PlaylistsPage() {
                   onClick={() => {
                     setShowCreateForm(false);
                     setNewPlaylistName('');
-                    setNewPlaylistDesc('');
                   }}
                   variant="outline"
                   className="border-gray-700 text-white hover:bg-[#262626]"
@@ -227,10 +215,7 @@ export default function PlaylistsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {playlist.description && (
-                  <p className="text-sm text-gray-400 line-clamp-2">{playlist.description}</p>
-                )}
-                <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
                   <Music2 className="w-4 h-4" />
                   Created {new Date(playlist.createdAt).toLocaleDateString()}
                 </div>
