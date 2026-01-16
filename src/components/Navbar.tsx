@@ -18,7 +18,7 @@ export default function Navbar() {
       >
         {isMenuOpen ? '' : <Menu size={28} />}
       </button>
-      
+
       {/* Backdrop Overlay */}
       {isMenuOpen && (
         <div
@@ -26,7 +26,7 @@ export default function Navbar() {
           onClick={() => setIsMenuOpen(false)}
         />
       )}
-      
+
       {/* Sidebar */}
       <div
         className={`
@@ -51,7 +51,11 @@ export default function Navbar() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-2">
-                  <img src="/assets/swaraslogo.png" alt="SwarasLogo" className="w-8 md:w-10 h-8 md:h-10 object-contain" />
+                  <img
+                    src="/assets/swaraslogo.png"
+                    alt="SwarasLogo"
+                    className="w-8 md:w-10 h-8 md:h-10 object-contain"
+                  />
                   <h1 className="text-lg md:text-2xl font-bold">
                     <span className="bg-gradient-to-r from-[#DD1212] to-[#B40000] bg-clip-text text-transparent">
                       Swaras

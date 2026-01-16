@@ -4,28 +4,22 @@ import { NextResponse } from 'next/server';
 // Public routes - accessible to everyone (authenticated or not)
 const isPublicRoute = createRouteMatcher([
   '/',
-  '/sign-in', 
-  '/sign-up', 
+  '/sign-in',
+  '/sign-up',
   '/api/webhooks/clerk',
   '/api/get-songs',
-  '/api/search'
+  '/api/search',
 ]);
 
 // Admin-only routes
-const isAdminRoute = createRouteMatcher([
-  '/admin(.*)',
-  '/api/upload-song',
-  '/api/admin(.*)'
-]);
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/api/upload-song', '/api/admin(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
   // Redirect logged-in users away from auth pages
   if (userId) {
-    const isAuthRoute =
-      req.nextUrl.pathname === '/sign-in' ||
-      req.nextUrl.pathname === '/sign-up';
+    const isAuthRoute = req.nextUrl.pathname === '/sign-in' || req.nextUrl.pathname === '/sign-up';
 
     if (isAuthRoute) {
       const homeUrl = new URL('/', req.url);
@@ -46,7 +40,6 @@ export default clerkMiddleware(async (auth, req) => {
 
   return NextResponse.next();
 });
-
 
 export const config = {
   matcher: [

@@ -31,7 +31,7 @@ export default function Header() {
   const { useCheckAdmin } = useUserQueries();
   const { data: adminData } = useCheckAdmin();
   const isAdmin = adminData?.data?.isAdmin || false;
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -195,18 +195,18 @@ export default function Header() {
               <span className="hidden sm:inline">Upload Songs</span>
             </button>
           )}
-          
+
           {isSignedIn ? (
-            <UserButton 
+            <UserButton
               appearance={{
                 elements: {
-                  avatarBox: 'w-9 h-9'
-                }
+                  avatarBox: 'w-9 h-9',
+                },
               }}
             />
           ) : (
             <>
-             <Auth/>
+              <Auth />
             </>
           )}
         </div>

@@ -46,17 +46,25 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
 
   const playSong = (songId: string) => {
     // Use allSongs if available, otherwise use songData
-    const availableSongs = Array.isArray(allSongs) && allSongs.length > 0 ? allSongs : (Array.isArray(songData) ? songData : []);
-    const currentList = Array.isArray(currentPlaylist) && currentPlaylist.length > 0 ? currentPlaylist : availableSongs;
+    const availableSongs =
+      Array.isArray(allSongs) && allSongs.length > 0
+        ? allSongs
+        : Array.isArray(songData)
+          ? songData
+          : [];
+    const currentList =
+      Array.isArray(currentPlaylist) && currentPlaylist.length > 0
+        ? currentPlaylist
+        : availableSongs;
     const playlist = Array.isArray(currentList) ? currentList : [];
-    
+
     let selectSong = playlist.find((song: SongeType) => song.id === songId);
-    
+
     // If not found in current playlist, try finding in available songs
     if (!selectSong && availableSongs.length > 0) {
       selectSong = availableSongs.find((song: SongeType) => song.id === songId);
     }
-    
+
     // If still not found, fetch the song from API
     if (!selectSong) {
       fetch(`/api/get-songs`)
@@ -74,13 +82,13 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
         .catch(error => console.error('Error fetching song:', error));
       return;
     }
-    
+
     setCurrentSong(selectSong);
   };
 
   const toggleShuffle = () => {
     const songsToShuffle = allSongs.length > 0 ? allSongs : songData;
-    
+
     if (!isShuffled) {
       if (songsToShuffle.length === 0) {
         // Fetch songs if not available
@@ -120,7 +128,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     if (!currentSong) return;
 
     const playlist = Array.isArray(currentPlaylist) ? currentPlaylist : [];
-    
+
     // If playlist is empty, fetch songs first
     if (playlist.length === 0) {
       fetch(`/api/get-songs`)
@@ -165,7 +173,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     if (!currentSong) return;
 
     const playlist = Array.isArray(currentPlaylist) ? currentPlaylist : [];
-    
+
     // If playlist is empty, fetch songs first
     if (playlist.length === 0) {
       fetch(`/api/get-songs`)

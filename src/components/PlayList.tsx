@@ -35,7 +35,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
   const { useCheckAdmin } = useUserQueries();
   const { data: adminData } = useCheckAdmin();
   const isAdmin = adminData?.data?.isAdmin || false;
-  
+
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [playlists, setPlaylists] = useState<any[]>([]);
@@ -160,7 +160,11 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
     }
 
     // Confirm deletion
-    if (!window.confirm('Are you sure you want to permanently delete this song? This action cannot be undone.')) {
+    if (
+      !window.confirm(
+        'Are you sure you want to permanently delete this song? This action cannot be undone.'
+      )
+    ) {
       return;
     }
 
@@ -252,7 +256,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
                       className="h-5 w-5 md:h-7 md:w-7 text-gray-300 hover:text-white cursor-pointer"
                     />
                   </div>
-                  
+
                   {/* Admin Delete Button */}
                   {isAdmin && (
                     <div className="relative group">
@@ -354,7 +358,9 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
                         className="w-full text-left p-3 hover:bg-[#262626] rounded-lg transition-colors"
                       >
                         <p className="text-white font-medium">{playlist.name}</p>
-                        <p className="text-gray-400 text-sm">{playlist._count.playlistSongs} songs</p>
+                        <p className="text-gray-400 text-sm">
+                          {playlist._count.playlistSongs} songs
+                        </p>
                       </button>
                     ))}
                   </div>

@@ -100,7 +100,7 @@ async function processUploadJob(jobId: string, files: File[], userId: string) {
 
     try {
       console.log(`[Job ${jobId}] Processing file ${i + 1}/${files.length}: ${fileName}`);
-      
+
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 

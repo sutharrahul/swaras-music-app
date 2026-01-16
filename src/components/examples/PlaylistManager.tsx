@@ -29,11 +29,8 @@ export default function PlaylistManager() {
   );
 
   // Mutations
-  const {
-    createPlaylistMutation,
-    deletePlaylistMutation,
-    removeSongFromPlaylistMutation,
-  } = usePlaylistMutations();
+  const { createPlaylistMutation, deletePlaylistMutation, removeSongFromPlaylistMutation } =
+    usePlaylistMutations();
 
   // Create new playlist
   const handleCreatePlaylist = (songId: string) => {
