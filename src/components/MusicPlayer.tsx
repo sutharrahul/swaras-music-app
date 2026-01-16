@@ -160,14 +160,9 @@ export default function MusicPlayer() {
 
   // Play previous song
   const previousSong = () => {
-    if (!currentSong || !audioRef.current) return;
+    if (!currentSong) return;
 
-    // If we're more than 3 seconds into the song, restart it
-    if (audioRef.current.currentTime > 3) {
-      audioRef.current.currentTime = 0;
-      return;
-    }
-
+    // Always go to previous song (removed restart logic)
     playPrevious();
     setIsPlaying(true);
   };
@@ -224,7 +219,7 @@ export default function MusicPlayer() {
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-b from-[#1a0000] to-[#0a0a0a] border-t border-[#B40000]/20">
           <audio
             ref={audioRef}
-            src={currentSong?.songFile}
+            src={currentSong?.audioUrl}
             onLoadedMetadata={() => {
               if (audioRef.current) {
                 audioRef.current.volume = volume;
@@ -262,15 +257,15 @@ export default function MusicPlayer() {
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <img
                     className="h-14 w-14 rounded-md object-cover flex-shrink-0"
-                    src={currentSong?.coverImage}
-                    alt={currentSong?.songName}
+                    src={currentSong?.coverUrl || '/assets/songicon.png'}
+                    alt={currentSong?.title}
                   />
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-sm font-medium truncate text-white">
-                      {truncateByLetters(currentSong?.songName, 25)}
+                      {truncateByLetters(currentSong?.title, 25)}
                     </span>
                     <span className="text-xs text-gray-400 truncate">
-                      {currentSong.singerName.join(', ')}
+                      {currentSong.artist.join(', ')}
                     </span>
                   </div>
                 </div>
@@ -319,16 +314,16 @@ export default function MusicPlayer() {
               {/* Left: Song Info */}
               <div className="flex items-center gap-4 min-w-0">
                 <img
-                  className="h-16 w-16 rounded-md object-cover flex-shrink-0"
-                  src={currentSong?.coverImage}
-                  alt={currentSong?.songName}
+                  className="h-14 w-14 rounded-md object-cover flex-shrink-0"
+                  src={currentSong?.coverUrl || '/assets/songicon.png'}
+                  alt={currentSong?.title}
                 />
                 <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-sm font-medium truncate text-white">
-                    {currentSong?.songName}
+                    {currentSong?.title}
                   </span>
                   <span className="text-xs text-gray-400 truncate">
-                    {currentSong.singerName.join(', ')}
+                    {currentSong.artist.join(', ')}
                   </span>
                 </div>
                 <button

@@ -1,0 +1,226 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SignupMethod {
+  EMAIL
+  GOOGLE
+}
+
+enum CreditRole {
+  PRIMARY_ARTIST
+  FEATURED_ARTIST
+  PRODUCER
+  COMPOSER
+  LYRICIST
+  ARRANGER
+}
+
+enum AlbumType {
+  ALBUM
+  SINGLE
+  EP
+  COMPILATION
+  SOUNDTRACK
+}
+
+// Models
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  firstName       String?
+  lastName        String?
+  role            UserRole     @default(USER)
+  status          UserStatus   @default(ACTIVE)
+  profileImageUrl String?      @map("profile_image_url")
+  vendorId        String?      @unique @map("vendor_id")
+  vendorName      String       @default("clerk") @map("vendor_name")
+  vendorData      Json?        @map("vendor_data")
+  signupMethod    SignupMethod @default(EMAIL) @map("signup_method")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  uploadedSongs   Song[]
+  playlists       Playlist[]
+  likes           Like[]
+
+  @@map("users")
+}
+
+model Artist {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  bio       String?
+  imageUrl  String?  @map("image_url")
+  country   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  credits SongCredit[]
+  albums  Album[]      @relation("AlbumArtist")
+
+  @@index([name])
+  @@map("artists")
+}
+
+model Album {
+  id          String     @id @default(uuid())
+  title       String
+  type        AlbumType  @default(ALBUM)
+  releaseYear Int?       @map("release_year")
+  coverUrl    String?    @map("cover_url")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  songs   Song[]
+  artists Artist[] @relation("AlbumArtist")
+
+  @@index([title])
+  @@index([type])
+  @@map("albums")
+}
+
+model Movie {
+  id          String   @id @default(uuid())
+  title       String   @unique
+  releaseYear Int?     @map("release_year")
+  posterUrl   String?  @map("poster_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  songs Song[]
+
+  @@index([title])
+  @@map("movies")
+}
+
+model Song {
+  id               String   @id @default(uuid())
+  title            String
+  duration         Int      // Duration in seconds
+  audioUrl         String   @map("audio_url")
+  uploadedByUserId String   @map("uploaded_by_user_id")
+
+  // V1: Keep arrays for backward compatibility and fallback
+  artist    String[] // Array of artist names (for V1 display)
+  composers String[] // Array of composer names (for V1 display)
+
+  // Optional metadata (may be missing if extraction fails)
+  album    String? // Fallback album name
+  genre    String?
+  coverUrl String? @map("cover_url")
+  lyrics   String? @db.Text
+  
+  // Future relations (V6/V7) - optional foreign keys
+  albumId String? @map("album_id")
+  movieId String? @map("movie_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  uploadedBy    User           @relation(fields: [uploadedByUserId], references: [id], onDelete: Cascade)
+  playlistSongs PlaylistSong[]
+  likes         Like[]
+  
+  // Future relations (V6/V7)
+  albumRelation Album?       @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  movieRelation Movie?       @relation(fields: [movieId], references: [id], onDelete: SetNull)
+  credits       SongCredit[]
+
+  @@index([uploadedByUserId])
+  @@index([title])
+  @@index([genre])
+  @@index([albumId])
+  @@index([movieId])
+  @@map("songs")
+}
+
+model SongCredit {
+  songId   String     @map("song_id")
+  artistId String     @map("artist_id")
+  role     CreditRole
+
+  // Relations
+  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@id([songId, artistId, role]) // Same artist can have multiple roles in same song
+  @@index([artistId])
+  @@index([role])
+  @@map("song_credits")
+}
+
+model Playlist {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlistSongs PlaylistSong[]
+
+  @@index([userId])
+  @@map("playlists")
+}
+
+model PlaylistSong {
+  id         String   @id @default(uuid())
+  playlistId String   @map("playlist_id")
+  songId     String   @map("song_id")
+  position   Int?     // Optional ordering within playlist
+  addedAt    DateTime @default(now()) @map("added_at")
+
+  // Relations
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song     Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, songId]) // A song can only be added once per playlist
+  @@index([playlistId])
+  @@index([songId])
+  @@map("playlist_songs")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  songId    String   @map("song_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, songId]) // A user can only like a song once
+  @@index([userId])
+  @@index([songId])
+  @@map("likes")
+}

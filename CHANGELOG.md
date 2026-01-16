@@ -1,6 +1,7 @@
 ## [v0] - 2026-01-07
 
 ### Added
+
 - Initial project setup and folder structure
 - Basic frontend using Next.js and React
 - Simple backend API routes for core features
@@ -11,6 +12,7 @@
 - Simple UI with header and navigation
 
 ### Improved
+
 - Organized code for easier updates
 - Clear separation between frontend and backend
 
