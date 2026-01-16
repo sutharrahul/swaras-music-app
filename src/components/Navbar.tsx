@@ -52,7 +52,7 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-2">
                   <img
-                    src="/assets/swaraslogo.png"
+                    src="/assets/swarasLogo.png"
                     alt="SwarasLogo"
                     className="w-8 md:w-10 h-8 md:h-10 object-contain"
                   />
