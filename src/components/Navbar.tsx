@@ -11,18 +11,28 @@ export default function Navbar() {
 
   return (
     <div>
+      {/* Menu Toggle Button */}
       <button
         onClick={() => setIsMenuOpen(prev => !prev)}
-        className="absolute top-4 left-4 z-50 md:hidden text-white"
+        className="absolute top-4 left-4 z-[60] md:hidden text-white"
       >
         {isMenuOpen ? '' : <Menu size={28} />}
       </button>
+      
+      {/* Backdrop Overlay */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-[45] md:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
       <div
         className={`
           fixed md:static top-0 left-0 h-full 
-           px-6 py-10 w-[58%] md:w-64
-          transform transition-transform duration-300 z-30 bg-[#141414]/80 backdrop-blur-sm
+           px-6 py-10 w-[75%] md:w-64
+          transform transition-transform duration-300 z-[50] bg-[#141414] md:bg-[#141414]/80 backdrop-blur-sm
           ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0 md:flex
           flex-col text-white
@@ -32,7 +42,7 @@ export default function Navbar() {
         <div className="flex flex-col h-full">
           <button
             onClick={() => setIsMenuOpen(prev => !prev)}
-            className="absolute top-4 right-4 z-50 md:hidden text-white"
+            className="absolute top-4 right-4 z-[60] md:hidden text-white"
           >
             {isMenuOpen ? <X size={28} /> : ''}
           </button>
