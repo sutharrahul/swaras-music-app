@@ -5,6 +5,7 @@ Here are the main decisions I made while building v0:
 ---
 
 ### 1. Using Next.js and React for Frontend
+
 - **What choice I made:** I chose Next.js with React to build the frontend.
 - **Why I chose it:** It’s popular, has good documentation, and makes building UIs easier for beginners.
 - **What I did not choose:** I did not use Angular or Vue because I was more comfortable with React.
@@ -13,6 +14,7 @@ Here are the main decisions I made while building v0:
 ---
 
 ### 2. REST API for Communication
+
 - **What choice I made:** I used REST APIs for frontend-backend communication.
 - **Why I chose it:** REST is simple to understand and easy to set up for basic projects.
 - **What I did not choose:** I did not use GraphQL because it seemed more complex for my first version.
@@ -21,6 +23,7 @@ Here are the main decisions I made while building v0:
 ---
 
 ### 3. Basic Authentication System
+
 - **What choice I made:** I implemented email/password authentication and verification.
 - **Why I chose it:** It’s a standard way to keep user accounts secure and is easy to explain.
 - **What I did not choose:** I did not add OAuth or social logins yet.
@@ -29,6 +32,7 @@ Here are the main decisions I made while building v0:
 ---
 
 ### 4. Simple UI Design
+
 - **What choice I made:** I kept the UI clean and basic.
 - **Why I chose it:** I wanted to focus on functionality first and not get stuck on design.
 - **What I did not choose:** I did not use advanced UI libraries or custom themes.
@@ -37,6 +41,7 @@ Here are the main decisions I made while building v0:
 ---
 
 ### 5. Storing Data in a Database
+
 - **What choice I made:** I used a database to store users, playlists, and songs.
 - **Why I chose it:** Databases are reliable for saving and retrieving data.
 - **What I did not choose:** I did not use local storage or files for main data.
