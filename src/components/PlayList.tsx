@@ -33,7 +33,7 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
   const { playSong, currentSong } = useSong();
   const { user } = useUser();
   const { useCheckAdmin } = useUserQueries();
-  const { data: adminData } = useCheckAdmin();
+  const { data: adminData } = useCheckAdmin(!!user);
   const isAdmin = adminData?.data?.isAdmin || false;
 
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
@@ -205,49 +205,48 @@ export default function PlayList({ songData, dataType }: PlayListProps) {
             }`}
           >
             {/* Song Click Area */}
-            <div onClick={() => playSong(song.id)} className="flex items-center gap-5 flex-1">
+            <div onClick={() => playSong(song.id)} className="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
               {song.coverUrl ? (
                 <img
                   src={song.coverUrl}
                   alt={song.title}
-                  className="w-9 h-9 md:w-12 md:h-12 object-cover rounded"
+                  className="w-9 h-9 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
                 />
               ) : (
                 <img
                   src="/assets/songicon.png"
                   alt={song.title}
-                  className="w-9 h-9 md:w-12 md:h-12 object-cover rounded"
+                  className="w-9 h-9 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
                 />
               )}
 
-              <div className="flex flex-col md:grid md:grid-cols-3 md:gap-5 md:flex-1">
+              <div className="flex flex-col md:grid md:grid-cols-3 md:gap-5 md:flex-1 min-w-0">
                 <p className="text-white text-sm md:text-base md:font-medium truncate">
                   {truncateByLetters(song.title, 25)}
                 </p>
                 <p className="text-gray-400 text-xs md:text-sm truncate">
                   {truncateByLetters(song.artist.join(', '), 35)}
                 </p>
-                <p className="text-gray-400 text-xs md:text-sm truncate">
+                <p className="text-gray-400 text-xs md:text-sm truncate hidden md:block">
                   {song.album || 'Unknown'}
                 </p>
               </div>
 
-              {/* Like Count */}
-              <div className="flex items-center gap-1 mx-2 md:mx-4">
-                <Heart className="h-3 w-3 md:h-4 md:w-4 text-[#B40000] fill-[#B40000]" />
-                <span className="text-gray-400 text-xs md:text-sm">{song._count?.likes || 0}</span>
-              </div>
-
-              <span className="text-gray-400 text-sm mx-4 hidden md:inline">
+              <span className="text-gray-400 text-sm mx-4 hidden md:inline flex-shrink-0">
                 {formatTime(Math.floor(song.duration))}
               </span>
             </div>
 
-            {/* Action Icon */}
-            <div className="flex items-center gap-2">
+            {/* Like Count and Action Icons */}
+            <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
+              {/* Like Count */}
+              <div className="flex items-center gap-1">
+                <Heart className="h-3 w-3 md:h-4 md:w-4 text-[#B40000] fill-[#B40000]" />
+                <span className="text-gray-400 text-xs md:text-sm">{song._count?.likes || 0}</span>
+              </div>
               {dataType === 'allsong' ? (
                 <>
-                  <div className="relative group">
+                  <div className="relative group ml-1 md:ml-2">
                     <div className="absolute bottom-full bg-[#141414] mb-2 left-1/2 -translate-x-1/2 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                       Add to playlist
                     </div>

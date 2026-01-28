@@ -29,7 +29,7 @@ export default function Header() {
   const { playSong } = useSong();
   const { isSignedIn } = useUser();
   const { useCheckAdmin } = useUserQueries();
-  const { data: adminData } = useCheckAdmin();
+  const { data: adminData } = useCheckAdmin(isSignedIn);
   const isAdmin = adminData?.data?.isAdmin || false;
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,52 +90,52 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 right-0 left-0 md:left-64 z-40 bg-gradient-to-b from-[#1a0000] to-transparent backdrop-blur-sm border-b border-[#B40000]/10">
-      <div className="flex items-center justify-between px-4 md:px-8 py-4 ml-12 md:ml-0">
+      <div className="flex items-center justify-between gap-2 px-2 sm:px-4 md:px-8 py-3 md:py-4 ml-12 md:ml-0">
         {/* Search Bar */}
-        <div className="flex-1 max-w-2xl relative" ref={searchRef}>
+        <div className="flex-1 max-w-xs sm:max-w-md md:max-w-2xl relative" ref={searchRef}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <Input
               type="text"
-              placeholder="Search songs or playlists..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#262626] border-gray-700 text-white placeholder:text-gray-400 focus:border-[#B40000] focus:ring-[#B40000]"
+              className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base bg-[#262626] border-gray-700 text-white placeholder:text-gray-400 focus:border-[#B40000] focus:ring-[#B40000]"
             />
           </div>
 
           {/* Search Results Dropdown */}
           {showResults && searchResults && (
-            <div className="absolute top-full mt-2 w-full bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-2xl max-h-[70vh] overflow-y-auto z-30">
+            <div className="absolute top-full mt-2 w-full sm:w-auto sm:min-w-[400px] right-0 sm:right-auto bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-2xl max-h-[60vh] sm:max-h-[70vh] overflow-y-auto z-30">
               {/* Songs Results */}
               {searchResults.songs.length > 0 && (
-                <div className="p-3">
-                  <h3 className="text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
-                    <Music className="w-4 h-4" />
+                <div className="p-2 sm:p-3">
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
+                    <Music className="w-3 h-3 sm:w-4 sm:h-4" />
                     Songs
                   </h3>
                   {searchResults.songs.slice(0, 5).map(song => (
                     <button
                       key={song.id}
                       onClick={() => handleSongClick(song.id)}
-                      className="w-full flex items-center gap-3 p-2 hover:bg-[#262626] rounded-md transition-colors"
+                      className="w-full flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-[#262626] rounded-md transition-colors"
                     >
                       {song.coverUrl ? (
                         <img
                           src={song.coverUrl}
                           alt={song.title}
-                          className="w-10 h-10 rounded object-cover"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
                         />
                       ) : (
                         <img
                           src="/assets/songicon.png"
                           alt={song.title}
-                          className="w-10 h-10 rounded object-cover"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
                         />
                       )}
-                      <div className="flex-1 text-left">
-                        <p className="text-white text-sm font-medium truncate">{song.title}</p>
-                        <p className="text-gray-400 text-xs truncate">{song.artist.join(', ')}</p>
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="text-white text-xs sm:text-sm font-medium truncate">{song.title}</p>
+                        <p className="text-gray-400 text-[10px] sm:text-xs truncate">{song.artist.join(', ')}</p>
                       </div>
                     </button>
                   ))}
@@ -144,22 +144,22 @@ export default function Header() {
 
               {/* Playlists Results */}
               {searchResults.playlists.length > 0 && (
-                <div className="p-3 border-t border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
-                    <List className="w-4 h-4" />
+                <div className="p-2 sm:p-3 border-t border-gray-700">
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
+                    <List className="w-3 h-3 sm:w-4 sm:h-4" />
                     Playlists
                   </h3>
                   {searchResults.playlists.slice(0, 5).map(playlist => (
                     <button
                       key={playlist.id}
                       onClick={() => handlePlaylistClick(playlist.id)}
-                      className="w-full flex items-center gap-3 p-2 hover:bg-[#262626] rounded-md transition-colors"
+                      className="w-full flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-[#262626] rounded-md transition-colors"
                     >
-                      <div className="w-10 h-10 rounded bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                        <List className="w-5 h-5 text-white" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center flex-shrink-0">
+                        <List className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <div className="flex-1 text-left">
-                        <p className="text-white text-sm font-medium truncate">{playlist.name}</p>
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="text-white text-xs sm:text-sm font-medium truncate">{playlist.name}</p>
                       </div>
                     </button>
                   ))}
@@ -168,9 +168,9 @@ export default function Header() {
 
               {/* No Results */}
               {searchResults.songs.length === 0 && searchResults.playlists.length === 0 && (
-                <div className="p-6 text-center text-gray-400">
-                  <Search className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No results found for &quot;{searchQuery}&quot;</p>
+                <div className="p-4 sm:p-6 text-center text-gray-400">
+                  <Search className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs sm:text-sm">No results found for &quot;{searchQuery}&quot;</p>
                 </div>
               )}
             </div>
@@ -178,21 +178,21 @@ export default function Header() {
 
           {/* Loading State */}
           {isSearching && (
-            <div className="absolute top-full mt-2 w-full bg-[#1a1a1a] border border-gray-700 rounded-lg p-4 text-center text-gray-400">
+            <div className="absolute top-full mt-2 w-full sm:w-auto sm:min-w-[400px] right-0 sm:right-auto bg-[#1a1a1a] border border-gray-700 rounded-lg p-3 sm:p-4 text-center text-gray-400 text-sm">
               Searching...
             </div>
           )}
         </div>
 
         {/* Right side - User Actions */}
-        <div className="ml-4 flex items-center gap-3">
+        <div className="ml-1 sm:ml-2 md:ml-4 flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
           {isSignedIn && isAdmin && (
             <button
               onClick={() => router.push('/admin/upload-song')}
-              className="flex items-center gap-2 px-4 py-2 bg-[#B40000] hover:bg-[#900000] text-white rounded-lg transition-colors font-medium"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-[#B40000] hover:bg-[#900000] text-white rounded-lg transition-colors font-medium text-xs sm:text-sm"
             >
-              <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">Upload Songs</span>
+              <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Upload</span>
             </button>
           )}
 

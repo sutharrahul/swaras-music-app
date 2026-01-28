@@ -26,7 +26,7 @@ export default function AdminPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const { useCheckAdmin } = useUserQueries();
-  const { data: adminData, isLoading: isCheckingAdmin, error: adminError } = useCheckAdmin();
+  const { data: adminData, isLoading: isCheckingAdmin, error: adminError } = useCheckAdmin(!!user);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [currentJob, setCurrentJob] = useState<JobStatus | null>(null);
