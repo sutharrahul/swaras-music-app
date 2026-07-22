@@ -16,8 +16,8 @@ export default function HomeIcon() {
           y2="16.4042"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#DD1212" />
-          <stop offset="1" stopColor="#B40000" />
+          <stop stopColor="var(--brand-strong)" />
+          <stop offset="1" stopColor="var(--brand)" />
         </linearGradient>
       </defs>
     </svg>

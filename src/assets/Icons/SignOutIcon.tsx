@@ -20,8 +20,8 @@ export default function SignOutIcon() {
           y2="4.16828"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#DD1212" />
-          <stop offset="1" stopColor="#B40000" />
+          <stop stopColor="var(--brand-strong)" />
+          <stop offset="1" stopColor="var(--brand)" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_375_3"
@@ -31,8 +31,8 @@ export default function SignOutIcon() {
           y2="13.3724"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#DD1212" />
-          <stop offset="1" stopColor="#B40000" />
+          <stop stopColor="var(--brand-strong)" />
+          <stop offset="1" stopColor="var(--brand)" />
         </linearGradient>
       </defs>
     </svg>

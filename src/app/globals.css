@@ -6,8 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-poppins);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -37,6 +36,30 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Brand surfaces — the dark greys the app is actually built out of */
+  --color-surface: var(--surface);
+  --color-surface-deep: var(--surface-deep);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-strong: var(--surface-strong);
+
+  /* Brand reds */
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-bright: var(--brand-bright);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-deeper: var(--brand-deeper);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-tint: var(--brand-tint);
+
+  /* Unfilled portion of the player scrubbers */
+  --color-track: var(--track);
+
+  /* Fixed chrome heights, so pages can offset by name instead of by guess */
+  --spacing-header: var(--header-height);
+  --spacing-player: var(--player-height);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -46,25 +69,28 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-@keyframes marquee {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+/* Brand gradients — previously copy-pasted across ~6 components */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(to right, var(--brand-deep), var(--brand));
 }
 
-.animate-marquee {
-  display: flex;
-  width: max-content;
-  animation: marquee 30s linear infinite;
-  white-space: nowrap;
+@utility bg-brand-gradient-hover {
+  background-image: linear-gradient(to right, var(--brand-deeper), var(--brand-hover));
+}
+
+@utility text-brand-gradient {
+  background-image: linear-gradient(to right, var(--brand-strong), var(--brand));
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-brand-fade {
+  background-image: linear-gradient(to bottom, var(--brand-tint), transparent);
 }
 
 input:-webkit-autofill {
-  background-color: #262626 !important;
-  -webkit-box-shadow: 0 0 0 1000px #262626 inset !important;
+  background-color: var(--surface-strong) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-strong) inset !important;
   -webkit-text-fill-color: white !important;
   caret-color: white;
   border-radius: 0.5rem !important;
@@ -85,7 +111,7 @@ input:-webkit-autofill {
 
 .music-range::-webkit-slider-thumb {
   @apply appearance-none w-4 h-4 rounded-full;
-  background-color: #b40000;
+  background-color: var(--brand);
   border: 2px solid white;
   margin-top: -6px;
 }
@@ -93,7 +119,7 @@ input:-webkit-autofill {
 .music-range::-moz-range-thumb {
   height: 16px;
   width: 16px;
-  background-color: #b40000;
+  background-color: var(--brand);
   border: 2px solid white;
   border-radius: 999px;
   cursor: pointer;
@@ -101,18 +127,40 @@ input:-webkit-autofill {
 
 .music-range::-moz-range-track {
   height: 4px;
-  background: #ddd;
+  background: var(--track);
   border-radius: 999px;
 }
 
 .music-range::-moz-range-progress {
-  background: #b40000;
+  background: var(--brand);
   height: 4px;
   border-radius: 999px;
 }
 
 :root {
   --radius: 0.625rem;
+
+  /* Fixed chrome heights (header 5rem = old pt-20, player 7rem = old pb-28) */
+  --header-height: 5rem;
+  --player-height: 7rem;
+
+  /* Brand constants — identical in both themes */
+  --surface: #000000;
+  --surface-deep: #0a0a0a;
+  --surface-elevated: #141414;
+  --surface-subtle: #1a1a1a;
+  --surface-strong: #262626;
+
+  --brand: #b40000;
+  --brand-strong: #dd1212;
+  --brand-bright: #f00000;
+  --brand-deep: #800000;
+  --brand-deeper: #600000;
+  --brand-hover: #900000;
+  --brand-tint: #1a0000;
+
+  --track: #dddddd;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -146,38 +194,41 @@ input:-webkit-autofill {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* The app only ever ships dark. `.dark` is applied on <html> in layout.tsx. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  color-scheme: dark;
+
+  --background: #0e0e0e;
+  --foreground: #fafafa;
+  --card: var(--surface-subtle);
+  --card-foreground: #fafafa;
+  --popover: var(--surface-subtle);
+  --popover-foreground: #fafafa;
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-strong);
+  --secondary-foreground: #fafafa;
+  --muted: var(--surface-strong);
+  --muted-foreground: #a1a1aa;
+  --accent: var(--surface-strong);
+  --accent-foreground: #fafafa;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: #3f3f46;
+  --input: #3f3f46;
+  --ring: var(--brand);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: var(--surface-elevated);
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--surface-strong);
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #3f3f46;
+  --sidebar-ring: var(--brand);
 }
 
 @layer base {

@@ -21,8 +21,8 @@ export default function LogoIcon(props: React.SVGProps<SVGSVGElement>) {
           y2="20.4789"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#DD1212" />
-          <stop offset="1" stopColor="#B40000" />
+          <stop stopColor="var(--brand-strong)" />
+          <stop offset="1" stopColor="var(--brand)" />
         </linearGradient>
       </defs>
     </svg>

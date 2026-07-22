@@ -20,8 +20,8 @@ export default function PlayListIcon() {
           y2="14.1539"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#DD1212" />
-          <stop offset="1" stopColor="#B40000" />
+          <stop stopColor="var(--brand-strong)" />
+          <stop offset="1" stopColor="var(--brand)" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_359_107"
@@ -31,8 +31,8 @@ export default function PlayListIcon() {
           y2="16.3869"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#DD1212" />
-          <stop offset="1" stopColor="#B40000" />
+          <stop stopColor="var(--brand-strong)" />
+          <stop offset="1" stopColor="var(--brand)" />
         </linearGradient>
       </defs>
     </svg>
