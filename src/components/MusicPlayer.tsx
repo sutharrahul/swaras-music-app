@@ -1,5 +1,6 @@
 'use client';
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useSong } from '@/context/SongContextProvider';
 import NextButton from '@/assets/Icons/NextButton';
 import {
@@ -17,6 +18,19 @@ import {
 import PreviousButton from '@/assets/Icons/PreviousButton';
 import { formatTime } from '@/app/utils/formatTime';
 import { truncateByLetters } from '@/app/utils/truncateByLetters';
+import { Slider } from '@/components/ui/slider';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useMediaSession } from '@/hooks/useMediaSession';
+import toast from 'react-hot-toast';
+
+/**
+ * Repaints the shadcn Slider to match the player's scrubber: a fat 8px track
+ * with a light unfilled remainder and a brand-red, white-ringed thumb.
+ */
+const SCRUBBER =
+  '[&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-track ' +
+  '[&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border-2 ' +
+  '[&_[data-slot=slider-thumb]]:border-white [&_[data-slot=slider-thumb]]:bg-primary';
 
 export default function MusicPlayer() {
   const {
@@ -35,6 +49,32 @@ export default function MusicPlayer() {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  /**
+   * A track with no playback URL. The server signs one for every caller,
+   * anonymous included, so this is not "you are signed out" — it means the
+   * `songs` row points at a Storage object that is missing, or signing failed.
+   *
+   * Either way it must be said out loud. The bar used to mount `<audio>` with no
+   * `src`, `play()` rejected into the existing catch, and the listener got a
+   * player that looked live and produced silence with no explanation.
+   */
+  const audioUrl = currentSong?.audioUrl ?? null;
+  const unplayable = Boolean(currentSong) && !audioUrl;
+
+  useEffect(() => {
+    if (!unplayable) return;
+    setIsPlaying(false);
+    toast.error(`“${currentSong?.title ?? 'This track'}” is unavailable right now.`);
+  }, [unplayable, currentSong?.id, currentSong?.title]);
+
+  // `play()` rejects on autoplay blocks and on a src that fails to load. An
+  // unhandled rejection leaves the UI claiming it is playing when it is not.
+  const safePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.play().catch(() => setIsPlaying(false));
+  }, []);
+
   // play paush button
   const toggle = () => {
     const audio = audioRef.current;
@@ -42,17 +82,15 @@ export default function MusicPlayer() {
 
     if (isPlaying) {
       audio.pause();
+      setIsPlaying(false);
     } else {
-      audio.play();
+      setIsPlaying(true);
+      safePlay();
     }
-
-    setIsPlaying(!isPlaying);
   };
 
   // handel progressbar
-  const handleProgressBar = (e: ChangeEvent<HTMLInputElement>) => {
-    const time = Number(e.target.value);
-
+  const handleProgressBar = (time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
     }
@@ -61,14 +99,12 @@ export default function MusicPlayer() {
   };
 
   // Volume contol
-  const handleVolumeBar = (e: ChangeEvent<HTMLInputElement>) => {
-    const volume = Number(e.target.value);
-
+  const handleVolumeBar = (nextVolume: number) => {
     if (audioRef.current) {
-      audioRef.current.volume = volume;
+      audioRef.current.volume = nextVolume;
     }
-    localStorage.setItem('volume', volume.toString());
-    setVolume(volume);
+    localStorage.setItem('volume', nextVolume.toString());
+    setVolume(nextVolume);
   };
 
   useEffect(() => {
@@ -87,16 +123,26 @@ export default function MusicPlayer() {
         return;
       }
 
+      // Never swallow the keys a focused control needs for itself — Space on a
+      // button, arrows on a slider. Without this, no button in the app can be
+      // activated from the keyboard.
+      const target = e.target instanceof Element ? e.target : null;
+      const onControl = target?.closest('button, a, [role="button"], [role="menuitem"]');
+      const onSlider = target?.closest('[role="slider"]');
+
       switch (e.key.toLowerCase()) {
         case ' ':
+          if (onControl || onSlider) return;
           e.preventDefault();
           toggle();
           break;
         case 'arrowright':
+          if (onSlider) return;
           e.preventDefault();
           nextSong();
           break;
         case 'arrowleft':
+          if (onSlider) return;
           e.preventDefault();
           previousSong();
           break;
@@ -136,7 +182,7 @@ export default function MusicPlayer() {
     if (currentSong && audioRef.current) {
       const audio = audioRef.current;
       audio.load();
-      audio.play();
+      audio.play().catch(() => setIsPlaying(false));
 
       setIsPlaying(true);
 
@@ -175,7 +221,7 @@ export default function MusicPlayer() {
     const handleEnded = () => {
       if (repeatMode === 'one') {
         audio.currentTime = 0;
-        audio.play();
+        audio.play().catch(() => setIsPlaying(false));
       } else {
         nextSong();
       }
@@ -187,39 +233,54 @@ export default function MusicPlayer() {
     };
   }, [currentSong, songData, repeatMode]);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (progressRef.current) {
-        updateSliderBackground(progressRef.current);
-      }
-      if (volumeRef.current) {
-        updateSliderBackground(volumeRef.current);
-      }
-    }, 10);
+  const pauseFromMediaSession = useCallback(() => {
+    audioRef.current?.pause();
+    setIsPlaying(false);
+  }, []);
 
-    return () => clearTimeout(timeout);
-  }, [currentSong, volume, currectTime]);
+  const playFromMediaSession = useCallback(() => {
+    setIsPlaying(true);
+    safePlay();
+  }, [safePlay]);
 
-  function updateSliderBackground(el: HTMLInputElement) {
-    const min = parseFloat(el.min);
-    const max = parseFloat(el.max);
-    const value = parseFloat(el.value);
+  const nextFromMediaSession = useCallback(() => {
+    playNext();
+    setIsPlaying(true);
+  }, [playNext]);
 
-    const percent = ((value - min) / (max - min)) * 100;
+  const previousFromMediaSession = useCallback(() => {
+    playPrevious();
+    setIsPlaying(true);
+  }, [playPrevious]);
 
-    el.style.background = `linear-gradient(to right, #B40000 0%, #B40000 ${percent}%, #ddd ${percent}%, #ddd 100%)`;
-  }
+  useMediaSession({
+    track: currentSong,
+    isPlaying,
+    onPlay: playFromMediaSession,
+    onPause: pauseFromMediaSession,
+    onNextTrack: nextFromMediaSession,
+    onPreviousTrack: previousFromMediaSession,
+  });
 
-  const progressRef = useRef<HTMLInputElement>(null);
-  const volumeRef = useRef<HTMLInputElement>(null);
+  const duration = Math.max(currentSong?.duration ?? 0, 1);
+  const playLabel = isPlaying ? 'Pause' : 'Play';
+  const repeatLabel =
+    repeatMode === 'one' ? 'Repeat one' : repeatMode === 'all' ? 'Repeat all' : 'Repeat off';
+  const favoriteLabel = isFavorite ? 'Remove from favourites' : 'Add to favourites';
+  const muteLabel = volume === 0 ? 'Unmute' : 'Mute';
+
+  const VolumeIcon =
+    volume >= 0.6 ? Volume2 : volume >= 0.1 ? Volume1 : volume >= 0.01 ? Volume : VolumeX;
 
   return (
     <>
-      {currentSong && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-b from-[#1a0000] to-[#0a0a0a] border-t border-[#B40000]/20">
+      {currentSong && !unplayable && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-b from-brand-tint to-surface-deep border-t border-brand/20 pb-[env(safe-area-inset-bottom)]">
           <audio
             ref={audioRef}
-            src={currentSong?.audioUrl}
+            // Never null here — the bar is not rendered without a URL, so there
+            // is no such thing as a player with nothing to play.
+            src={audioUrl ?? undefined}
             onLoadedMetadata={() => {
               if (audioRef.current) {
                 audioRef.current.volume = volume;
@@ -233,20 +294,19 @@ export default function MusicPlayer() {
             <div className="flex flex-col gap-2 md:hidden">
               {/* Progress Bar - Top on mobile */}
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-gray-400 min-w-[40px]">{formatTime(currectTime)}</span>
-                <input
-                  ref={progressRef}
-                  type="range"
-                  min="0"
-                  max={currentSong?.duration}
-                  value={currectTime}
-                  onChange={e => {
-                    handleProgressBar(e);
-                    updateSliderBackground(e.currentTarget);
-                  }}
-                  className="music-range flex-1"
+                <span className="text-muted-foreground min-w-[40px]">
+                  {formatTime(currectTime)}
+                </span>
+                <Slider
+                  aria-label="Seek"
+                  min={0}
+                  max={duration}
+                  step={1}
+                  value={[Math.min(currectTime, duration)]}
+                  onValueChange={([value]) => handleProgressBar(value)}
+                  className={`flex-1 ${SCRUBBER}`}
                 />
-                <span className="text-gray-400 min-w-[40px]">
+                <span className="text-muted-foreground min-w-[40px]">
                   {formatTime(currentSong?.duration)}
                 </span>
               </div>
@@ -255,55 +315,86 @@ export default function MusicPlayer() {
               <div className="flex items-center justify-between gap-3">
                 {/* Album Art + Info */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <img
+                  <Image
                     className="h-14 w-14 rounded-md object-cover flex-shrink-0"
                     src={currentSong?.coverUrl || '/assets/songicon.png'}
-                    alt={currentSong?.title}
+                    alt=""
+                    width={56}
+                    height={56}
                   />
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-sm font-medium truncate text-white">
+                    <span className="text-sm font-semibold truncate text-white">
                       {truncateByLetters(currentSong?.title, 25)}
                     </span>
-                    <span className="text-xs text-gray-400 truncate">
+                    <span className="text-xs text-muted-foreground truncate">
                       {currentSong.artist.join(', ')}
                     </span>
                   </div>
                 </div>
 
                 {/* Controls */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1.5 flex-shrink-0">
                   <button
                     onClick={() => setIsFavorite(!isFavorite)}
+                    aria-label={favoriteLabel}
+                    aria-pressed={isFavorite}
                     className="p-1 hover:scale-110 transition-transform"
                   >
                     <Heart
-                      className={`h-5 w-5 ${isFavorite ? 'fill-[#B40000] text-[#B40000]' : 'text-gray-400'}`}
+                      aria-hidden="true"
+                      className={`h-5 w-5 ${isFavorite ? 'fill-brand text-brand' : 'text-muted-foreground'}`}
                     />
                   </button>
                   <button
                     onClick={previousSong}
+                    aria-label="Previous song"
                     className="p-1 hover:scale-110 transition-transform"
                   >
                     <PreviousButton className="h-4 w-4 text-white" />
                   </button>
                   <button
                     onClick={toggle}
-                    className="p-2 bg-gradient-to-r from-[#800000] to-[#B40000] rounded-full hover:scale-105 transition-transform"
+                    aria-label={playLabel}
+                    className="p-2 bg-brand-gradient rounded-full hover:scale-105 transition-transform"
                   >
                     {isPlaying ? (
-                      <Pause className="h-5 w-5 text-white" fill="white" />
+                      <Pause aria-hidden="true" className="h-5 w-5 text-white" fill="white" />
                     ) : (
-                      <Play className="h-5 w-5 text-white" fill="white" />
+                      <Play aria-hidden="true" className="h-5 w-5 text-white" fill="white" />
                     )}
                   </button>
-                  <button onClick={nextSong} className="p-1 hover:scale-110 transition-transform">
+                  <button
+                    onClick={nextSong}
+                    aria-label="Next song"
+                    className="p-1 hover:scale-110 transition-transform"
+                  >
                     <NextButton className="h-4 w-4 text-white" />
                   </button>
                   <button
                     onClick={toggleShuffle}
-                    className={`p-1 hover:scale-110 transition-transform ${isShuffled ? 'text-[#B40000]' : 'text-gray-400'}`}
+                    aria-label="Shuffle"
+                    aria-pressed={isShuffled}
+                    className={`p-1 hover:scale-110 transition-transform ${isShuffled ? 'text-brand' : 'text-muted-foreground'}`}
                   >
-                    <Shuffle className="h-4 w-4" />
+                    <Shuffle aria-hidden="true" className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={toggleRepeat}
+                    aria-label={repeatLabel}
+                    className={`p-1 hover:scale-110 transition-transform ${repeatMode !== 'off' ? 'text-brand' : 'text-muted-foreground'}`}
+                  >
+                    {repeatMode === 'one' ? (
+                      <Repeat1 aria-hidden="true" className="h-4 w-4" />
+                    ) : (
+                      <Repeat aria-hidden="true" className="h-4 w-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={mute}
+                    aria-label={muteLabel}
+                    className="p-1 hover:scale-110 transition-transform text-muted-foreground"
+                  >
+                    <VolumeIcon aria-hidden="true" className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -312,26 +403,39 @@ export default function MusicPlayer() {
             {/* Desktop Layout */}
             <div className="hidden md:grid md:grid-cols-[1fr_2fr_1fr] md:gap-4 md:items-center">
               {/* Left: Song Info */}
-              <div className="flex items-center gap-4 min-w-0">
-                <img
-                  className="h-14 w-14 rounded-md object-cover flex-shrink-0"
+              {/* Between md and lg this column is only ~a quarter of a narrow
+                  bar, so the artwork stays small and the album line is dropped
+                  rather than truncating the title to three letters. */}
+              <div className="flex items-center gap-2.5 lg:gap-4 min-w-0">
+                <Image
+                  className="h-12 w-12 lg:h-16 lg:w-16 rounded-md object-cover flex-shrink-0 shadow-lg ring-1 ring-border/60"
                   src={currentSong?.coverUrl || '/assets/songicon.png'}
-                  alt={currentSong?.title}
+                  alt=""
+                  width={64}
+                  height={64}
                 />
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-sm font-medium truncate text-white">
+                <div className="flex flex-col min-w-0 flex-1 gap-0.5">
+                  <span className="text-sm lg:text-[15px] font-semibold leading-tight truncate text-white">
                     {currentSong?.title}
                   </span>
-                  <span className="text-xs text-gray-400 truncate">
+                  <span className="text-xs text-muted-foreground truncate">
                     {currentSong.artist.join(', ')}
                   </span>
+                  {currentSong?.album && (
+                    <span className="hidden lg:block text-[11px] text-muted-foreground/70 truncate">
+                      {currentSong.album}
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => setIsFavorite(!isFavorite)}
-                  className="p-2 hover:scale-110 transition-transform flex-shrink-0"
+                  aria-label={favoriteLabel}
+                  aria-pressed={isFavorite}
+                  className="p-1.5 lg:p-2 hover:scale-110 transition-transform flex-shrink-0"
                 >
                   <Heart
-                    className={`h-5 w-5 ${isFavorite ? 'fill-[#B40000] text-[#B40000]' : 'text-gray-400'}`}
+                    aria-hidden="true"
+                    className={`h-5 w-5 ${isFavorite ? 'fill-brand text-brand' : 'text-muted-foreground'}`}
                   />
                 </button>
               </div>
@@ -340,69 +444,82 @@ export default function MusicPlayer() {
               <div className="flex flex-col gap-2">
                 {/* Playback Controls */}
                 <div className="flex items-center justify-center gap-4">
-                  <button
-                    onClick={toggleShuffle}
-                    className={`p-2 hover:scale-110 transition-transform ${isShuffled ? 'text-[#B40000]' : 'text-gray-400'}`}
-                    title="Shuffle (S)"
-                  >
-                    <Shuffle className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={previousSong}
-                    className="p-2 hover:scale-110 transition-transform"
-                    title="Previous (←)"
-                  >
-                    <PreviousButton className="h-5 w-5 text-gray-300" />
-                  </button>
-                  <button
-                    onClick={toggle}
-                    className="p-3 bg-gradient-to-r from-[#800000] to-[#B40000] rounded-full hover:scale-105 transition-transform"
-                    title="Play/Pause (Space)"
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-6 w-6 text-white" fill="white" />
-                    ) : (
-                      <Play className="h-6 w-6 text-white" fill="white" />
-                    )}
-                  </button>
-                  <button
-                    onClick={nextSong}
-                    className="p-2 hover:scale-110 transition-transform"
-                    title="Next (→)"
-                  >
-                    <NextButton className="h-5 w-5 text-gray-300" />
-                  </button>
-                  <button
-                    onClick={toggleRepeat}
-                    className={`p-2 hover:scale-110 transition-transform ${repeatMode !== 'off' ? 'text-[#B40000]' : 'text-gray-400'}`}
-                    title="Repeat (R)"
-                  >
-                    {repeatMode === 'one' ? (
-                      <Repeat1 className="h-4 w-4" />
-                    ) : (
-                      <Repeat className="h-4 w-4" />
-                    )}
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={toggleShuffle}
+                      aria-label="Shuffle"
+                      aria-pressed={isShuffled}
+                      className={`p-2 hover:scale-110 transition-transform ${isShuffled ? 'text-brand' : 'text-muted-foreground'}`}
+                    >
+                      <Shuffle aria-hidden="true" className="h-4 w-4" />
+                    </TooltipTrigger>
+                    <TooltipContent>Shuffle (S)</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={previousSong}
+                      aria-label="Previous song"
+                      className="p-2 hover:scale-110 transition-transform"
+                    >
+                      <PreviousButton className="h-5 w-5 text-foreground/80" />
+                    </TooltipTrigger>
+                    <TooltipContent>Previous (←)</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={toggle}
+                      aria-label={playLabel}
+                      className="p-3 bg-brand-gradient rounded-full hover:scale-105 transition-transform"
+                    >
+                      {isPlaying ? (
+                        <Pause aria-hidden="true" className="h-6 w-6 text-white" fill="white" />
+                      ) : (
+                        <Play aria-hidden="true" className="h-6 w-6 text-white" fill="white" />
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>{playLabel} (Space)</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={nextSong}
+                      aria-label="Next song"
+                      className="p-2 hover:scale-110 transition-transform"
+                    >
+                      <NextButton className="h-5 w-5 text-foreground/80" />
+                    </TooltipTrigger>
+                    <TooltipContent>Next (→)</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={toggleRepeat}
+                      aria-label={repeatLabel}
+                      className={`p-2 hover:scale-110 transition-transform ${repeatMode !== 'off' ? 'text-brand' : 'text-muted-foreground'}`}
+                    >
+                      {repeatMode === 'one' ? (
+                        <Repeat1 aria-hidden="true" className="h-4 w-4" />
+                      ) : (
+                        <Repeat aria-hidden="true" className="h-4 w-4" />
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>Repeat (R)</TooltipContent>
+                  </Tooltip>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-gray-400 min-w-[40px] text-right">
+                <div className="flex items-center gap-2 text-xs w-full max-w-[420px] mx-auto">
+                  <span className="text-muted-foreground min-w-[40px] text-right">
                     {formatTime(currectTime)}
                   </span>
-                  <input
-                    ref={progressRef}
-                    type="range"
-                    min="0"
-                    max={currentSong?.duration}
-                    value={currectTime}
-                    onChange={e => {
-                      handleProgressBar(e);
-                      updateSliderBackground(e.currentTarget);
-                    }}
-                    className="music-range flex-1"
+                  <Slider
+                    aria-label="Seek"
+                    min={0}
+                    max={duration}
+                    step={1}
+                    value={[Math.min(currectTime, duration)]}
+                    onValueChange={([value]) => handleProgressBar(value)}
+                    className={`flex-1 ${SCRUBBER}`}
                   />
-                  <span className="text-gray-400 min-w-[40px]">
+                  <span className="text-muted-foreground min-w-[40px]">
                     {formatTime(currentSong?.duration)}
                   </span>
                 </div>
@@ -410,33 +527,24 @@ export default function MusicPlayer() {
 
               {/* Right: Volume Control */}
               <div className="flex items-center justify-end gap-3">
-                <button
-                  onClick={mute}
-                  className="p-2 hover:scale-110 transition-transform"
-                  title="Mute (M)"
-                >
-                  {volume >= 0.6 ? (
-                    <Volume2 className="h-5 w-5 text-gray-300" />
-                  ) : volume >= 0.1 ? (
-                    <Volume1 className="h-5 w-5 text-gray-300" />
-                  ) : volume >= 0.01 ? (
-                    <Volume className="h-5 w-5 text-gray-300" />
-                  ) : (
-                    <VolumeX className="h-5 w-5 text-gray-300" />
-                  )}
-                </button>
-                <input
-                  ref={volumeRef}
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={e => {
-                    handleVolumeBar(e);
-                    updateSliderBackground(e.currentTarget);
-                  }}
-                  className="music-range w-24"
+                <Tooltip>
+                  <TooltipTrigger
+                    onClick={mute}
+                    aria-label={muteLabel}
+                    className="p-2 hover:scale-110 transition-transform"
+                  >
+                    <VolumeIcon aria-hidden="true" className="h-5 w-5 text-foreground/80" />
+                  </TooltipTrigger>
+                  <TooltipContent>Mute (M)</TooltipContent>
+                </Tooltip>
+                <Slider
+                  aria-label="Volume"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={[volume]}
+                  onValueChange={([value]) => handleVolumeBar(value)}
+                  className={`w-24 ${SCRUBBER}`}
                 />
               </div>
             </div>
