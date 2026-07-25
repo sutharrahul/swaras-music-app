@@ -1,0 +1,42 @@
+-- ---------------------------------------------------------------------------
+-- Email is a display attribute, not an identity. Drop `users_email_key`.
+--
+-- THE BUG THIS FIXES
+-- ------------------
+-- `on_auth_user_created` fires AFTER INSERT ON auth.users, which happens at
+-- signup — BEFORE email confirmation. So a stranger could sign up as
+-- `founder@yourdomain`, never confirm it, and plant a `public.users` row holding
+-- that address. When the real owner later signs up and confirms, the trigger's
+-- `on conflict do nothing` hits `users_email_key` and silently skips, leaving
+-- them with an auth identity and no profile row. `resolveActor()` then returns
+-- `no-profile` and every authenticated route 403s. Forever: there is no
+-- self-service repair, and the victim did nothing wrong. Sprayed across a domain
+-- it also blocks ever provisioning the first admin.
+--
+-- `ON CONFLICT DO NOTHING` is NOT the mistake and stays exactly as it is —
+-- `do update set supabase_user_id = new.id` would be an account-takeover
+-- primitive (see 20260809130200_provision_app_user.sql). Making EMAIL a conflict
+-- key at all is the mistake.
+--
+-- WHY DROPPING IT IS SAFE
+-- -----------------------
+-- Nothing identifies a user by email. `supabase_user_id` is the only link to an
+-- auth identity (unique, and kept unique), `current_app_user_id()` and
+-- `is_admin()` both match on it, `resolveActor()` selects on it, and no query in
+-- src/ filters `users` by email at all — the column is only ever read out for
+-- display. auth.users enforces its own email uniqueness for password signups
+-- independently of this table, which is where that rule belongs: it is GoTrue's
+-- job to decide who owns an address, not ours.
+--
+-- After this, a duplicate email in public.users is possible and harmless: two
+-- rows with the same address are two distinct accounts, told apart by
+-- supabase_user_id, exactly as auth.users would tell them apart.
+--
+-- NOT DONE HERE: repairing identities already broken by this. A squatted row
+-- belongs to the squatter's own `supabase_user_id`, and the victim's identity
+-- still has no row of its own; only a fresh signup would now create one.
+-- Un-breaking an existing one needs an operator to decide who actually owns the
+-- address — it cannot be guessed safely, which is the whole point.
+-- ---------------------------------------------------------------------------
+
+drop index if exists public.users_email_key;
