@@ -1,50 +1,17 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
 
-// Public routes - accessible to everyone (authenticated or not)
-const isPublicRoute = createRouteMatcher([
-  '/',
-  '/api/webhooks/clerk',
-  '/api/get-songs',
-  '/api/search',
-]);
+import { updateSession } from '@/utils/supabase/middleware';
 
-// Auth routes
-const isAuthRoute = createRouteMatcher(['/sign-in', '/sign-up']);
-
-// Admin-only routes
-const isAdminRoute = createRouteMatcher(['/admin(.*)', '/api/upload-song', '/api/admin(.*)']);
-
-export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
-
-  // Redirect logged-in users away from auth pages
-  if (userId && isAuthRoute(req)) {
-    const homeUrl = new URL('/', req.url);
-    return NextResponse.redirect(homeUrl);
-  }
-
-  // Allow auth routes for non-authenticated users
-  if (isAuthRoute(req)) {
-    return NextResponse.next();
-  }
-
-  // Allow public routes
-  if (isPublicRoute(req)) {
-    return NextResponse.next();
-  }
-
-  // Protect admin routes - require authentication and admin role
-  if (isAdminRoute(req)) {
-    await auth.protect();
-    // Note: Additional admin role check is done in the route handlers
-  } else {
-    // Protect all other non-public routes
-    await auth.protect();
-  }
-
-  return NextResponse.next();
-});
+/**
+ * `updateSession` does two things that must not be separated: it refreshes the
+ * Supabase auth cookies, and it applies deny-by-default route protection (R2).
+ * The stock Supabase middleware only does the first; dropping that in on its own
+ * would turn every handler that used to sit behind Clerk's `auth.protect()` into
+ * an anonymous public endpoint.
+ */
+export async function middleware(request: NextRequest) {
+  return await updateSession(request);
+}
 
 export const config = {
   matcher: [
