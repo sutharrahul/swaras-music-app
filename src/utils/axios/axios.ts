@@ -1,78 +1,65 @@
-import Axios, { AxiosError, AxiosResponse } from 'axios';
-import chalk from 'chalk';
+import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+
+/**
+ * What this file used to do, on every single request, in production:
+ *
+ *   - `JSON.stringify(config.headers)` — which included
+ *     `Authorization: Bearer <JWT>`, printed to the browser console. Anything
+ *     with console access (an extension, a copy-pasted snippet, a screen share)
+ *     read the session token straight out of the log.
+ *   - `JSON.stringify(response.data)` — every response body, so liked songs,
+ *     playlist contents and any error detail were logged too.
+ *   - imported `chalk`, which was never a declared dependency (it resolved only
+ *     as a transitive install) and whose ANSI codes are meaningless in a browser
+ *     console anyway.
+ *
+ * What replaces it: method, URL, status and duration. No headers, no bodies, no
+ * query strings — a search term or a token can ride in one of those. Development
+ * only; the interceptors are not even registered in a production build, so this
+ * cannot regress into logging on a live site.
+ */
 
 const axiosInstance = Axios.create({
-  // baseURL: process.env.NEXT_PUBLIC_BASE_URL,
   timeout: 1000 * 60,
 });
 
-const successHandler = (response: AxiosResponse) => {
-  const config = response?.config;
-  const method = chalk.green(chalk.bold(config.method?.toUpperCase()));
-  const url = chalk.green(chalk.italic(config.baseURL?.toLowerCase(), config.url));
-  const status = chalk.bgGreen(chalk.bold(response?.status));
-  const data = JSON.stringify(response?.data, null, 4);
-  let timeTaken = Infinity;
-  // @ts-expect-error - metadata is a custom property added to axios config for logging
-  const metadata = config?.metadata;
-  if (metadata?.startTime) {
-    timeTaken = (+new Date() - metadata?.startTime) / 1000;
-  }
+const isDev = process.env.NODE_ENV === 'development';
 
-  console.log(
-    `[Axios-successHandler] [${Number(timeTaken).toFixed(2)}s] [${new Date().toLocaleString()}] [${status}] [${method}: ${url}] \ndata:${data}`
-  );
-  return response;
+type TimedConfig = InternalAxiosRequestConfig & { metadata?: { startTime: number } };
+
+/** Path only — the query string can carry a search term or a token. */
+const pathOf = (url: string | undefined) => (url ?? '').split('?')[0];
+
+const elapsed = (config: TimedConfig | undefined) => {
+  const start = config?.metadata?.startTime;
+  return start ? `${Date.now() - start}ms` : '—';
 };
 
-const errorHandler = async (error: AxiosError): Promise<AxiosError> => {
-  const response = error?.response;
-  const config = error?.response?.config;
-  const method = chalk.green(chalk.bold(config?.method?.toUpperCase()));
-  const url = chalk.green(chalk.italic(config?.baseURL?.toLowerCase(), config?.url));
-  const status = chalk.bgGreen(chalk.bold(response?.status));
-  const data = JSON.stringify(response?.data, null, 4);
-
-  let timeTaken = Infinity;
-  // @ts-expect-error - metadata is a custom property added to axios config for logging
-  const metadata = config?.metadata;
-  if (metadata?.startTime) {
-    timeTaken = (+new Date() - metadata?.startTime) / 1000;
-  }
-
-  console.log(
-    chalk.red(
-      `[Axios-errorHandler] [${timeTaken}] [${status}] [${method}: ${url}] \nerror_message:${error?.message}\n\ndata:${data}`
-    )
-  );
-  return Promise.reject(error);
-};
-
-const requestHandler = (config: any) => {
-  config.metadata = { startTime: new Date() };
-
-  const method = chalk.green(chalk.bold(config.method?.toUpperCase()));
-  const url = chalk.green(chalk.italic(config.baseURL?.toLowerCase(), config.url));
-  const data = JSON.stringify(config?.data, null, 4);
-  const params = JSON.stringify(config?.params, null, 4);
-  const headers = JSON.stringify(config?.headers, null, 4);
-  const baseUrl = chalk.green(chalk.italic(config.baseURL?.toLowerCase()));
-
-  console.log(
-    `[Axios-requestHandler] [${method}: ${baseUrl} ${url}] \ndata:${data}\nparams:${params}\nheaders:${headers}`
+if (isDev) {
+  axiosInstance.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+      (config as TimedConfig).metadata = { startTime: Date.now() };
+      return config;
+    },
+    error => Promise.reject(error)
   );
 
-  return config;
-};
-
-axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => successHandler(response),
-  (error: AxiosError) => errorHandler(error)
-);
-
-axiosInstance.interceptors.request.use(
-  (config: any) => requestHandler(config),
-  error => Promise.reject(error)
-);
+  axiosInstance.interceptors.response.use(
+    (response: AxiosResponse) => {
+      const config = response.config as TimedConfig;
+      console.debug(
+        `[api] ${config.method?.toUpperCase()} ${pathOf(config.url)} → ${response.status} (${elapsed(config)})`
+      );
+      return response;
+    },
+    (error: AxiosError) => {
+      const config = error.config as TimedConfig | undefined;
+      console.debug(
+        `[api] ${config?.method?.toUpperCase()} ${pathOf(config?.url)} → ${error.response?.status ?? 'network error'} (${elapsed(config)})`
+      );
+      return Promise.reject(error);
+    }
+  );
+}
 
 export { axiosInstance };

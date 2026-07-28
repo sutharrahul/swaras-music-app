@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import usePlaylistApi from '../apiHooks/usePlaylistApi';
 
+// `user` takes no id: /api/playlists returns the signed-in caller's own
+// playlists and there is no way to ask it for anyone else's.
 export const PLAYLIST_KEYS = {
   all: ['playlists'] as const,
-  user: (userId: string) => ['playlists', 'user', userId] as const,
+  user: ['playlists', 'user'] as const,
   detail: (playlistId: string) => ['playlists', 'detail', playlistId] as const,
 };
 
@@ -12,13 +14,13 @@ export const PLAYLIST_KEYS = {
 /**
  * Fetch all playlists for a user
  */
-export function useUserPlaylists(userId: string, enabled = true) {
+export function useUserPlaylists(enabled = true) {
   const { getUserPlaylists } = usePlaylistApi();
 
   return useQuery({
-    queryKey: PLAYLIST_KEYS.user(userId),
-    queryFn: () => getUserPlaylists(userId),
-    enabled: enabled && !!userId,
+    queryKey: PLAYLIST_KEYS.user,
+    queryFn: getUserPlaylists,
+    enabled,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes cache
     refetchOnMount: false,
@@ -51,10 +53,9 @@ export function usePlaylistMutations() {
    * Create a new playlist
    */
   const createPlaylistMutation = useMutation({
-    mutationFn: (data: { userId: string; playlistName: string; songId: string }) =>
-      createPlaylist(data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: PLAYLIST_KEYS.user(variables.userId) });
+    mutationFn: (data: { name: string; description?: string }) => createPlaylist(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PLAYLIST_KEYS.user });
       queryClient.invalidateQueries({ queryKey: PLAYLIST_KEYS.all });
     },
   });
@@ -76,11 +77,11 @@ export function usePlaylistMutations() {
    * Delete a playlist
    */
   const deletePlaylistMutation = useMutation({
-    mutationFn: (data: { playlistId: string; userId: string }) => deletePlaylist(data.playlistId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: PLAYLIST_KEYS.user(variables.userId) });
+    mutationFn: (playlistId: string) => deletePlaylist(playlistId),
+    onSuccess: (_, playlistId) => {
+      queryClient.invalidateQueries({ queryKey: PLAYLIST_KEYS.user });
       queryClient.invalidateQueries({
-        queryKey: PLAYLIST_KEYS.detail(variables.playlistId),
+        queryKey: PLAYLIST_KEYS.detail(playlistId),
       });
       queryClient.invalidateQueries({ queryKey: PLAYLIST_KEYS.all });
     },

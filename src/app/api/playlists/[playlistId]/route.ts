@@ -1,118 +1,92 @@
 import { ApiResponse } from '@/app/utils/ApiResponse';
-import prisma from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { privateNoStore, respondToDbError } from '@/lib/api';
+import { requireUser } from '@/lib/auth';
+import { SONG_COLUMNS, toSongDtos } from '@/lib/dto';
 
-// GET specific playlist with songs
+/**
+ * One playlist and its songs.
+ *
+ * Ownership is enforced twice and neither check trusts the client. The explicit
+ * `.eq('user_id', …)` states the intent at the call site, and
+ * `playlists_owner_all` would filter the row out regardless.
+ *
+ * A playlist belonging to someone else comes back as 404, not 403. The old code
+ * fetched the row first and *then* answered 403, which told the caller that the
+ * id existed — an enumeration oracle over other people's playlists. "Not found"
+ * is the honest answer to "a playlist you can see with this id": there isn't one.
+ */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ playlistId: string }> }
 ) {
-  try {
-    const { playlistId } = await params;
-    const { userId: clerkUserId } = await auth();
+  const auth = await requireUser();
+  if (!auth.ok) return auth.response;
 
-    if (!clerkUserId) {
-      return ApiResponse.error('Unauthorized: Please log in', 401);
-    }
+  const { playlistId } = await params;
 
-    const user = await prisma.user.findUnique({
-      where: { vendorId: clerkUserId as string },
-      select: { id: true },
-    });
+  const { data, error } = await auth.supabase
+    .from('playlists')
+    .select(
+      `id, name, description, created_at, updated_at,
+       playlist_songs(id, added_at, songs(${SONG_COLUMNS}))`
+    )
+    .eq('id', playlistId)
+    .eq('user_id', auth.user.id)
+    .maybeSingle();
 
-    if (!user) {
-      return ApiResponse.error('User not found', 404);
-    }
+  if (error) return respondToDbError(error, 'Failed to fetch playlist');
+  if (!data) return ApiResponse.error('Playlist not found', 404);
 
-    const playlist = await prisma.playlist.findUnique({
-      where: {
-        id: playlistId,
+  // PostgREST cannot order an embedded resource by a parent-side expression, and
+  // the row count here is one playlist's worth, so the sort is done in memory.
+  const entries = [...data.playlist_songs].sort((a, b) => b.added_at.localeCompare(a.added_at));
+
+  const songs = await toSongDtos(
+    auth.supabase,
+    entries.map(entry => entry.songs)
+  );
+
+  return privateNoStore(
+    ApiResponse.success(
+      'Playlist fetched successfully',
+      {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        playlistSongs: entries.map((entry, index) => ({
+          id: entry.id,
+          addedAt: entry.added_at,
+          song: songs[index],
+        })),
       },
-      include: {
-        playlistSongs: {
-          include: {
-            song: {
-              include: {
-                uploadedBy: {
-                  select: {
-                    id: true,
-                    email: true,
-                    firstName: true,
-                    lastName: true,
-                  },
-                },
-                _count: {
-                  select: {
-                    likes: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: {
-            addedAt: 'desc',
-          },
-        },
-      },
-    });
-
-    if (!playlist) {
-      return ApiResponse.error('Playlist not found', 404);
-    }
-
-    // Verify playlist belongs to user
-    if (playlist.userId !== user.id) {
-      return ApiResponse.error('Access denied: This playlist belongs to another user', 403);
-    }
-
-    return ApiResponse.success('Playlist fetched successfully', playlist, 200);
-  } catch (error) {
-    console.error('Error fetching playlist:', error);
-    return ApiResponse.error('Failed to fetch playlist', 500);
-  }
+      200
+    )
+  );
 }
 
-// DELETE playlist
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ playlistId: string }> }
 ) {
-  try {
-    const { playlistId } = await params;
-    const { userId: clerkUserId } = await auth();
+  const auth = await requireUser();
+  if (!auth.ok) return auth.response;
 
-    if (!clerkUserId) {
-      return ApiResponse.error('Unauthorized: Please log in', 401);
-    }
+  const { playlistId } = await params;
 
-    const user = await prisma.user.findUnique({
-      where: { vendorId: clerkUserId },
-      select: { id: true },
-    });
+  // Deleting straight through the ownership filter removes the read-then-delete
+  // gap and needs one round-trip instead of two. `select` reports whether the
+  // filter actually matched, which is how 404 is told from success.
+  const { data, error } = await auth.supabase
+    .from('playlists')
+    .delete()
+    .eq('id', playlistId)
+    .eq('user_id', auth.user.id)
+    .select('id');
 
-    if (!user) {
-      return ApiResponse.error('User not found', 404);
-    }
+  if (error) return respondToDbError(error, 'Failed to delete playlist');
+  if (!data || data.length === 0) return ApiResponse.error('Playlist not found', 404);
 
-    const playlist = await prisma.playlist.findUnique({
-      where: { id: playlistId },
-    });
-
-    if (!playlist) {
-      return ApiResponse.error('Playlist not found', 404);
-    }
-
-    if (playlist.userId !== user.id) {
-      return ApiResponse.error('Access denied: This playlist belongs to another user', 403);
-    }
-
-    await prisma.playlist.delete({
-      where: { id: playlistId },
-    });
-
-    return ApiResponse.success('Playlist deleted successfully', null, 200);
-  } catch (error) {
-    console.error('Error deleting playlist:', error);
-    return ApiResponse.error('Failed to delete playlist', 500);
-  }
+  return ApiResponse.success('Playlist deleted successfully', { id: playlistId }, 200);
 }

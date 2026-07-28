@@ -1,8 +1,17 @@
 import { useApiClient } from './useApiClient';
 import { useCallback } from 'react';
 
+/**
+ * `/api/get-playlist` is gone. It took `?userId=`/`?playlistId=` from the query
+ * with no auth at all and returned the owner's email address — a strictly worse
+ * duplicate of the two `/api/playlists` routes, which is where these now point.
+ *
+ * No function here takes a user id any more. The endpoints derive the owner from
+ * the session cookie, so passing one would at best be ignored and at worst be
+ * the IDOR this migration removes.
+ */
 const PLAYLIST_ROUTE = {
-  GET_PLAYLIST: '/api/get-playlist',
+  PLAYLISTS: '/api/playlists',
   POST_PLAYLIST: '/api/post-playlist',
   DELETE_PLAYLIST: '/api/delete-playlist',
   REMOVE_PLAYLIST_SONG: '/api/remove-playlist-song',
@@ -11,34 +20,28 @@ const PLAYLIST_ROUTE = {
 export default function usePlaylistApi() {
   const { get, post, del } = useApiClient();
 
-  // Get all playlists for a user
-  const getUserPlaylists = useCallback(
-    async (userId: string) => {
-      const response = await get(`${PLAYLIST_ROUTE.GET_PLAYLIST}?userId=${userId}`);
-      return response.data;
-    },
-    [get]
-  );
+  /** The signed-in user's own playlists. */
+  const getUserPlaylists = useCallback(async () => {
+    const response = await get(PLAYLIST_ROUTE.PLAYLISTS);
+    return response.data;
+  }, [get]);
 
-  // Get a specific playlist by ID
   const getPlaylistById = useCallback(
     async (playlistId: string) => {
-      const response = await get(`${PLAYLIST_ROUTE.GET_PLAYLIST}?playlistId=${playlistId}`);
+      const response = await get(`${PLAYLIST_ROUTE.PLAYLISTS}/${playlistId}`);
       return response.data;
     },
     [get]
   );
 
-  // Create new playlist with song
   const createPlaylist = useCallback(
-    async (data: { userId: string; playlistName: string; songId: string }) => {
-      const response = await post(PLAYLIST_ROUTE.POST_PLAYLIST, data);
+    async (data: { name: string; description?: string }) => {
+      const response = await post(PLAYLIST_ROUTE.PLAYLISTS, data);
       return response.data;
     },
     [post]
   );
 
-  // Add song to existing playlist
   const addSongToPlaylist = useCallback(
     async (data: { playlistId: string; songId: string }) => {
       const response = await post(PLAYLIST_ROUTE.POST_PLAYLIST, data);
@@ -47,7 +50,6 @@ export default function usePlaylistApi() {
     [post]
   );
 
-  // Delete entire playlist
   const deletePlaylist = useCallback(
     async (playlistId: string) => {
       const response = await del(PLAYLIST_ROUTE.DELETE_PLAYLIST, {
@@ -58,7 +60,6 @@ export default function usePlaylistApi() {
     [del]
   );
 
-  // Remove song from playlist
   const removeSongFromPlaylist = useCallback(
     async (data: { playlistId: string; songId: string }) => {
       const response = await del(PLAYLIST_ROUTE.REMOVE_PLAYLIST_SONG, {

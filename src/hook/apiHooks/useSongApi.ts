@@ -3,7 +3,6 @@ import { useCallback } from 'react';
 
 const SONG_ROUTE = {
   GET_SONGS: '/api/get-songs',
-  UPLOAD_SONG: '/api/upload-song',
   LIKE_SONG: '/api/like-song',
   GET_LIKED_SONGS: '/api/get-liked-songs',
 };
@@ -16,20 +15,11 @@ export default function useSongApi() {
     return response.data;
   }, [get]);
 
-  const uploadSong = useCallback(
-    async (formData: FormData) => {
-      const response = await post(SONG_ROUTE.UPLOAD_SONG, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      return response.data;
-    },
-    [post]
-  );
-
+  // `userId` is deliberately absent from all three of these. Sending one is what
+  // made like/unlike/liked-songs act on arbitrary accounts; the endpoints take
+  // the actor from the session now.
   const likeSong = useCallback(
-    async (data: { userId: string; songId: string }) => {
+    async (data: { songId: string }) => {
       const response = await post(SONG_ROUTE.LIKE_SONG, data);
       return response.data;
     },
@@ -37,24 +27,20 @@ export default function useSongApi() {
   );
 
   const unlikeSong = useCallback(
-    async (data: { userId: string; songId: string }) => {
+    async (data: { songId: string }) => {
       const response = await del(SONG_ROUTE.LIKE_SONG, { data });
       return response.data;
     },
     [del]
   );
 
-  const getLikedSongs = useCallback(
-    async (userId: string) => {
-      const response = await get(`${SONG_ROUTE.GET_LIKED_SONGS}?userId=${userId}`);
-      return response.data;
-    },
-    [get]
-  );
+  const getLikedSongs = useCallback(async () => {
+    const response = await get(SONG_ROUTE.GET_LIKED_SONGS);
+    return response.data;
+  }, [get]);
 
   return {
     getSongs,
-    uploadSong,
     likeSong,
     unlikeSong,
     getLikedSongs,

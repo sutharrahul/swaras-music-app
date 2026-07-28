@@ -1,65 +1,56 @@
 import { ApiResponse } from '@/app/utils/ApiResponse';
-import prisma from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { respondToDbError, validationMessage } from '@/lib/api';
+import { requireUser } from '@/lib/auth';
+import { z } from 'zod';
 
+const bodySchema = z.object({
+  playlistId: z.string().min(1),
+  songId: z.string().min(1),
+});
+
+/** Remove a song from one of the caller's own playlists. */
 export async function DELETE(request: Request) {
+  const auth = await requireUser();
+  if (!auth.ok) return auth.response;
+
+  let body: unknown;
   try {
-    // Authenticate user with Clerk
-    const { userId: clerkUserId } = await auth();
-
-    if (!clerkUserId) {
-      return ApiResponse.error('Unauthorized: Please log in', 401);
-    }
-
-    // Find user in database by Clerk vendorId
-    const user = await prisma.user.findUnique({
-      where: { vendorId: clerkUserId },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return ApiResponse.error('User not found', 404);
-    }
-
-    const { playlistId, songId } = await request.json();
-
-    if (!playlistId || !songId) {
-      return ApiResponse.error('Playlist ID and Song ID are required', 400);
-    }
-
-    // Verify playlist exists and belongs to the user
-    const playlist = await prisma.playlist.findUnique({
-      where: { id: playlistId },
-      select: { id: true, userId: true },
-    });
-
-    if (!playlist) {
-      return ApiResponse.error('Playlist not found', 404);
-    }
-
-    if (playlist.userId !== user.id) {
-      return ApiResponse.error('Forbidden: You can only modify your own playlists', 403);
-    }
-
-    // Remove song from playlist
-    const deletedSong = await prisma.playlistSong.deleteMany({
-      where: {
-        playlistId,
-        songId,
-      },
-    });
-
-    if (deletedSong.count === 0) {
-      return ApiResponse.error('Song not found in playlist', 404);
-    }
-
-    return ApiResponse.success(
-      'Song removed from playlist successfully',
-      { deletedCount: deletedSong.count },
-      200
-    );
-  } catch (error) {
-    console.error('Error removing song from playlist:', error);
-    return ApiResponse.error('Failed to remove song from playlist', 500);
+    body = await request.json();
+  } catch {
+    return ApiResponse.error('Invalid JSON body', 400);
   }
+
+  const parsed = bodySchema.safeParse(body);
+  if (!parsed.success) {
+    return ApiResponse.error(validationMessage(parsed.error), 400);
+  }
+
+  const { playlistId, songId } = parsed.data;
+  const { supabase } = auth;
+
+  const { data: playlist, error: playlistError } = await supabase
+    .from('playlists')
+    .select('id')
+    .eq('id', playlistId)
+    .eq('user_id', auth.user.id)
+    .maybeSingle();
+
+  if (playlistError) return respondToDbError(playlistError, 'Failed to remove song from playlist');
+  if (!playlist) return ApiResponse.error('Playlist not found', 404);
+
+  const { data, error } = await supabase
+    .from('playlist_songs')
+    .delete()
+    .eq('playlist_id', playlistId)
+    .eq('song_id', songId)
+    .select('id');
+
+  if (error) return respondToDbError(error, 'Failed to remove song from playlist');
+  if (!data || data.length === 0) return ApiResponse.error('Song not found in playlist', 404);
+
+  return ApiResponse.success(
+    'Song removed from playlist successfully',
+    { playlistId, songId },
+    200
+  );
 }

@@ -1,54 +1,45 @@
 import { ApiResponse } from '@/app/utils/ApiResponse';
-import prisma from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server';
+import { respondToDbError, validationMessage } from '@/lib/api';
+import { requireUser } from '@/lib/auth';
+import { z } from 'zod';
 
+const bodySchema = z.object({
+  playlistId: z.string().min(1),
+});
+
+/**
+ * Delete one of the caller's own playlists.
+ *
+ * This duplicates `DELETE /api/playlists/[playlistId]`, which is the RESTful
+ * spelling and the one the playlists page uses. It is kept because
+ * `usePlaylistApi.deletePlaylist` still calls it and collapsing the two is
+ * frontend consolidation (task #14), not part of the auth migration.
+ */
 export async function DELETE(request: Request) {
+  const auth = await requireUser();
+  if (!auth.ok) return auth.response;
+
+  let body: unknown;
   try {
-    // Authenticate user with Clerk
-    const { userId: clerkUserId } = await auth();
-
-    if (!clerkUserId) {
-      return ApiResponse.error('Unauthorized: Please log in', 401);
-    }
-
-    // Find user in database by Clerk vendorId
-    const user = await prisma.user.findUnique({
-      where: { vendorId: clerkUserId },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return ApiResponse.error('User not found', 404);
-    }
-
-    const { playlistId } = await request.json();
-
-    if (!playlistId) {
-      return ApiResponse.error('Playlist ID is required', 400);
-    }
-
-    // Verify playlist exists and belongs to the user
-    const playlist = await prisma.playlist.findUnique({
-      where: { id: playlistId },
-      select: { id: true, userId: true },
-    });
-
-    if (!playlist) {
-      return ApiResponse.error('Playlist not found', 404);
-    }
-
-    if (playlist.userId !== user.id) {
-      return ApiResponse.error('Forbidden: You can only delete your own playlists', 403);
-    }
-
-    // Delete entire playlist (cascade will delete all playlistSongs)
-    const deletedPlaylist = await prisma.playlist.delete({
-      where: { id: playlistId },
-    });
-
-    return ApiResponse.success('Playlist deleted successfully', deletedPlaylist, 200);
-  } catch (error) {
-    console.error('Error deleting playlist:', error);
-    return ApiResponse.error('Failed to delete playlist', 500);
+    body = await request.json();
+  } catch {
+    return ApiResponse.error('Invalid JSON body', 400);
   }
+
+  const parsed = bodySchema.safeParse(body);
+  if (!parsed.success) {
+    return ApiResponse.error(validationMessage(parsed.error), 400);
+  }
+
+  const { data, error } = await auth.supabase
+    .from('playlists')
+    .delete()
+    .eq('id', parsed.data.playlistId)
+    .eq('user_id', auth.user.id)
+    .select('id');
+
+  if (error) return respondToDbError(error, 'Failed to delete playlist');
+  if (!data || data.length === 0) return ApiResponse.error('Playlist not found', 404);
+
+  return ApiResponse.success('Playlist deleted successfully', { id: parsed.data.playlistId }, 200);
 }

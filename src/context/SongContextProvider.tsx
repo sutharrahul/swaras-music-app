@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, ReactNode, useContext, useState } from 'react';
-import { SongWithRelations } from '@/types/prisma';
+import { SongWithRelations } from '@/types/models';
 import { useSongs } from '@/hook/query';
 
 interface SongeType extends SongWithRelations {
