@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Loader2, Music2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PlayList from '@/components/PlayList';
+import EmptyState from '@/components/states/EmptyState';
 
 interface PlaylistDetails {
   id: string;
@@ -20,7 +21,7 @@ interface PlaylistDetails {
 }
 
 export default function PlaylistDetailPage() {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useSupabaseUser();
   const router = useRouter();
   const params = useParams();
   const playlistId = params.playlistId as string;
@@ -58,8 +59,12 @@ export default function PlaylistDetailPage() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-[#B40000]" />
+      <div
+        role="status"
+        aria-label="Loading playlist"
+        className="flex items-center justify-center h-full"
+      >
+        <Loader2 aria-hidden="true" className="w-8 h-8 animate-spin text-brand" />
       </div>
     );
   }
@@ -67,14 +72,16 @@ export default function PlaylistDetailPage() {
   if (!playlist) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <Music2 className="w-16 h-16 text-gray-600 mb-4" />
-        <p className="text-gray-400 text-lg">Playlist not found</p>
-        <Button
-          onClick={() => router.push('/playlist')}
-          className="mt-4 bg-gradient-to-r from-[#800000] to-[#B40000]"
-        >
-          Back to Playlists
-        </Button>
+        <EmptyState
+          icon={Music2}
+          title="Playlist not found"
+          description="It may have been deleted, or it never belonged to this account."
+          action={
+            <Button onClick={() => router.push('/playlist')} className="bg-brand-gradient">
+              Back to Playlists
+            </Button>
+          }
+        />
       </div>
     );
   }
@@ -88,16 +95,16 @@ export default function PlaylistDetailPage() {
         <Button
           onClick={() => router.push('/playlist')}
           variant="ghost"
-          className="mb-4 text-gray-400 hover:text-white"
+          className="mb-4 text-muted-foreground hover:text-white"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft aria-hidden="true" className="w-4 h-4 mr-2" />
           Back to Playlists
         </Button>
 
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">{playlist.name}</h1>
-            <p className="text-gray-500">
+            <p className="text-muted-foreground/70">
               {playlist.playlistSongs.length} song{playlist.playlistSongs.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -106,13 +113,13 @@ export default function PlaylistDetailPage() {
 
       {/* Songs List */}
       {songs.length === 0 ? (
-        <div className="text-center py-20">
-          <Music2 className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-          <h3 className="text-xl font-semibold text-gray-400 mb-2">No songs in this playlist</h3>
-          <p className="text-gray-500">Add songs from the home page to build your playlist</p>
-        </div>
+        <EmptyState
+          icon={Music2}
+          title="No songs in this playlist"
+          description="Add songs from the home page to build your playlist"
+        />
       ) : (
-        <PlayList songData={songs} dataType="userPlaylist" />
+        <PlayList songData={songs} dataType="userPlaylist" playlistId={playlist.id} />
       )}
     </div>
   );

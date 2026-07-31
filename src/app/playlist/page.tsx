@@ -1,14 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Plus, Music2, Trash2, ListMusic, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import EmptyState from '@/components/states/EmptyState';
 
 interface Playlist {
   id: string;
@@ -21,13 +33,14 @@ interface Playlist {
 }
 
 export default function PlaylistsPage() {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useSupabaseUser();
   const router = useRouter();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [playlistPendingDelete, setPlaylistPendingDelete] = useState<Playlist | null>(null);
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -85,8 +98,6 @@ export default function PlaylistsPage() {
   };
 
   const deletePlaylist = async (playlistId: string) => {
-    if (!confirm('Are you sure you want to delete this playlist?')) return;
-
     try {
       const { data } = await axios.delete(`/api/playlists/${playlistId}`);
       if (data?.success) {
@@ -104,8 +115,12 @@ export default function PlaylistsPage() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-[#B40000]" />
+      <div
+        role="status"
+        aria-label="Loading playlists"
+        className="flex items-center justify-center h-full"
+      >
+        <Loader2 aria-hidden="true" className="w-8 h-8 animate-spin text-brand" />
       </div>
     );
   }
@@ -115,10 +130,10 @@ export default function PlaylistsPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-          <ListMusic className="w-8 h-8 text-[#B40000]" />
+          <ListMusic aria-hidden="true" className="w-8 h-8 text-brand" />
           My Playlists
         </h1>
-        <p className="text-gray-400">Create and manage your music playlists</p>
+        <p className="text-muted-foreground">Create and manage your music playlists</p>
       </div>
 
       {/* Create Playlist Button */}
@@ -126,13 +141,13 @@ export default function PlaylistsPage() {
         {!showCreateForm ? (
           <Button
             onClick={() => setShowCreateForm(true)}
-            className="bg-gradient-to-r from-[#800000] to-[#B40000] hover:from-[#600000] hover:to-[#900000]"
+            className="bg-brand-gradient hover:bg-brand-gradient-hover"
           >
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus aria-hidden="true" className="w-5 h-5 mr-2" />
             Create New Playlist
           </Button>
         ) : (
-          <Card className="bg-[#1a1a1a] border-gray-700">
+          <Card className="border-border">
             <CardHeader>
               <CardTitle className="text-white">Create New Playlist</CardTitle>
               <CardDescription>Add a name for your playlist</CardDescription>
@@ -141,20 +156,21 @@ export default function PlaylistsPage() {
               <div>
                 <Input
                   placeholder="Playlist name"
+                  aria-label="Playlist name"
                   value={newPlaylistName}
                   onChange={e => setNewPlaylistName(e.target.value)}
-                  className="bg-[#262626] border-gray-700 text-white"
+                  className="bg-secondary dark:bg-secondary border-border text-white"
                 />
               </div>
               <div className="flex gap-2">
                 <Button
                   onClick={createPlaylist}
                   disabled={creating}
-                  className="bg-gradient-to-r from-[#800000] to-[#B40000] hover:from-[#600000] hover:to-[#900000]"
+                  className="bg-brand-gradient hover:bg-brand-gradient-hover"
                 >
                   {creating ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 aria-hidden="true" className="w-4 h-4 mr-2 animate-spin" />
                       Creating...
                     </>
                   ) : (
@@ -167,7 +183,7 @@ export default function PlaylistsPage() {
                     setNewPlaylistName('');
                   }}
                   variant="outline"
-                  className="border-gray-700 text-white hover:bg-[#262626]"
+                  className="border-border text-white hover:bg-secondary"
                 >
                   Cancel
                 </Button>
@@ -179,23 +195,31 @@ export default function PlaylistsPage() {
 
       {/* Playlists Grid */}
       {playlists.length === 0 ? (
-        <div className="text-center py-20">
-          <Music2 className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-          <h3 className="text-xl font-semibold text-gray-400 mb-2">No playlists yet</h3>
-          <p className="text-gray-500">Create your first playlist to get started</p>
-        </div>
+        <EmptyState
+          icon={Music2}
+          title="No playlists yet"
+          description="Create your first playlist to get started"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {playlists.map(playlist => (
             <Card
               key={playlist.id}
-              className="bg-[#1a1a1a] border-gray-700 hover:border-[#B40000] transition-all cursor-pointer group"
-              onClick={() => router.push(`/playlist/${playlist.id}`)}
+              className="relative border-border hover:border-brand transition-all group focus-within:border-brand"
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-white text-lg mb-1">{playlist.name}</CardTitle>
+                    <CardTitle className="text-white text-lg mb-1">
+                      {/* Stretched link: the whole card is clickable, but only
+                          this anchor is in the tab order. */}
+                      <Link
+                        href={`/playlist/${playlist.id}`}
+                        className="outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"
+                      >
+                        {playlist.name}
+                      </Link>
+                    </CardTitle>
                     <CardDescription className="text-sm">
                       {playlist._count.playlistSongs} song
                       {playlist._count.playlistSongs !== 1 ? 's' : ''}
@@ -204,19 +228,17 @@ export default function PlaylistsPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={e => {
-                      e.stopPropagation();
-                      deletePlaylist(playlist.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-900/20 hover:text-red-500"
+                    aria-label={`Delete playlist ${playlist.name}`}
+                    onClick={() => setPlaylistPendingDelete(playlist)}
+                    className="relative z-10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity hover:bg-red-900/20 hover:text-red-500"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 aria-hidden="true" className="w-4 h-4" />
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Music2 className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
+                  <Music2 aria-hidden="true" className="w-4 h-4" />
                   Created {new Date(playlist.createdAt).toLocaleDateString()}
                 </div>
               </CardContent>
@@ -224,6 +246,32 @@ export default function PlaylistsPage() {
           ))}
         </div>
       )}
+
+      <AlertDialog
+        open={playlistPendingDelete !== null}
+        onOpenChange={open => !open && setPlaylistPendingDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete “{playlistPendingDelete?.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The playlist is removed for good. The songs in it stay in the library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const playlist = playlistPendingDelete;
+                setPlaylistPendingDelete(null);
+                if (playlist) deletePlaylist(playlist.id);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
