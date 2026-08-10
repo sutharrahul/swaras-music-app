@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import PlayList from '@/components/PlayList';
 import Shelf from '@/components/Shelf';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import ShelfSkeleton from '@/components/states/ShelfSkeleton';
 import EmptyState from '@/components/states/EmptyState';
 import ErrorState from '@/components/states/ErrorState';
-import axios from 'axios';
+import { useSongsInfinite } from '@/hook/query';
 import { Loader2, Music } from 'lucide-react';
 
 /**
@@ -27,29 +27,34 @@ const overlapRatio = (a: { id: string }[], b: { id: string }[]) => {
 };
 
 export default function Home() {
-  const [songs, setSongs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  // The player queue reads this same cache entry, so a page loaded here is a
+  // page next/previous can walk — and neither side fetches page 1 twice.
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useSongsInfinite();
+
+  const pages = useMemo(() => data?.pages ?? [], [data]);
+  const songs = useMemo(() => pages.flatMap(page => page.songs), [pages]);
+
   // Shelves are frozen to the first page. Re-deriving them as infinite scroll
   // appends pages would reshuffle the cards and shift the list under the reader.
-  const [shelfSource, setShelfSource] = useState<any[]>([]);
-  const [wholeCatalogLoaded, setWholeCatalogLoaded] = useState(false);
-  const observerTarget = useRef<HTMLDivElement>(null);
+  const shelfSource = pages[0]?.songs ?? [];
+  const wholeCatalogLoaded = pages.length > 0 && !pages[0].pagination.hasMore;
 
-  // Initial load
-  useEffect(() => {
-    loadSongs(1);
-  }, []);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          loadSongs(page + 1);
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
         }
       },
       { threshold: 0.1 }
@@ -65,40 +70,7 @@ export default function Home() {
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loadingMore, loading, page]);
-
-  const loadSongs = async (pageNum: number) => {
-    try {
-      if (pageNum === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
-
-      const { data } = await axios.get(`/api/get-songs?page=${pageNum}&limit=20`);
-
-      if (data?.success) {
-        const newSongs = data.data.songs;
-
-        if (pageNum === 1) {
-          setSongs(newSongs);
-          setShelfSource(newSongs);
-          setWholeCatalogLoaded(!data.data.pagination.hasMore);
-        } else {
-          setSongs(prev => [...prev, ...newSongs]);
-        }
-
-        setPage(pageNum);
-        setHasMore(data.data.pagination.hasMore);
-      }
-    } catch (err) {
-      setError('Failed to load songs');
-      console.error('Error loading songs:', err);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const { recentlyAdded, mostLiked } = useMemo(() => {
     // The API already orders by createdAt desc, so page one *is* the newest.
@@ -121,16 +93,16 @@ export default function Home() {
 
   return (
     <div className="w-full py-6">
-      {loading ? (
+      {isLoading ? (
         <>
           <ShelfSkeleton />
           <LoadingSkeleton />
         </>
-      ) : error ? (
+      ) : isError ? (
         <ErrorState
           title="We could not load the songs"
-          description={error}
-          onRetry={() => loadSongs(1)}
+          description="The request failed on the way out. Try again in a moment."
+          onRetry={() => refetch()}
         />
       ) : songs.length === 0 ? (
         <EmptyState
@@ -149,9 +121,9 @@ export default function Home() {
           <PlayList songData={songs} dataType="allsong" />
 
           {/* Infinite Scroll Trigger */}
-          {hasMore && (
+          {hasNextPage && (
             <div ref={observerTarget} className="flex justify-center py-8">
-              {loadingMore && (
+              {isFetchingNextPage && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 aria-hidden="true" className="w-5 h-5 animate-spin" />
                   <span>Loading more songs...</span>
@@ -160,7 +132,7 @@ export default function Home() {
             </div>
           )}
 
-          {!hasMore && songs.length > 0 && (
+          {!hasNextPage && songs.length > 0 && (
             <p className="text-center text-muted-foreground py-8">You&apos;ve reached the end!</p>
           )}
         </>

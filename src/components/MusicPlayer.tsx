@@ -21,6 +21,8 @@ import { truncateByLetters } from '@/app/utils/truncateByLetters';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMediaSession } from '@/hooks/useMediaSession';
+import { useSupabaseUser } from '@/hooks/useSupabaseUser';
+import { useLikedSongs, useSongMutations } from '@/hook/query';
 import toast from 'react-hot-toast';
 
 /**
@@ -46,8 +48,37 @@ export default function MusicPlayer() {
   const [currectTime, setCurrectTime] = useState<number>(0);
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  /**
+   * The heart is server state, not component state.
+   *
+   * It used to be a `useState` that nothing ever persisted: it reset to empty on
+   * every track change, said nothing true about the account, and survived
+   * neither a reload nor a second device. The liked list is the one source of
+   * truth, and `useSongMutations` writes to that cache optimistically so the
+   * heart still fills on the click rather than on the round-trip.
+   */
+  const { user } = useSupabaseUser();
+  const { data: likedSongs } = useLikedSongs(!!user);
+  const { likeSongMutation, unlikeSongMutation } = useSongMutations();
+
+  const isFavorite = Boolean(
+    currentSong && likedSongs?.some(song => song.id === currentSong.id)
+  );
+
+  const toggleFavorite = useCallback(() => {
+    if (!currentSong) return;
+    if (!user) {
+      toast.error('Sign in to like songs.');
+      return;
+    }
+
+    const mutation = isFavorite ? unlikeSongMutation : likeSongMutation;
+    mutation.mutate(currentSong, {
+      onError: () => toast.error('We could not save that. Try again.'),
+    });
+  }, [currentSong, isFavorite, likeSongMutation, unlikeSongMutation, user]);
 
   /**
    * A track with no playback URL. The server signs one for every caller,
@@ -160,14 +191,14 @@ export default function MusicPlayer() {
           break;
         case 'l':
           e.preventDefault();
-          setIsFavorite(!isFavorite);
+          toggleFavorite();
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isPlaying, isFavorite]);
+  }, [isPlaying, toggleFavorite]);
 
   const mute = () => {
     if (volume == 0) {
@@ -335,7 +366,7 @@ export default function MusicPlayer() {
                 {/* Controls */}
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <button
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={toggleFavorite}
                     aria-label={favoriteLabel}
                     aria-pressed={isFavorite}
                     className="p-1 hover:scale-110 transition-transform"
@@ -428,7 +459,7 @@ export default function MusicPlayer() {
                   )}
                 </div>
                 <button
-                  onClick={() => setIsFavorite(!isFavorite)}
+                  onClick={toggleFavorite}
                   aria-label={favoriteLabel}
                   aria-pressed={isFavorite}
                   className="p-1.5 lg:p-2 hover:scale-110 transition-transform flex-shrink-0"

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Plus, Music2, Trash2, ListMusic, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,99 +20,62 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import EmptyState from '@/components/states/EmptyState';
-
-interface Playlist {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  _count: {
-    playlistSongs: number;
-  };
-}
+import ErrorState from '@/components/states/ErrorState';
+import { usePlaylistMutations, useUserPlaylists } from '@/hook/query';
+import { apiErrorMessage } from '@/hook/apiHooks';
+import type { PlaylistSummary } from '@/hook/apiHooks/usePlaylistApi';
 
 export default function PlaylistsPage() {
   const { user, isLoaded } = useSupabaseUser();
   const router = useRouter();
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [playlistPendingDelete, setPlaylistPendingDelete] = useState<Playlist | null>(null);
+  const [playlistPendingDelete, setPlaylistPendingDelete] = useState<PlaylistSummary | null>(null);
+
+  // Keyed on `['playlists', 'user']` with no user id in it — the endpoint is
+  // scoped by the session cookie, and `Providers` empties the whole cache when
+  // the session changes, so the next account never sees these rows.
+  const {
+    data: playlists = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useUserPlaylists(!!user);
+  const { createPlaylistMutation, deletePlaylistMutation } = usePlaylistMutations();
 
   useEffect(() => {
     if (isLoaded && !user) {
       router.replace('/sign-in');
-      return;
-    }
-
-    if (user) {
-      loadPlaylists();
     }
   }, [user, isLoaded, router]);
 
-  const loadPlaylists = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get('/api/playlists');
-      if (data?.success) {
-        setPlaylists(data.data);
-      }
-    } catch (error) {
-      console.error('Error loading playlists:', error);
-      toast.error('Failed to load playlists');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createPlaylist = async () => {
+  const createPlaylist = () => {
     if (!newPlaylistName.trim()) {
       toast.error('Playlist name is required');
       return;
     }
 
-    try {
-      setCreating(true);
-      const { data } = await axios.post('/api/playlists', {
-        name: newPlaylistName,
-      });
-
-      if (data?.success) {
-        toast.success('Playlist created successfully!');
-        setPlaylists(prev => [data.data, ...prev]);
-        setNewPlaylistName('');
-        setShowCreateForm(false);
+    createPlaylistMutation.mutate(
+      { name: newPlaylistName.trim() },
+      {
+        onSuccess: () => {
+          toast.success('Playlist created successfully!');
+          setNewPlaylistName('');
+          setShowCreateForm(false);
+        },
+        onError: error => toast.error(apiErrorMessage(error, 'Failed to create playlist')),
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || 'Failed to create playlist');
-      } else {
-        toast.error('Something went wrong');
-      }
-    } finally {
-      setCreating(false);
-    }
+    );
   };
 
-  const deletePlaylist = async (playlistId: string) => {
-    try {
-      const { data } = await axios.delete(`/api/playlists/${playlistId}`);
-      if (data?.success) {
-        toast.success('Playlist deleted successfully');
-        setPlaylists(prev => prev.filter(p => p.id !== playlistId));
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || 'Failed to delete playlist');
-      } else {
-        toast.error('Something went wrong');
-      }
-    }
+  const deletePlaylist = (playlistId: string) => {
+    deletePlaylistMutation.mutate(playlistId, {
+      onSuccess: () => toast.success('Playlist deleted successfully'),
+      onError: error => toast.error(apiErrorMessage(error, 'Failed to delete playlist')),
+    });
   };
 
-  if (!isLoaded || loading) {
+  if (!isLoaded || isLoading) {
     return (
       <div
         role="status"
@@ -165,10 +127,10 @@ export default function PlaylistsPage() {
               <div className="flex gap-2">
                 <Button
                   onClick={createPlaylist}
-                  disabled={creating}
+                  disabled={createPlaylistMutation.isPending}
                   className="bg-brand-gradient hover:bg-brand-gradient-hover"
                 >
-                  {creating ? (
+                  {createPlaylistMutation.isPending ? (
                     <>
                       <Loader2 aria-hidden="true" className="w-4 h-4 mr-2 animate-spin" />
                       Creating...
@@ -194,7 +156,13 @@ export default function PlaylistsPage() {
       </div>
 
       {/* Playlists Grid */}
-      {playlists.length === 0 ? (
+      {isError ? (
+        <ErrorState
+          title="We could not load your playlists"
+          description="The request failed on the way out. Try again in a moment."
+          onRetry={() => refetch()}
+        />
+      ) : playlists.length === 0 ? (
         <EmptyState
           icon={Music2}
           title="No playlists yet"

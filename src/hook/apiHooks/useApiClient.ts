@@ -1,6 +1,19 @@
 import { useMemo } from 'react';
-import { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { axiosInstance } from '@/utils/axios/axios';
+
+/**
+ * The `{ success: false, message }` an API route sends, or the caller's fallback
+ * when the request never got an answer. Never the raw exception — a 500 here
+ * carries a fixed message by design and anything else is a network string the
+ * reader cannot act on.
+ */
+export function apiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.message || fallback;
+  }
+  return fallback;
+}
 
 /**
  * Thin wrapper over the shared axios instance.

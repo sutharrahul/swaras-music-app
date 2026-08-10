@@ -1,5 +1,24 @@
 import { useApiClient } from './useApiClient';
 import { useCallback } from 'react';
+import type { SongWithRelations } from '@/types/models';
+
+export type PlaylistSummary = {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count: { playlistSongs: number };
+};
+
+export type PlaylistDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  playlistSongs: Array<{ id: string; addedAt: string; song: SongWithRelations }>;
+};
 
 /**
  * `/api/get-playlist` is gone. It took `?userId=`/`?playlistId=` from the query
@@ -21,15 +40,15 @@ export default function usePlaylistApi() {
   const { get, post, del } = useApiClient();
 
   /** The signed-in user's own playlists. */
-  const getUserPlaylists = useCallback(async () => {
+  const getUserPlaylists = useCallback(async (): Promise<PlaylistSummary[]> => {
     const response = await get(PLAYLIST_ROUTE.PLAYLISTS);
-    return response.data;
+    return response.data.data;
   }, [get]);
 
   const getPlaylistById = useCallback(
-    async (playlistId: string) => {
+    async (playlistId: string): Promise<PlaylistDetail> => {
       const response = await get(`${PLAYLIST_ROUTE.PLAYLISTS}/${playlistId}`);
-      return response.data;
+      return response.data.data;
     },
     [get]
   );

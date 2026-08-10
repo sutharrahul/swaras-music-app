@@ -1,24 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
-import axios from 'axios';
-import toast from 'react-hot-toast';
 import { ArrowLeft, Loader2, Music2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PlayList from '@/components/PlayList';
 import EmptyState from '@/components/states/EmptyState';
-
-interface PlaylistDetails {
-  id: string;
-  name: string;
-  description?: string;
-  playlistSongs: Array<{
-    id: string;
-    song: any;
-  }>;
-}
+import ErrorState from '@/components/states/ErrorState';
+import { usePlaylist } from '@/hook/query';
 
 export default function PlaylistDetailPage() {
   const { user, isLoaded } = useSupabaseUser();
@@ -26,38 +16,24 @@ export default function PlaylistDetailPage() {
   const params = useParams();
   const playlistId = params.playlistId as string;
 
-  const [playlist, setPlaylist] = useState<PlaylistDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const loadPlaylist = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`/api/playlists/${playlistId}`);
-      if (data?.success) {
-        setPlaylist(data.data);
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || 'Failed to load playlist');
-      }
-      console.error('Error loading playlist:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Removing a song from this playlist invalidates `['playlists','detail',id]`,
+  // which is what re-renders the list — it used to be a full document reload,
+  // and that took the audio element with it.
+  const {
+    data: playlist,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = usePlaylist(playlistId, !!user);
 
   useEffect(() => {
     if (isLoaded && !user) {
       router.replace('/sign-in');
-      return;
     }
+  }, [user, isLoaded, router]);
 
-    if (user && playlistId) {
-      loadPlaylist();
-    }
-  }, [user, isLoaded, playlistId, router]);
-
-  if (!isLoaded || loading) {
+  if (!isLoaded || isLoading) {
     return (
       <div
         role="status"
@@ -65,6 +41,22 @@ export default function PlaylistDetailPage() {
         className="flex items-center justify-center h-full"
       >
         <Loader2 aria-hidden="true" className="w-8 h-8 animate-spin text-brand" />
+      </div>
+    );
+  }
+
+  // A playlist that is not yours comes back 404, deliberately — see the route
+  // handler. "Not found" and "not yours" must look identical here too.
+  const notFound = isError && (error as { response?: { status?: number } })?.response?.status === 404;
+
+  if (isError && !notFound) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <ErrorState
+          title="We could not load this playlist"
+          description="The request failed on the way out. Try again in a moment."
+          onRetry={() => refetch()}
+        />
       </div>
     );
   }

@@ -6,10 +6,11 @@ import { truncateByLetters } from '@/app/utils/truncateByLetters';
 import { useSong } from '@/context/SongContextProvider';
 import { formatTime } from '@/app/utils/formatTime';
 import { CirclePlus, Trash2, Heart, MoreVertical } from 'lucide-react';
-import axios from 'axios';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import toast from 'react-hot-toast';
-import { useUserQueries } from '@/hook/query';
+import { useAdminMutations, usePlaylistMutations, useUserPlaylists, useUserQueries } from '@/hook/query';
+import { apiErrorMessage } from '@/hook/apiHooks';
+import type { SongWithRelations } from '@/types/models';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -36,19 +37,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-type SongDataType = {
-  id: string;
-  audioUrl: string;
-  duration: number;
-  title: string;
-  artist: string[];
-  composers: string[];
-  album?: string;
-  coverUrl?: string;
-  _count?: {
-    likes: number;
-  };
-};
+/** The wire shape every list endpoint emits — see `src/lib/dto.ts`. */
+type SongDataType = SongWithRelations;
 
 type PlayListProps = {
   songData: SongDataType[] | undefined;
@@ -73,30 +63,35 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
 
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
-  const [playlists, setPlaylists] = useState<any[]>([]);
-  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
-  const [deletingSongId, setDeletingSongId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [creatingPlaylist, setCreatingPlaylist] = useState(false);
   const [songPendingDelete, setSongPendingDelete] = useState<SongDataType | null>(null);
   const [songPendingRemoval, setSongPendingRemoval] = useState<SongDataType | null>(null);
 
-  const loadPlaylists = async () => {
-    try {
-      setLoadingPlaylists(true);
-      const { data } = await axios.get('/api/playlists');
-      if (data?.success) {
-        setPlaylists(data.data);
-      }
-    } catch (error) {
-      console.error('Error loading playlists:', error);
-    } finally {
-      setLoadingPlaylists(false);
-    }
-  };
+  // Only fetched once the picker is open, and shared with every other consumer
+  // of `['playlists', 'user']` — creating a playlist below invalidates that key,
+  // so the new one appears without a second hand-rolled reload.
+  const { data: playlists = [], isLoading: loadingPlaylists } = useUserPlaylists(
+    showPlaylistModal && !!user
+  );
+  const { createPlaylistMutation, addSongToPlaylistMutation, removeSongFromPlaylistMutation } =
+    usePlaylistMutations();
+  const { deleteSongMutation } = useAdminMutations();
 
-  const addSongToPlaylist = async (songId: string) => {
+  /**
+   * Both destructive actions used to finish with `window.location.reload()`.
+   * That reloads the document, so the `<audio>` element goes with it and the
+   * music stops mid-track for someone who only removed a song from a list they
+   * were not listening to. The mutations invalidate the affected query keys
+   * instead, which re-renders the list and leaves playback alone.
+   */
+  const pendingSongId = deleteSongMutation.isPending
+    ? deleteSongMutation.variables
+    : removeSongFromPlaylistMutation.isPending
+      ? removeSongFromPlaylistMutation.variables.songId
+      : null;
+
+  const addSongToPlaylist = (songId: string) => {
     if (!user) {
       toast.error('Please log in to add songs to playlists');
       return;
@@ -104,118 +99,70 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
 
     setSelectedSongId(songId);
     setShowPlaylistModal(true);
-    loadPlaylists();
   };
 
-  const handleAddToPlaylist = async (playlistId: string) => {
+  const handleAddToPlaylist = (targetPlaylistId: string) => {
     if (!selectedSongId) return;
 
-    try {
-      const { data } = await axios.post('/api/post-playlist', {
-        playlistId,
-        songId: selectedSongId,
-      });
-
-      if (data.success) {
-        toast.success('Song added to playlist');
-        setShowPlaylistModal(false);
+    addSongToPlaylistMutation.mutate(
+      { playlistId: targetPlaylistId, songId: selectedSongId },
+      {
+        onSuccess: () => {
+          toast.success('Song added to playlist');
+          setShowPlaylistModal(false);
+        },
+        onError: error => toast.error(apiErrorMessage(error, 'Failed to add song')),
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMsg = error.response?.data?.message || 'Failed to add song';
-        toast.error(errorMsg);
-      } else {
-        toast.error('Something went wrong');
-      }
-    }
+    );
   };
 
-  const handleCreatePlaylist = async () => {
+  const handleCreatePlaylist = () => {
     if (!newPlaylistName.trim()) {
       toast.error('Please enter a playlist name');
       return;
     }
 
-    try {
-      setCreatingPlaylist(true);
-      const { data } = await axios.post('/api/playlists', {
-        name: newPlaylistName.trim(),
-      });
-
-      if (data.success) {
-        toast.success('Playlist created successfully');
-        setNewPlaylistName('');
-        setShowCreateForm(false);
-        // Reload playlists
-        loadPlaylists();
+    createPlaylistMutation.mutate(
+      { name: newPlaylistName.trim() },
+      {
+        onSuccess: () => {
+          toast.success('Playlist created successfully');
+          setNewPlaylistName('');
+          setShowCreateForm(false);
+        },
+        onError: error => toast.error(apiErrorMessage(error, 'Failed to create playlist')),
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMsg = error.response?.data?.message || 'Failed to create playlist';
-        toast.error(errorMsg);
-      } else {
-        toast.error('Something went wrong');
-      }
-    } finally {
-      setCreatingPlaylist(false);
-    }
+    );
   };
 
-  const removeSongFromPlaylist = async (songId: string) => {
+  const removeSongFromPlaylist = (songId: string) => {
     if (!playlistId) {
       toast.error('Cannot tell which playlist this is');
       return;
     }
 
-    try {
-      const { data } = await axios.delete('/api/remove-playlist-song', {
-        data: { playlistId, songId },
-      });
-
-      if (data.success) {
-        toast.success('Song removed');
-        window.location.reload(); // Reload to update the list
+    removeSongFromPlaylistMutation.mutate(
+      { playlistId, songId },
+      {
+        onSuccess: () => toast.success('Song removed'),
+        onError: error => toast.error(apiErrorMessage(error, 'Failed to remove song')),
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMsg = error.response?.data?.message || 'Failed to remove song';
-        toast.error(errorMsg);
-      } else {
-        toast.error('Something went wrong');
-      }
-    }
+    );
   };
 
-  const deleteSongPermanently = async (songId: string) => {
+  const deleteSongPermanently = (songId: string) => {
     if (!isAdmin) {
       toast.error('Admin privileges required');
       return;
     }
 
-    try {
-      setDeletingSongId(songId);
-
-      // No `userId`. The old body carried one and the handler checked *that*
-      // user's role instead of the caller's — bug 1. The endpoint now reads the
-      // actor from the session and ignores anything sent here.
-      const { data } = await axios.delete('/api/admin/delete-song', {
-        data: { songId },
-      });
-
-      if (data.success) {
-        toast.success('Song deleted successfully');
-        window.location.reload(); // Reload to update the list
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const errorMsg = error.response?.data?.message || 'Failed to delete song';
-        toast.error(errorMsg);
-      } else {
-        toast.error('Something went wrong');
-      }
-    } finally {
-      setDeletingSongId(null);
-    }
+    // No `userId`. The old body carried one and the handler checked *that*
+    // user's role instead of the caller's — bug 1. The endpoint now reads the
+    // actor from the session and ignores anything sent here.
+    deleteSongMutation.mutate(songId, {
+      onSuccess: () => toast.success('Song deleted successfully'),
+      onError: error => toast.error(apiErrorMessage(error, 'Failed to delete song')),
+    });
   };
 
   const closePlaylistModal = () => {
@@ -286,7 +233,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     aria-label={`Actions for ${song.title}`}
-                    disabled={deletingSongId === song.id}
+                    disabled={pendingSongId === song.id}
                     className="p-1 rounded text-foreground/80 hover:text-white disabled:opacity-50 disabled:cursor-wait"
                   >
                     <MoreVertical aria-hidden="true" className="h-5 w-5 md:h-6 md:w-6" />
@@ -350,15 +297,15 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                     placeholder="Playlist name"
                     aria-label="Playlist name"
                     className="w-full px-3 py-2 bg-card dark:bg-card text-white rounded-lg border-border mb-3"
-                    disabled={creatingPlaylist}
+                    disabled={createPlaylistMutation.isPending}
                   />
                   <div className="flex gap-2">
                     <Button
                       onClick={handleCreatePlaylist}
-                      disabled={creatingPlaylist}
+                      disabled={createPlaylistMutation.isPending}
                       className="flex-1 bg-primary hover:bg-brand-hover text-white"
                     >
-                      {creatingPlaylist ? 'Creating...' : 'Create'}
+                      {createPlaylistMutation.isPending ? 'Creating...' : 'Create'}
                     </Button>
                     <Button
                       variant="secondary"
@@ -366,7 +313,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                         setShowCreateForm(false);
                         setNewPlaylistName('');
                       }}
-                      disabled={creatingPlaylist}
+                      disabled={createPlaylistMutation.isPending}
                       className="flex-1"
                     >
                       Cancel

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import HomeIcon from '@/assets/Icons/HomeIcon';
 import PlayListIcon from '@/assets/Icons/PlayListIcon';
-import { Menu } from 'lucide-react';
+import { Heart, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -40,6 +40,15 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         >
           <HomeIcon />
           <span>Home</span>
+        </Link>
+
+        <Link
+          href="/liked"
+          className="flex items-center gap-3 hover:text-brand transition-colors"
+          onClick={onNavigate}
+        >
+          <Heart aria-hidden="true" className="h-5 w-5" />
+          <span>Liked Songs</span>
         </Link>
 
         <Link

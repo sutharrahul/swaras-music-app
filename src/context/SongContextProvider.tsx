@@ -1,7 +1,7 @@
 'use client';
-import React, { createContext, ReactNode, useContext, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useMemo, useState } from 'react';
 import { SongWithRelations } from '@/types/models';
-import { useSongs } from '@/hook/query';
+import { useSongsInfinite } from '@/hook/query';
 
 interface SongeType extends SongWithRelations {
   _id?: string; // For backward compatibility with MongoDB _id
@@ -29,85 +29,38 @@ export const MusicPlayerContext = createContext<MusicPlayerContextType | undefin
 
 export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   // ============== TanStack Query (Server State) ==============
-  const { data: songsResponse, isLoading, error } = useSongs();
-  const songData = songsResponse?.data || [];
+  // The same cache entry the home screen paginates, so the queue grows as the
+  // reader scrolls instead of being stuck on page one.
+  //
+  // This used to read `songsResponse?.data`, which is the `{ songs, pagination }`
+  // envelope — an object, not an array. Every consumer below therefore failed its
+  // `Array.isArray` guard and fell through to a hand-rolled `fetch('/api/get-songs')`
+  // that re-fetched exactly what the hook had already put in the cache. Four of
+  // those fallbacks existed; with the shape corrected they are unreachable, so
+  // they are gone.
+  const { data, isLoading, error } = useSongsInfinite();
+  const songData = useMemo(() => data?.pages.flatMap(page => page.songs) ?? [], [data]);
 
   // ============== UI State (Context) ==============
   const [currentSong, setCurrentSong] = useState<SongeType | null>(null);
   const [isShuffled, setIsShuffled] = useState<boolean>(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
   const [shuffledSongs, setShuffledSongs] = useState<SongeType[]>([]);
-  const [allSongs, setAllSongs] = useState<SongeType[]>([]);
 
   // Get the current playlist (shuffled or original)
-  // Use allSongs as fallback when songData is empty
-  const availableSongs = allSongs.length > 0 ? allSongs : songData;
-  const currentPlaylist = isShuffled ? shuffledSongs : availableSongs;
+  const currentPlaylist = isShuffled ? shuffledSongs : songData;
 
   const playSong = (songId: string) => {
-    // Use allSongs if available, otherwise use songData
-    const availableSongs =
-      Array.isArray(allSongs) && allSongs.length > 0
-        ? allSongs
-        : Array.isArray(songData)
-          ? songData
-          : [];
-    const currentList =
-      Array.isArray(currentPlaylist) && currentPlaylist.length > 0
-        ? currentPlaylist
-        : availableSongs;
-    const playlist = Array.isArray(currentList) ? currentList : [];
-
-    let selectSong = playlist.find((song: SongeType) => song.id === songId);
-
-    // If not found in current playlist, try finding in available songs
-    if (!selectSong && availableSongs.length > 0) {
-      selectSong = availableSongs.find((song: SongeType) => song.id === songId);
+    const selectSong = songData.find((song: SongeType) => song.id === songId);
+    if (selectSong) {
+      setCurrentSong(selectSong);
     }
-
-    // If still not found, fetch the song from API
-    if (!selectSong) {
-      fetch(`/api/get-songs`)
-        .then(res => res.json())
-        .then(data => {
-          if (data?.success && data?.data?.songs) {
-            const songs = data.data.songs;
-            setAllSongs(songs); // Store all songs for navigation
-            const song = songs.find((s: SongeType) => s.id === songId);
-            if (song) {
-              setCurrentSong(song);
-            }
-          }
-        })
-        .catch(error => console.error('Error fetching song:', error));
-      return;
-    }
-
-    setCurrentSong(selectSong);
   };
 
   const toggleShuffle = () => {
-    const songsToShuffle = allSongs.length > 0 ? allSongs : songData;
-
     if (!isShuffled) {
-      if (songsToShuffle.length === 0) {
-        // Fetch songs if not available
-        fetch(`/api/get-songs`)
-          .then(res => res.json())
-          .then(data => {
-            if (data?.success && data?.data?.songs) {
-              const songs = data.data.songs;
-              setAllSongs(songs);
-              const shuffled = [...songs].sort(() => Math.random() - 0.5);
-              setShuffledSongs(shuffled);
-              setIsShuffled(true);
-            }
-          })
-          .catch(error => console.error('Error fetching songs:', error));
-        return;
-      }
       // Shuffle the songs
-      const shuffled = [...songsToShuffle].sort(() => Math.random() - 0.5);
+      const shuffled = [...songData].sort(() => Math.random() - 0.5);
       setShuffledSongs(shuffled);
       setIsShuffled(true);
     } else {
@@ -127,28 +80,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const playNext = () => {
     if (!currentSong) return;
 
-    const playlist = Array.isArray(currentPlaylist) ? currentPlaylist : [];
-
-    // If playlist is empty, fetch songs first
-    if (playlist.length === 0) {
-      fetch(`/api/get-songs`)
-        .then(res => res.json())
-        .then(data => {
-          if (data?.success && data?.data?.songs) {
-            const songs = data.data.songs;
-            setAllSongs(songs);
-            const currentIndex = songs.findIndex((song: SongeType) => song.id === currentSong.id);
-            if (currentIndex !== -1 && currentIndex < songs.length - 1) {
-              setCurrentSong(songs[currentIndex + 1]);
-            } else if (repeatMode === 'all') {
-              setCurrentSong(songs[0]);
-            }
-          }
-        })
-        .catch(error => console.error('Error fetching songs:', error));
-      return;
-    }
-
+    const playlist = currentPlaylist;
     const currentIndex = playlist.findIndex((song: SongeType) => song.id === currentSong.id);
 
     if (repeatMode === 'one') {
@@ -172,28 +104,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const playPrevious = () => {
     if (!currentSong) return;
 
-    const playlist = Array.isArray(currentPlaylist) ? currentPlaylist : [];
-
-    // If playlist is empty, fetch songs first
-    if (playlist.length === 0) {
-      fetch(`/api/get-songs`)
-        .then(res => res.json())
-        .then(data => {
-          if (data?.success && data?.data?.songs) {
-            const songs = data.data.songs;
-            setAllSongs(songs);
-            const currentIndex = songs.findIndex((song: SongeType) => song.id === currentSong.id);
-            if (currentIndex > 0) {
-              setCurrentSong(songs[currentIndex - 1]);
-            } else if (repeatMode === 'all') {
-              setCurrentSong(songs[songs.length - 1]);
-            }
-          }
-        })
-        .catch(error => console.error('Error fetching songs:', error));
-      return;
-    }
-
+    const playlist = currentPlaylist;
     const currentIndex = playlist.findIndex((song: SongeType) => song.id === currentSong.id);
 
     if (currentIndex > 0) {
