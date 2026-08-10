@@ -8,7 +8,7 @@ import { formatTime } from '@/app/utils/formatTime';
 import { CirclePlus, Trash2, Heart, MoreVertical } from 'lucide-react';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import toast from 'react-hot-toast';
-import { useAdminMutations, usePlaylistMutations, useUserPlaylists, useUserQueries } from '@/hook/query';
+import { usePlaylistMutations, useUserPlaylists } from '@/hook/query';
 import { apiErrorMessage } from '@/hook/apiHooks';
 import type { SongWithRelations } from '@/types/models';
 import { Button } from '@/components/ui/button';
@@ -57,15 +57,11 @@ type PlayListProps = {
 export default function PlayList({ songData, dataType, playlistId }: PlayListProps) {
   const { playSong, currentSong } = useSong();
   const { user } = useSupabaseUser();
-  const { useCheckAdmin } = useUserQueries();
-  const { data: adminData } = useCheckAdmin(!!user);
-  const isAdmin = adminData?.data?.isAdmin || false;
 
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [songPendingDelete, setSongPendingDelete] = useState<SongDataType | null>(null);
   const [songPendingRemoval, setSongPendingRemoval] = useState<SongDataType | null>(null);
 
   // Only fetched once the picker is open, and shared with every other consumer
@@ -76,20 +72,17 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
   );
   const { createPlaylistMutation, addSongToPlaylistMutation, removeSongFromPlaylistMutation } =
     usePlaylistMutations();
-  const { deleteSongMutation } = useAdminMutations();
 
   /**
-   * Both destructive actions used to finish with `window.location.reload()`.
-   * That reloads the document, so the `<audio>` element goes with it and the
-   * music stops mid-track for someone who only removed a song from a list they
-   * were not listening to. The mutations invalidate the affected query keys
-   * instead, which re-renders the list and leaves playback alone.
+   * This used to finish with `window.location.reload()`. That reloads the
+   * document, so the `<audio>` element goes with it and the music stops
+   * mid-track for someone who only removed a song from a list they were not
+   * listening to. The mutation invalidates the affected query keys instead,
+   * which re-renders the list and leaves playback alone.
    */
-  const pendingSongId = deleteSongMutation.isPending
-    ? deleteSongMutation.variables
-    : removeSongFromPlaylistMutation.isPending
-      ? removeSongFromPlaylistMutation.variables.songId
-      : null;
+  const pendingSongId = removeSongFromPlaylistMutation.isPending
+    ? removeSongFromPlaylistMutation.variables.songId
+    : null;
 
   const addSongToPlaylist = (songId: string) => {
     if (!user) {
@@ -148,21 +141,6 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
         onError: error => toast.error(apiErrorMessage(error, 'Failed to remove song')),
       }
     );
-  };
-
-  const deleteSongPermanently = (songId: string) => {
-    if (!isAdmin) {
-      toast.error('Admin privileges required');
-      return;
-    }
-
-    // No `userId`. The old body carried one and the handler checked *that*
-    // user's role instead of the caller's — bug 1. The endpoint now reads the
-    // actor from the session and ignores anything sent here.
-    deleteSongMutation.mutate(songId, {
-      onSuccess: () => toast.success('Song deleted successfully'),
-      onError: error => toast.error(apiErrorMessage(error, 'Failed to delete song')),
-    });
   };
 
   const closePlaylistModal = () => {
@@ -240,21 +218,10 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {dataType === 'allsong' ? (
-                      <>
-                        <DropdownMenuItem onSelect={() => addSongToPlaylist(song.id)}>
-                          <CirclePlus aria-hidden="true" />
-                          Add to playlist
-                        </DropdownMenuItem>
-                        {isAdmin && (
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onSelect={() => setSongPendingDelete(song)}
-                          >
-                            <Trash2 aria-hidden="true" />
-                            Delete song (Admin)
-                          </DropdownMenuItem>
-                        )}
-                      </>
+                      <DropdownMenuItem onSelect={() => addSongToPlaylist(song.id)}>
+                        <CirclePlus aria-hidden="true" />
+                        Add to playlist
+                      </DropdownMenuItem>
                     ) : (
                       <DropdownMenuItem
                         variant="destructive"
@@ -361,33 +328,6 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Admin: permanent delete confirmation */}
-      <AlertDialog
-        open={songPendingDelete !== null}
-        onOpenChange={open => !open && setSongPendingDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete “{songPendingDelete?.title}” permanently?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This removes the song for everyone. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                const song = songPendingDelete;
-                setSongPendingDelete(null);
-                if (song) deleteSongPermanently(song.id);
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Remove from playlist confirmation */}
       <AlertDialog

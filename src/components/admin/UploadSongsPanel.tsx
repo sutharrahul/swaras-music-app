@@ -1,15 +1,13 @@
 'use client';
 
-import { useSupabaseUser } from '@/hooks/useSupabaseUser';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import { LoaderCircle, Upload, CheckCircle, XCircle, Music, AlertCircle } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { LoaderCircle, Upload, CheckCircle, XCircle, Music } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { parseBlob } from 'music-metadata';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { SONG_KEYS, useUserQueries } from '@/hook/query';
+import { SONG_KEYS } from '@/hook/query';
 import { Progress } from '@/components/ui/progress';
 import type { TablesUpdate } from '@/lib/database.types';
 import {
@@ -32,10 +30,12 @@ import { createClient } from '@/utils/supabase/client';
  * once to mint the job and the object paths, once to verify the object landed
  * and register the `songs` row.
  *
- * The admin checks on this page are for RENDERING ONLY. Both endpoints call
+ * The admin check that used to gate this whole page happens one level up, in
+ * `/admin/page.tsx` — this component assumes it is only ever mounted for an
+ * admin. That check is for RENDERING ONLY regardless: both endpoints call
  * `requireAdmin()`, the Storage policies require a live ADMIN role, and
- * `songs_write_admin` re-checks it on the insert. Hiding the form is a courtesy,
- * not a control.
+ * `songs_write_admin` re-checks it on the insert. Hiding the form is a
+ * courtesy, not a control.
  */
 
 const AUDIO_ACCEPT = ALLOWED_AUDIO_TYPES.join(',');
@@ -157,29 +157,11 @@ async function readMetadata(file: File): Promise<{ metadata: SongMetadata; cover
   }
 }
 
-export default function AdminPage() {
-  const { user, isLoaded } = useSupabaseUser();
-  const router = useRouter();
+export default function UploadSongsPanel() {
   const queryClient = useQueryClient();
-  const { useCheckAdmin } = useUserQueries();
-  const { data: adminData, isLoading: isCheckingAdmin, error: adminError } = useCheckAdmin(!!user);
   const [items, setItems] = useState<Item[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!user) {
-      router.replace('/sign-in');
-      return;
-    }
-
-    if (adminData && !adminData.data?.isAdmin) {
-      toast.error('Access denied. Admin privileges required.');
-      router.replace('/');
-    }
-  }, [user, isLoaded, adminData, router]);
 
   const patchItem = (index: number, patch: Partial<Item>) =>
     setItems(prev => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
@@ -393,154 +375,107 @@ export default function AdminPage() {
     }
   };
 
-  if (!isLoaded || !user || isCheckingAdmin) {
-    return (
-      <div role="status" className="h-screen flex items-center justify-center text-white">
-        <LoaderCircle aria-hidden="true" className="animate-spin w-6 h-6 mr-2" />
-        Loading admin access...
-      </div>
-    );
-  }
-
-  if (adminError) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center text-white gap-4">
-        <AlertCircle aria-hidden="true" className="w-12 h-12 text-red-500" />
-        <p className="text-xl">Failed to verify admin access</p>
-        <button
-          onClick={() => router.push('/')}
-          className="px-4 py-2 bg-primary rounded-lg hover:bg-brand-hover transition"
-        >
-          Go Home
-        </button>
-      </div>
-    );
-  }
-
-  if (adminData && !adminData.data?.isAdmin) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center text-white gap-4">
-        <AlertCircle aria-hidden="true" className="w-12 h-12 text-red-500" />
-        <p className="text-xl">Access Denied</p>
-        <p className="text-muted-foreground">You need admin privileges to access this page</p>
-        <button
-          onClick={() => router.push('/')}
-          className="px-4 py-2 bg-primary rounded-lg hover:bg-brand-hover transition"
-        >
-          Go Home
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 h-full overflow-hidden">
-      <h1 className="text-2xl font-bold text-center">Admin Dashboard</h1>
-      <section className="bg-surface">
-        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-          <div className="w-full min-w-[330px] bg-surface-elevated/80 rounded-lg shadow md:mt-0 sm:max-w-md xl:p-0">
-            <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 className="text-xl text-center font-bold leading-tight tracking-tight md:text-2xl text-white">
-                Upload Songs
-              </h1>
+    <div className="flex flex-col items-center px-6 py-8">
+      <div className="w-full min-w-[330px] max-w-md bg-surface-elevated/80 rounded-lg shadow">
+        <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
+          <h2 className="text-xl text-center font-bold leading-tight tracking-tight md:text-2xl text-white">
+            Upload Songs
+          </h2>
 
-              <div className="space-y-4 md:space-y-6">
-                <div>
-                  <label htmlFor="song-files" className="block mb-2 text-sm font-medium text-white">
-                    Select audio files (max {MAX_FILES_PER_JOB}, up to 100MB each)
-                  </label>
-                  <input
-                    ref={fileInputRef}
-                    id="song-files"
-                    type="file"
-                    multiple
-                    accept={AUDIO_ACCEPT}
-                    onChange={handleFileChange}
-                    disabled={uploading}
-                    className="text-sm font-light rounded-lg block w-full p-2.5 bg-secondary border-border text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-
-                {items.length > 0 && (
-                  <ul className="space-y-3 max-h-72 overflow-y-auto">
-                    {items.map((item, index) => (
-                      <li key={`${item.file.name}-${index}`} className="space-y-1.5">
-                        <div className="flex items-center justify-between gap-2 text-xs">
-                          <span className="flex items-center gap-2 min-w-0 text-foreground/80">
-                            {item.status === 'done' ? (
-                              <CheckCircle
-                                aria-hidden="true"
-                                className="w-3.5 h-3.5 shrink-0 text-primary"
-                              />
-                            ) : item.status === 'failed' ? (
-                              <XCircle
-                                aria-hidden="true"
-                                className="w-3.5 h-3.5 shrink-0 text-destructive"
-                              />
-                            ) : (
-                              <Music aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
-                            )}
-                            <span className="truncate">{decodeHtmlEntities(item.file.name)}</span>
-                          </span>
-                          <span className="shrink-0 text-muted-foreground">
-                            {item.status === 'reading'
-                              ? 'Reading tags'
-                              : item.status === 'uploading'
-                                ? `${item.progress}%`
-                                : item.status === 'finishing'
-                                  ? 'Finishing'
-                                  : item.status === 'done'
-                                    ? 'Done'
-                                    : item.status === 'failed'
-                                      ? 'Failed'
-                                      : `${Math.round(item.file.size / 1024 / 1024)}MB`}
-                          </span>
-                        </div>
-
-                        {(item.status === 'uploading' || item.status === 'finishing') && (
-                          <Progress
-                            value={item.progress}
-                            aria-label={`Upload progress for ${item.file.name}`}
-                            className="h-1.5 bg-muted-foreground/30 [&_[data-slot=progress-indicator]]:bg-brand-gradient"
-                          />
-                        )}
-
-                        {item.error && <p className="text-xs text-destructive">{item.error}</p>}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <button
-                  onClick={handleUpload}
-                  disabled={uploading || items.length === 0}
-                  className="w-full text-white bg-brand-gradient focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {uploading ? (
-                    <span className="flex items-center justify-center gap-4">
-                      <LoaderCircle aria-hidden="true" className="animate-spin" />
-                      Uploading...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <Upload aria-hidden="true" className="w-4 h-4" />
-                      Upload{' '}
-                      {items.length
-                        ? `${items.length} Song${items.length > 1 ? 's' : ''}`
-                        : 'Songs'}
-                    </span>
-                  )}
-                </button>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Files upload straight from this browser to storage. Keep this tab open until every
-                  track reports Done.
-                </p>
-              </div>
+          <div className="space-y-4 md:space-y-6">
+            <div>
+              <label htmlFor="song-files" className="block mb-2 text-sm font-medium text-white">
+                Select audio files (max {MAX_FILES_PER_JOB}, up to 100MB each)
+              </label>
+              <input
+                ref={fileInputRef}
+                id="song-files"
+                type="file"
+                multiple
+                accept={AUDIO_ACCEPT}
+                onChange={handleFileChange}
+                disabled={uploading}
+                className="text-sm font-light rounded-lg block w-full p-2.5 bg-secondary border-border text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              />
             </div>
+
+            {items.length > 0 && (
+              <ul className="space-y-3 max-h-72 overflow-y-auto">
+                {items.map((item, index) => (
+                  <li key={`${item.file.name}-${index}`} className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <span className="flex items-center gap-2 min-w-0 text-foreground/80">
+                        {item.status === 'done' ? (
+                          <CheckCircle
+                            aria-hidden="true"
+                            className="w-3.5 h-3.5 shrink-0 text-primary"
+                          />
+                        ) : item.status === 'failed' ? (
+                          <XCircle
+                            aria-hidden="true"
+                            className="w-3.5 h-3.5 shrink-0 text-destructive"
+                          />
+                        ) : (
+                          <Music aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
+                        )}
+                        <span className="truncate">{decodeHtmlEntities(item.file.name)}</span>
+                      </span>
+                      <span className="shrink-0 text-muted-foreground">
+                        {item.status === 'reading'
+                          ? 'Reading tags'
+                          : item.status === 'uploading'
+                            ? `${item.progress}%`
+                            : item.status === 'finishing'
+                              ? 'Finishing'
+                              : item.status === 'done'
+                                ? 'Done'
+                                : item.status === 'failed'
+                                  ? 'Failed'
+                                  : `${Math.round(item.file.size / 1024 / 1024)}MB`}
+                      </span>
+                    </div>
+
+                    {(item.status === 'uploading' || item.status === 'finishing') && (
+                      <Progress
+                        value={item.progress}
+                        aria-label={`Upload progress for ${item.file.name}`}
+                        className="h-1.5 bg-muted-foreground/30 [&_[data-slot=progress-indicator]]:bg-brand-gradient"
+                      />
+                    )}
+
+                    {item.error && <p className="text-xs text-destructive">{item.error}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <button
+              onClick={handleUpload}
+              disabled={uploading || items.length === 0}
+              className="w-full text-white bg-brand-gradient focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading ? (
+                <span className="flex items-center justify-center gap-4">
+                  <LoaderCircle aria-hidden="true" className="animate-spin" />
+                  Uploading...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <Upload aria-hidden="true" className="w-4 h-4" />
+                  Upload{' '}
+                  {items.length ? `${items.length} Song${items.length > 1 ? 's' : ''}` : 'Songs'}
+                </span>
+              )}
+            </button>
+
+            <p className="text-xs text-muted-foreground text-center">
+              Files upload straight from this browser to storage. Keep this tab open until every
+              track reports Done.
+            </p>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

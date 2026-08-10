@@ -280,7 +280,7 @@ export default function Header() {
         <div className="ml-1 sm:ml-2 md:ml-4 flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
           {isSignedIn && isAdmin && (
             <button
-              onClick={() => router.push('/admin/upload-song')}
+              onClick={() => router.push('/admin?tab=upload')}
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-primary hover:bg-brand-hover text-white rounded-lg transition-colors font-medium text-xs sm:text-sm"
             >
               <Upload aria-hidden="true" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

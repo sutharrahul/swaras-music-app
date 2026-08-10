@@ -18,8 +18,8 @@ import { createClient } from '@/utils/supabase/client';
  * Without this, on a shared device, everything the previous user's session
  * fetched stays readable for the full `gcTime` (10 minutes): `/playlist` renders
  * their playlists, liked songs render their likes, and `['admin-status']` still
- * says `isAdmin: true`, so `/admin/upload-song` renders its form for somebody
- * who is not an admin. (Only renders — every one of those endpoints re-checks on
+ * says `isAdmin: true`, so `/admin` renders its panels for somebody who is not
+ * an admin. (Only renders — every one of those endpoints re-checks on
  * the server, so this is a data-leak and a confusing-UI bug, not a privilege
  * escalation.)
  *
