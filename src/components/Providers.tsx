@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, useEffect, useState } from 'react';
 
 import { createClient } from '@/utils/supabase/client';
+import { SupabaseUserProvider } from '@/hooks/useSupabaseUser';
 
 /**
  * The TanStack Query cache, and the thing that empties it when the user changes.
@@ -61,5 +62,9 @@ export function Providers({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SupabaseUserProvider>{children}</SupabaseUserProvider>
+    </QueryClientProvider>
+  );
 }
