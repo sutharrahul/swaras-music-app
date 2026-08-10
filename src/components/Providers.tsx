@@ -1,6 +1,6 @@
 'use client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 import { createClient } from '@/utils/supabase/client';
 import { SupabaseUserProvider } from '@/hooks/useSupabaseUser';
@@ -44,17 +44,43 @@ export function Providers({ children }: { children: ReactNode }) {
       })
   );
 
+  // Tracks who `SIGNED_IN`/`SIGNED_OUT` last told us was signed in, so a repeat
+  // event for the SAME person doesn't read as a new one. See the note below.
+  const lastUserIdRef = useRef<string | null>(null);
+  const sawFirstEventRef = useRef(false);
+
   useEffect(() => {
     const supabase = createClient();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(event => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       // SIGNED_IN and SIGNED_OUT only. TOKEN_REFRESHED and USER_UPDATED fire for
       // the SAME user — clearing on those would wipe the cache roughly hourly
-      // and refetch the whole screen for no reason. INITIAL_SESSION fires on
-      // every mount, including a page load with nothing cached yet.
-      if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+      // and refetch the whole screen for no reason.
+      const nextUserId = session?.user?.id ?? null;
+
+      // The FIRST event this listener ever sees just reports whatever session
+      // already exists when the client attaches — there is nothing cached yet
+      // to clear. That is true whether the SDK happens to label that event
+      // `INITIAL_SESSION` (the common case) or `SIGNED_IN` (it does, on a
+      // plain page reload of an already-authenticated tab — including the
+      // reload Chrome performs silently when it discards a backgrounded tab
+      // and the user switches back to it). Treating every `SIGNED_IN` as "a
+      // login just happened" wiped the whole cache and put every loading
+      // skeleton back on screen for a user who never signed out — this was
+      // the "switching tabs re-flashes the app" bug. Only a SUBSEQUENT event
+      // that actually changes who is signed in should clear anything.
+      if (!sawFirstEventRef.current) {
+        sawFirstEventRef.current = true;
+        lastUserIdRef.current = nextUserId;
+        return;
+      }
+
+      const userChanged = nextUserId !== lastUserIdRef.current;
+      lastUserIdRef.current = nextUserId;
+
+      if (userChanged && (event === 'SIGNED_OUT' || event === 'SIGNED_IN')) {
         queryClient.clear();
       }
     });
