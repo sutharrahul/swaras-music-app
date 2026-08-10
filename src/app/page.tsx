@@ -11,13 +11,22 @@ import { useSongsInfinite } from '@/hook/query';
 import { Loader2, Music } from 'lucide-react';
 
 /**
- * Shelf sizing. A rail that does not overflow its container reads as a broken
- * grid rather than a scroller, so a shelf only appears once it holds enough
- * cards to actually scroll. Below that the page falls back to the dense list,
- * which is the right shape for a small library anyway.
+ * Shelf sizing.
+ *
+ * `SHELF_MIN` now gates only "Most liked" — whether that ranking is trustworthy
+ * at all, not how many cards make a rail look intentional. A short, left-aligned
+ * row of two or three cards is a normal partially-filled row, not a broken one;
+ * the `Shelf` component's `flex` row (not a grid) never stretches to fake a full
+ * rail, so there is no dead space to hide.
+ *
+ * "Recently added" is a real recency window instead: whatever was uploaded in
+ * the last 7 days, however many that is. A count-based gate would have hidden a
+ * fresh upload on a young catalogue — which is exactly the case a "recently
+ * added" shelf exists for.
  */
 const SHELF_MIN = 8;
 const SHELF_MAX = 12;
+const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Share of the smaller shelf that also appears in the other one. */
 const overlapRatio = (a: { id: string }[], b: { id: string }[]) => {
@@ -73,8 +82,13 @@ export default function Home() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const { recentlyAdded, mostLiked } = useMemo(() => {
-    // The API already orders by createdAt desc, so page one *is* the newest.
-    const recent = shelfSource.length >= SHELF_MIN ? shelfSource.slice(0, SHELF_MAX) : [];
+    // The API already orders by createdAt desc, so page one *is* the newest —
+    // filtering to the last 7 days and capping at SHELF_MAX is enough; nothing
+    // older can sort ahead of something in-window.
+    const recentCutoff = Date.now() - RECENT_WINDOW_MS;
+    const recent = shelfSource
+      .filter(song => new Date(song.createdAt).getTime() >= recentCutoff)
+      .slice(0, SHELF_MAX);
 
     // "Most liked" is only truthful when the first page held the whole catalog.
     // Ranking a 20-song window by likes would quietly mislabel itself.
