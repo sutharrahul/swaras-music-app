@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { Heart, Music, Search, Trash2 } from 'lucide-react';
+import { Heart, Music, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { useAdminMutations, useSongsInfinite } from '@/hook/query';
@@ -10,7 +10,6 @@ import { apiErrorMessage } from '@/hook/apiHooks';
 import type { SongWithRelations } from '@/types/models';
 import { formatTime } from '@/app/utils/formatTime';
 import { truncateByLetters } from '@/app/utils/truncateByLetters';
-import { Input } from '@/components/ui/input';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import EmptyState from '@/components/states/EmptyState';
 import ErrorState from '@/components/states/ErrorState';
@@ -25,18 +24,24 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+type ManageSongsPanelProps = {
+  /** Owned by the parent so it can share one toolbar row with the tab switcher. */
+  search: string;
+  /** Reports the loaded catalogue size up, for the tab's count badge. */
+  onCountChange?: (count: number) => void;
+};
+
 /**
  * The catalogue is small and stays that way for a while, so this drives
  * `useSongsInfinite` to the end (all pages) once and filters client-side as
  * the admin types — the same list the home page renders, no separate search
  * endpoint.
  */
-export default function ManageSongsPanel() {
+export default function ManageSongsPanel({ search, onCountChange }: ManageSongsPanelProps) {
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useSongsInfinite();
   const { deleteSongMutation } = useAdminMutations();
 
-  const [search, setSearch] = useState('');
   const [songPendingDelete, setSongPendingDelete] = useState<SongWithRelations | null>(null);
 
   useEffect(() => {
@@ -44,6 +49,10 @@ export default function ManageSongsPanel() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const songs = useMemo(() => data?.pages.flatMap(page => page.songs) ?? [], [data]);
+
+  useEffect(() => {
+    onCountChange?.(songs.length);
+  }, [songs.length, onCountChange]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -63,22 +72,7 @@ export default function ManageSongsPanel() {
   };
 
   return (
-    <div className="px-2 md:px-8 py-4 space-y-4">
-      <div className="relative max-w-md">
-        <Search
-          aria-hidden="true"
-          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-        />
-        <Input
-          type="search"
-          value={search}
-          onChange={event => setSearch(event.target.value)}
-          placeholder="Search by title or artist"
-          aria-label="Search songs"
-          className="pl-9"
-        />
-      </div>
-
+    <div className="px-2 md:px-8 py-4">
       {isLoading ? (
         <LoadingSkeleton />
       ) : isError ? (

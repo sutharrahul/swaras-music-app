@@ -2,14 +2,17 @@
 
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect } from 'react';
-import { LoaderCircle, AlertCircle } from 'lucide-react';
+import { Suspense, useEffect, useState } from 'react';
+import { LoaderCircle, AlertCircle, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { useUserQueries } from '@/hook/query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import ManageSongsPanel from '@/components/admin/ManageSongsPanel';
 import UploadSongsPanel from '@/components/admin/UploadSongsPanel';
+
+type AdminTab = 'manage' | 'upload';
 
 /**
  * `/admin`, gated the same way `/admin/upload-song` used to be: the middleware
@@ -25,7 +28,10 @@ function AdminPageContent() {
   const { useCheckAdmin } = useUserQueries();
   const { data: adminData, isLoading: isCheckingAdmin, error: adminError } = useCheckAdmin(!!user);
 
-  const initialTab = searchParams.get('tab') === 'upload' ? 'upload' : 'manage';
+  const initialTab: AdminTab = searchParams.get('tab') === 'upload' ? 'upload' : 'manage';
+  const [activeTab, setActiveTab] = useState<AdminTab>(initialTab);
+  const [search, setSearch] = useState('');
+  const [songCount, setSongCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -83,19 +89,54 @@ function AdminPageContent() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-center mb-6">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
-      <Tabs defaultValue={initialTab} className="w-full">
-        <TabsList className="mx-auto">
-          <TabsTrigger value="manage">Manage Songs</TabsTrigger>
-          <TabsTrigger value="upload">Upload</TabsTrigger>
-        </TabsList>
+      <Tabs
+        value={activeTab}
+        onValueChange={value => setActiveTab(value as AdminTab)}
+        className="w-full"
+      >
+        {/* Tabs and search share one row so switching sections doesn't cost a
+            whole extra row of vertical space. Search only means something on
+            Manage Songs, so it only appears there. */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-0">
+          <TabsList variant="line">
+            <TabsTrigger value="manage" className="data-[state=active]:after:bg-primary">
+              Manage Songs
+              {songCount !== null && (
+                <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground">
+                  {songCount}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="upload" className="data-[state=active]:after:bg-primary">
+              Upload
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="manage">
-          <ManageSongsPanel />
+          {activeTab === 'manage' && (
+            <div className="relative w-full sm:w-64">
+              <Search
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                type="search"
+                value={search}
+                onChange={event => setSearch(event.target.value)}
+                placeholder="Search by title or artist"
+                aria-label="Search songs"
+                className="h-8 pl-9"
+              />
+            </div>
+          )}
+        </div>
+
+        <TabsContent value="manage" className="pt-4">
+          <ManageSongsPanel search={search} onCountChange={setSongCount} />
         </TabsContent>
 
-        <TabsContent value="upload">
+        <TabsContent value="upload" className="pt-4">
           <UploadSongsPanel />
         </TabsContent>
       </Tabs>
