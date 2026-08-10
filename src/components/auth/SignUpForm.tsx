@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { Loader2, MailCheck } from 'lucide-react';
 
 import AuthCard, { AuthError } from '@/components/auth/AuthCard';
+import PasswordInput from '@/components/auth/PasswordInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/utils/supabase/client';
@@ -123,10 +124,9 @@ export default function SignUpForm() {
           <label htmlFor="password" className="block text-sm font-medium text-white">
             Password
           </label>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="new-password"
             placeholder="At least 8 characters"
             value={password}
