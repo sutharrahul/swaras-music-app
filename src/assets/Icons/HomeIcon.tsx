@@ -1,15 +1,22 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 export default function HomeIcon() {
+  // This component renders twice at once — the desktop sidebar and the mobile
+  // drawer both mount `NavContent` — so a hardcoded gradient id collided
+  // between the two copies. Duplicate SVG ids are undefined behavior per spec;
+  // mobile WebKit in particular fails to resolve `fill="url(#id)"` when it
+  // happens, so the icon silently rendered as nothing on mobile specifically.
+  const gradientId = useId();
+
   return (
     <svg width="27" height="25" viewBox="0 0 27 25" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         d="M25.8051 12.5432L14.14 0.886574C14.056 0.802417 13.9562 0.735651 13.8464 0.690096C13.7366 0.644542 13.6189 0.621094 13.5 0.621094C13.3811 0.621094 13.2633 0.644542 13.1535 0.690096C13.0437 0.735651 12.9439 0.802417 12.8599 0.886574L1.19478 12.5432C0.854932 12.8831 0.662354 13.3447 0.662354 13.8261C0.662354 14.8258 1.47515 15.6386 2.47485 15.6386H3.70396V23.9563C3.70396 24.4576 4.10894 24.8626 4.61021 24.8626H11.6875V18.5188H14.8593V24.8626H22.3897C22.891 24.8626 23.2959 24.4576 23.2959 23.9563V15.6386H24.5251C25.0065 15.6386 25.4681 15.4489 25.808 15.1062C26.5131 14.3982 26.5131 13.2512 25.8051 12.5432Z"
-        fill="url(#paint0_linear_359_103)"
+        fill={`url(#${gradientId})`}
       />
       <defs>
         <linearGradient
-          id="paint0_linear_359_103"
+          id={gradientId}
           x1="13.4994"
           y1="0.621095"
           x2="29.4863"
