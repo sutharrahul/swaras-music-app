@@ -11,6 +11,7 @@ import {
   TUS_CHUNK_SIZE,
   assetPaths,
 } from '@/lib/storage';
+import { insertUploadJobItems } from '@/lib/storage.server';
 import { randomUUID } from 'crypto';
 import { z } from 'zod';
 
@@ -87,8 +88,10 @@ export async function POST(request: Request) {
     total_items: items.length,
     status: 'PROCESSING',
     // A job the admin abandons leaves objects in the bucket with no `songs` row
-    // pointing at them. `expires_at` is what a sweep would key off to find and
-    // destroy them. NOTE: that sweep does not exist yet — see the report.
+    // pointing at them. `expires_at` is what `sweepExpiredUploadJobs()`
+    // (POST /api/upload-song/sweep-expired) keys off to find and destroy them —
+    // see that function for what it does and does not reclaim. Nothing calls it
+    // on a schedule yet; see its doc comment for what wiring that up needs.
     expires_at: new Date(Date.now() + JOB_TTL_MS).toISOString(),
   });
 
@@ -112,7 +115,16 @@ export async function POST(request: Request) {
     };
   });
 
-  const { error: itemsError } = await supabase.from('upload_job_items').insert(rows);
+  // Inserted on the SECRET key (src/lib/storage.server.ts), not the caller's own
+  // client. `authenticated` has no INSERT grant on `upload_job_items` any more —
+  // see supabase/migrations/..._revoke_upload_job_items_insert.sql — precisely
+  // because this used to run as the caller and Postgres could not distinguish
+  // "the server inserting rows it just derived" from "the browser inserting
+  // whatever it wants" under the same role and JWT. An admin could otherwise
+  // INSERT an item of their own with an arbitrary `audio_path` and have
+  // `/api/upload-song/complete` register a song pointing at an object they never
+  // uploaded.
+  const { error: itemsError } = await insertUploadJobItems(rows);
 
   if (itemsError) {
     // Nothing has been uploaded yet, so dropping the job leaves no orphan —

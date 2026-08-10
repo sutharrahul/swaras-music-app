@@ -1,0 +1,35 @@
+-- ---------------------------------------------------------------------------
+-- upload_job_items: close the INSERT hole left open by
+-- 20260809160100_upload_job_items_column_grants.sql.
+--
+-- THE BUG THIS FIXES
+-- -------------------
+-- That migration narrowed the browser's UPDATE to specific columns but kept
+-- INSERT granted to `authenticated`, because `POST /api/upload-song` inserted
+-- item rows through the CALLER's own client (publishable key + the admin's
+-- JWT) — the same role and JWT the browser itself holds. Postgres cannot tell
+-- "the server inserting rows it just derived" apart from "the browser
+-- inserting whatever it likes" when both arrive that way, so a live admin
+-- could INSERT an `upload_job_items` row of their own choosing — including an
+-- `audio_path` pointing at an object they never uploaded (e.g. another item's
+-- audio, or anything else reachable at a guessable path) — and then call
+-- `/api/upload-song/complete` to have it verified and registered as a `songs`
+-- row. The stated invariant ("the paths are never taken from the request,
+-- they are read back out of `upload_job_items` where this server wrote them")
+-- was therefore incomplete: the client could still get the server to write
+-- something it did not derive.
+--
+-- THE FIX
+-- -------
+-- `POST /api/upload-song` now inserts item rows through
+-- `insertUploadJobItems()` in `src/lib/storage.server.ts`, a `server-only`
+-- module that uses the SECRET key (service_role, which bypasses RLS and table
+-- grants by its own provisioning — nothing to grant it here). `authenticated`
+-- no longer needs INSERT at all: the browser never inserts a row itself, only
+-- updates the columns listed in the previous migration.
+--
+-- SELECT is untouched — `/api/upload-song/complete` still reads the row back
+-- through the caller's own client, scoped by `upload_job_items_owner_all`.
+-- ---------------------------------------------------------------------------
+
+revoke insert on public.upload_job_items from authenticated;
