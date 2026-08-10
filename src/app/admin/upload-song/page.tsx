@@ -2,7 +2,7 @@
 
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle, Upload, CheckCircle, XCircle, Music, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -83,11 +83,26 @@ const trim = (value: string, max: number) => value.trim().slice(0, max);
 
 const stripExtension = (name: string) => name.replace(/\.[^./\\]+$/, '') || name;
 
+/**
+ * Some MP3 sources bake literal HTML entities into the filename or the ID3
+ * tags themselves — e.g. a title of `Narak (From &quot;Ishqnama&quot;)` — which
+ * is where those sites' own scraping/tagging tools failed to decode a page
+ * title before writing it. Decoding via a detached `<textarea>` is the
+ * standard safe trick: parsing happens off-DOM, so nothing executes even if
+ * the string contained markup.
+ */
+function decodeHtmlEntities(value: string): string {
+  if (typeof document === 'undefined') return value;
+  const el = document.createElement('textarea');
+  el.innerHTML = value;
+  return el.value;
+}
+
 function toStringArray(value: unknown, max: number): string[] {
   const list = Array.isArray(value) ? value : [value];
   return list
     .filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '')
-    .map(entry => trim(entry, PERSON_MAX))
+    .map(entry => trim(decodeHtmlEntities(entry), PERSON_MAX))
     .slice(0, max);
 }
 
@@ -104,7 +119,7 @@ function toStringArray(value: unknown, max: number): string[] {
  */
 async function readMetadata(file: File): Promise<{ metadata: SongMetadata; cover: Cover | null }> {
   const fallback: SongMetadata = {
-    title: trim(stripExtension(file.name), NAME_MAX),
+    title: decodeHtmlEntities(trim(stripExtension(file.name), NAME_MAX)),
     artist: [],
     composers: [],
     album: null,
@@ -117,11 +132,11 @@ async function readMetadata(file: File): Promise<{ metadata: SongMetadata; cover
     const { title, artist, artists, album, composer, genre, picture } = parsed.common;
 
     const metadata: SongMetadata = {
-      title: title ? trim(title, NAME_MAX) : fallback.title,
+      title: title ? decodeHtmlEntities(trim(title, NAME_MAX)) : fallback.title,
       artist: toStringArray(artists ?? artist, 10),
       composers: toStringArray(composer, 20),
-      album: album ? trim(album, NAME_MAX) : null,
-      genre: genre?.[0] ? trim(genre[0], 100) : null,
+      album: album ? decodeHtmlEntities(trim(album, NAME_MAX)) : null,
+      genre: genre?.[0] ? decodeHtmlEntities(trim(genre[0], 100)) : null,
       duration: Math.max(0, Math.round(parsed.format.duration ?? 0)),
     };
 
@@ -150,6 +165,7 @@ export default function AdminPage() {
   const { data: adminData, isLoading: isCheckingAdmin, error: adminError } = useCheckAdmin(!!user);
   const [items, setItems] = useState<Item[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -357,6 +373,13 @@ export default function AdminPage() {
       else toast.error('All uploads failed.');
 
       if (succeeded > 0) queryClient.invalidateQueries({ queryKey: SONG_KEYS.all });
+
+      // A song that finished belongs in the catalogue, not in this list —
+      // leaving it here read as "still pending" and the button re-offered to
+      // upload it again. Failed items stay so the error is visible and the
+      // file doesn't have to be re-picked to see what went wrong.
+      setItems(prev => prev.filter(item => item.status !== 'done'));
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       const message = axios.isAxiosError(error)
         ? error.response?.data?.message || 'Server error'
@@ -427,6 +450,7 @@ export default function AdminPage() {
                     Select audio files (max {MAX_FILES_PER_JOB}, up to 100MB each)
                   </label>
                   <input
+                    ref={fileInputRef}
                     id="song-files"
                     type="file"
                     multiple
@@ -456,7 +480,7 @@ export default function AdminPage() {
                             ) : (
                               <Music aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
                             )}
-                            <span className="truncate">{item.file.name}</span>
+                            <span className="truncate">{decodeHtmlEntities(item.file.name)}</span>
                           </span>
                           <span className="shrink-0 text-muted-foreground">
                             {item.status === 'reading'
