@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 
 import AuthCard, { AuthError } from '@/components/auth/AuthCard';
+import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 import PasswordInput from '@/components/auth/PasswordInput';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,6 +124,14 @@ export default function SignInForm() {
           )}
         </Button>
       </form>
+
+      <div className="flex items-center gap-3" role="separator" aria-label="or">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-muted-foreground">OR</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <GoogleAuthButton next={searchParams.get('next')} />
     </AuthCard>
   );
 }
