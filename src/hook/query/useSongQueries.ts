@@ -18,6 +18,7 @@ export const SONG_KEYS = {
   all: ['songs'] as const,
   list: ['songs', 'list'] as const,
   liked: ['songs', 'liked'] as const,
+  browse: ['songs', 'browse'] as const,
 };
 
 const PAGE_SIZE = 20;
@@ -43,6 +44,29 @@ export function useSongsInfinite() {
     gcTime: 1000 * 60 * 10, // 10 minutes cache
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+  });
+}
+
+type SongBrowseFilter = { artist: string } | { album: string } | { movie: string };
+
+/**
+ * The singer/album/movie browse pages — same catalogue endpoint as
+ * `useSongsInfinite`, filtered server-side to one artist/album/movie name.
+ * `enabled` guards against firing with an empty name while a dynamic route
+ * param is still resolving.
+ */
+export function useSongsByFilter(filter: SongBrowseFilter) {
+  const { getSongs } = useSongApi();
+  const value = 'artist' in filter ? filter.artist : 'album' in filter ? filter.album : filter.movie;
+
+  return useInfiniteQuery({
+    queryKey: [...SONG_KEYS.browse, filter],
+    queryFn: ({ pageParam }) => getSongs({ page: pageParam, limit: PAGE_SIZE, ...filter }),
+    initialPageParam: 1,
+    getNextPageParam: last => (last.pagination.hasMore ? last.pagination.page + 1 : undefined),
+    enabled: Boolean(value),
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 }
 

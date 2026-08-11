@@ -1,155 +1,13 @@
-/**
- * Database types for supabase-js.
- *
- * HAND-WRITTEN, and only because it has to be: generating this needs either a
- * reachable database or a linked project (`supabase login` + `supabase link`),
- * and this repo has neither. It is a faithful transcription of
- * supabase/migrations/*.sql — if you change a migration, change this file in the
- * same commit, or regenerate it once the project is linked:
- *
- *     npm run db:types
- *
- * Shape notes, all of which follow the SQL rather than taste:
- *   - `id` columns are `text` holding a uuid (carried over from Prisma), so they
- *     type as `string` — same as a real uuid column would.
- *   - timestamps are `timestamp(3)`; PostgREST serialises them as strings.
- *   - `users."firstName"` / `users."lastName"` really are camelCase columns.
- *   - `users.supabase_user_id` references `auth.users(id)`, which lives in a
- *     schema PostgREST does not expose, so it has no entry in `Relationships`.
- */
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '14.15';
+  };
   public: {
     Tables: {
-      users: {
-        Row: {
-          id: string;
-          email: string;
-          firstName: string | null;
-          lastName: string | null;
-          role: Database['public']['Enums']['UserRole'];
-          status: Database['public']['Enums']['UserStatus'];
-          profile_image_url: string | null;
-          signup_method: Database['public']['Enums']['SignupMethod'];
-          supabase_user_id: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          email: string;
-          firstName?: string | null;
-          lastName?: string | null;
-          role?: Database['public']['Enums']['UserRole'];
-          status?: Database['public']['Enums']['UserStatus'];
-          profile_image_url?: string | null;
-          signup_method?: Database['public']['Enums']['SignupMethod'];
-          supabase_user_id?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          email?: string;
-          firstName?: string | null;
-          lastName?: string | null;
-          role?: Database['public']['Enums']['UserRole'];
-          status?: Database['public']['Enums']['UserStatus'];
-          profile_image_url?: string | null;
-          signup_method?: Database['public']['Enums']['SignupMethod'];
-          supabase_user_id?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      artists: {
-        Row: {
-          id: string;
-          name: string;
-          bio: string | null;
-          image_url: string | null;
-          country: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          bio?: string | null;
-          image_url?: string | null;
-          country?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          bio?: string | null;
-          image_url?: string | null;
-          country?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      albums: {
-        Row: {
-          id: string;
-          title: string;
-          type: Database['public']['Enums']['AlbumType'];
-          release_year: number | null;
-          cover_url: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          title: string;
-          type?: Database['public']['Enums']['AlbumType'];
-          release_year?: number | null;
-          cover_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          title?: string;
-          type?: Database['public']['Enums']['AlbumType'];
-          release_year?: number | null;
-          cover_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      movies: {
-        Row: {
-          id: string;
-          title: string;
-          release_year: number | null;
-          poster_url: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          title: string;
-          release_year?: number | null;
-          poster_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          title?: string;
-          release_year?: number | null;
-          poster_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
       album_artists: {
         Row: {
           album_id: string;
@@ -180,143 +38,98 @@ export type Database = {
           },
         ];
       };
-      songs: {
+      albums: {
         Row: {
-          id: string;
-          title: string;
-          duration: number;
-          uploaded_by_user_id: string;
-          artist: string[];
-          composers: string[];
-          album: string | null;
-          genre: string | null;
-          lyrics: string | null;
-          audio_path: string;
-          cover_path: string | null;
-          album_id: string | null;
-          movie_id: string | null;
+          cover_url: string | null;
           created_at: string;
+          id: string;
+          release_year: number | null;
+          title: string;
+          type: Database['public']['Enums']['AlbumType'];
           updated_at: string;
         };
         Insert: {
-          id?: string;
-          title: string;
-          duration: number;
-          uploaded_by_user_id: string;
-          artist?: string[];
-          composers?: string[];
-          album?: string | null;
-          genre?: string | null;
-          lyrics?: string | null;
-          audio_path: string;
-          cover_path?: string | null;
-          album_id?: string | null;
-          movie_id?: string | null;
+          cover_url?: string | null;
           created_at?: string;
+          id?: string;
+          release_year?: number | null;
+          title: string;
+          type?: Database['public']['Enums']['AlbumType'];
           updated_at?: string;
         };
         Update: {
-          id?: string;
-          title?: string;
-          duration?: number;
-          uploaded_by_user_id?: string;
-          artist?: string[];
-          composers?: string[];
-          album?: string | null;
-          genre?: string | null;
-          lyrics?: string | null;
-          audio_path?: string;
-          cover_path?: string | null;
-          album_id?: string | null;
-          movie_id?: string | null;
+          cover_url?: string | null;
           created_at?: string;
+          id?: string;
+          release_year?: number | null;
+          title?: string;
+          type?: Database['public']['Enums']['AlbumType'];
           updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'songs_uploaded_by_user_id_fkey';
-            columns: ['uploaded_by_user_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'songs_album_id_fkey';
-            columns: ['album_id'];
-            isOneToOne: false;
-            referencedRelation: 'albums';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'songs_movie_id_fkey';
-            columns: ['movie_id'];
-            isOneToOne: false;
-            referencedRelation: 'movies';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
-      song_credits: {
+      artists: {
         Row: {
-          song_id: string;
-          artist_id: string;
-          role: Database['public']['Enums']['CreditRole'];
+          bio: string | null;
+          country: string | null;
+          created_at: string;
+          id: string;
+          image_path: string | null;
+          image_url: string | null;
+          name: string;
+          updated_at: string;
         };
         Insert: {
-          song_id: string;
-          artist_id: string;
-          role: Database['public']['Enums']['CreditRole'];
+          bio?: string | null;
+          country?: string | null;
+          created_at?: string;
+          id?: string;
+          image_path?: string | null;
+          image_url?: string | null;
+          name: string;
+          updated_at?: string;
         };
         Update: {
+          bio?: string | null;
+          country?: string | null;
+          created_at?: string;
+          id?: string;
+          image_path?: string | null;
+          image_url?: string | null;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      likes: {
+        Row: {
+          created_at: string;
+          id: string;
+          song_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          song_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
           song_id?: string;
-          artist_id?: string;
-          role?: Database['public']['Enums']['CreditRole'];
+          user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'song_credits_song_id_fkey';
+            foreignKeyName: 'likes_song_id_fkey';
             columns: ['song_id'];
             isOneToOne: false;
             referencedRelation: 'songs';
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'song_credits_artist_id_fkey';
-            columns: ['artist_id'];
-            isOneToOne: false;
-            referencedRelation: 'artists';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      playlists: {
-        Row: {
-          id: string;
-          user_id: string;
-          name: string;
-          description: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          name: string;
-          description?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          name?: string;
-          description?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'playlists_user_id_fkey';
+            foreignKeyName: 'likes_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
@@ -324,27 +137,54 @@ export type Database = {
           },
         ];
       };
-      playlist_songs: {
+      movies: {
         Row: {
+          created_at: string;
           id: string;
-          playlist_id: string;
-          song_id: string;
-          position: number | null;
-          added_at: string;
+          poster_url: string | null;
+          release_year: number | null;
+          title: string;
+          updated_at: string;
         };
         Insert: {
+          created_at?: string;
           id?: string;
-          playlist_id: string;
-          song_id: string;
-          position?: number | null;
-          added_at?: string;
+          poster_url?: string | null;
+          release_year?: number | null;
+          title: string;
+          updated_at?: string;
         };
         Update: {
+          created_at?: string;
+          id?: string;
+          poster_url?: string | null;
+          release_year?: number | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      playlist_songs: {
+        Row: {
+          added_at: string;
+          id: string;
+          playlist_id: string;
+          position: number | null;
+          song_id: string;
+        };
+        Insert: {
+          added_at?: string;
+          id?: string;
+          playlist_id: string;
+          position?: number | null;
+          song_id: string;
+        };
+        Update: {
+          added_at?: string;
           id?: string;
           playlist_id?: string;
-          song_id?: string;
           position?: number | null;
-          added_at?: string;
+          song_id?: string;
         };
         Relationships: [
           {
@@ -363,35 +203,67 @@ export type Database = {
           },
         ];
       };
-      likes: {
+      playlists: {
         Row: {
-          id: string;
-          user_id: string;
-          song_id: string;
           created_at: string;
+          description: string | null;
+          id: string;
+          name: string;
+          updated_at: string;
+          user_id: string;
         };
         Insert: {
-          id?: string;
-          user_id: string;
-          song_id: string;
           created_at?: string;
+          description?: string | null;
+          id?: string;
+          name: string;
+          updated_at?: string;
+          user_id: string;
         };
         Update: {
-          id?: string;
-          user_id?: string;
-          song_id?: string;
           created_at?: string;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+          user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'likes_user_id_fkey';
+            foreignKeyName: 'playlists_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
           },
+        ];
+      };
+      song_credits: {
+        Row: {
+          artist_id: string;
+          role: Database['public']['Enums']['CreditRole'];
+          song_id: string;
+        };
+        Insert: {
+          artist_id: string;
+          role: Database['public']['Enums']['CreditRole'];
+          song_id: string;
+        };
+        Update: {
+          artist_id?: string;
+          role?: Database['public']['Enums']['CreditRole'];
+          song_id?: string;
+        };
+        Relationships: [
           {
-            foreignKeyName: 'likes_song_id_fkey';
+            foreignKeyName: 'song_credits_artist_id_fkey';
+            columns: ['artist_id'];
+            isOneToOne: false;
+            referencedRelation: 'artists';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'song_credits_song_id_fkey';
             columns: ['song_id'];
             isOneToOne: false;
             referencedRelation: 'songs';
@@ -399,38 +271,79 @@ export type Database = {
           },
         ];
       };
-      upload_jobs: {
+      songs: {
         Row: {
-          id: string;
-          user_id: string;
-          status: Database['public']['Enums']['UploadJobStatus'];
-          total_items: number;
-          expires_at: string;
+          album: string | null;
+          album_id: string | null;
+          artist: string[];
+          audio_path: string;
+          composers: string[];
+          cover_path: string | null;
           created_at: string;
+          duration: number;
+          genre: string | null;
+          id: string;
+          lyrics: string | null;
+          movie: string | null;
+          movie_id: string | null;
+          title: string;
           updated_at: string;
+          uploaded_by_user_id: string;
         };
         Insert: {
-          id?: string;
-          user_id: string;
-          status?: Database['public']['Enums']['UploadJobStatus'];
-          total_items: number;
-          expires_at: string;
+          album?: string | null;
+          album_id?: string | null;
+          artist?: string[];
+          audio_path: string;
+          composers?: string[];
+          cover_path?: string | null;
           created_at?: string;
+          duration: number;
+          genre?: string | null;
+          id?: string;
+          lyrics?: string | null;
+          movie?: string | null;
+          movie_id?: string | null;
+          title: string;
           updated_at?: string;
+          uploaded_by_user_id: string;
         };
         Update: {
-          id?: string;
-          user_id?: string;
-          status?: Database['public']['Enums']['UploadJobStatus'];
-          total_items?: number;
-          expires_at?: string;
+          album?: string | null;
+          album_id?: string | null;
+          artist?: string[];
+          audio_path?: string;
+          composers?: string[];
+          cover_path?: string | null;
           created_at?: string;
+          duration?: number;
+          genre?: string | null;
+          id?: string;
+          lyrics?: string | null;
+          movie?: string | null;
+          movie_id?: string | null;
+          title?: string;
           updated_at?: string;
+          uploaded_by_user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'upload_jobs_user_id_fkey';
-            columns: ['user_id'];
+            foreignKeyName: 'songs_album_id_fkey';
+            columns: ['album_id'];
+            isOneToOne: false;
+            referencedRelation: 'albums';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'songs_movie_id_fkey';
+            columns: ['movie_id'];
+            isOneToOne: false;
+            referencedRelation: 'movies';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'songs_uploaded_by_user_id_fkey';
+            columns: ['uploaded_by_user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
@@ -439,61 +352,61 @@ export type Database = {
       };
       upload_job_items: {
         Row: {
+          asset_prefix: string;
+          audio_path: string | null;
+          chunk_size: number;
+          completed_at: string | null;
+          cover_path: string | null;
+          created_at: string;
+          error_code: string | null;
           id: string;
           job_id: string;
-          status: Database['public']['Enums']['UploadItemStatus'];
           original_name: string;
-          asset_prefix: string;
-          upload_session_id: string | null;
-          total_bytes: number;
-          uploaded_bytes: number;
-          chunk_size: number;
-          audio_path: string | null;
-          cover_path: string | null;
-          song_id: string | null;
-          error_code: string | null;
           signed_at: string | null;
-          completed_at: string | null;
-          created_at: string;
+          song_id: string | null;
+          status: Database['public']['Enums']['UploadItemStatus'];
+          total_bytes: number;
           updated_at: string;
+          upload_session_id: string | null;
+          uploaded_bytes: number;
         };
         Insert: {
+          asset_prefix: string;
+          audio_path?: string | null;
+          chunk_size: number;
+          completed_at?: string | null;
+          cover_path?: string | null;
+          created_at?: string;
+          error_code?: string | null;
           id?: string;
           job_id: string;
-          status?: Database['public']['Enums']['UploadItemStatus'];
           original_name: string;
-          asset_prefix: string;
-          upload_session_id?: string | null;
-          total_bytes: number;
-          uploaded_bytes?: number;
-          chunk_size: number;
-          audio_path?: string | null;
-          cover_path?: string | null;
-          song_id?: string | null;
-          error_code?: string | null;
           signed_at?: string | null;
-          completed_at?: string | null;
-          created_at?: string;
+          song_id?: string | null;
+          status?: Database['public']['Enums']['UploadItemStatus'];
+          total_bytes: number;
           updated_at?: string;
+          upload_session_id?: string | null;
+          uploaded_bytes?: number;
         };
         Update: {
+          asset_prefix?: string;
+          audio_path?: string | null;
+          chunk_size?: number;
+          completed_at?: string | null;
+          cover_path?: string | null;
+          created_at?: string;
+          error_code?: string | null;
           id?: string;
           job_id?: string;
-          status?: Database['public']['Enums']['UploadItemStatus'];
           original_name?: string;
-          asset_prefix?: string;
-          upload_session_id?: string | null;
-          total_bytes?: number;
-          uploaded_bytes?: number;
-          chunk_size?: number;
-          audio_path?: string | null;
-          cover_path?: string | null;
-          song_id?: string | null;
-          error_code?: string | null;
           signed_at?: string | null;
-          completed_at?: string | null;
-          created_at?: string;
+          song_id?: string | null;
+          status?: Database['public']['Enums']['UploadItemStatus'];
+          total_bytes?: number;
           updated_at?: string;
+          upload_session_id?: string | null;
+          uploaded_bytes?: number;
         };
         Relationships: [
           {
@@ -506,27 +419,107 @@ export type Database = {
           {
             foreignKeyName: 'upload_job_items_song_id_fkey';
             columns: ['song_id'];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: 'songs';
             referencedColumns: ['id'];
           },
         ];
       };
-      webhook_events: {
+      upload_jobs: {
         Row: {
-          svix_id: string;
-          event_type: string;
-          received_at: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          status: Database['public']['Enums']['UploadJobStatus'];
+          total_items: number;
+          updated_at: string;
+          user_id: string;
         };
         Insert: {
-          svix_id: string;
-          event_type: string;
-          received_at?: string;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          status?: Database['public']['Enums']['UploadJobStatus'];
+          total_items: number;
+          updated_at?: string;
+          user_id: string;
         };
         Update: {
-          svix_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          status?: Database['public']['Enums']['UploadJobStatus'];
+          total_items?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'upload_jobs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      users: {
+        Row: {
+          created_at: string;
+          email: string;
+          firstName: string | null;
+          id: string;
+          lastName: string | null;
+          profile_image_url: string | null;
+          role: Database['public']['Enums']['UserRole'];
+          signup_method: Database['public']['Enums']['SignupMethod'];
+          status: Database['public']['Enums']['UserStatus'];
+          supabase_user_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          firstName?: string | null;
+          id?: string;
+          lastName?: string | null;
+          profile_image_url?: string | null;
+          role?: Database['public']['Enums']['UserRole'];
+          signup_method?: Database['public']['Enums']['SignupMethod'];
+          status?: Database['public']['Enums']['UserStatus'];
+          supabase_user_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          firstName?: string | null;
+          id?: string;
+          lastName?: string | null;
+          profile_image_url?: string | null;
+          role?: Database['public']['Enums']['UserRole'];
+          signup_method?: Database['public']['Enums']['SignupMethod'];
+          status?: Database['public']['Enums']['UserStatus'];
+          supabase_user_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      webhook_events: {
+        Row: {
+          event_type: string;
+          received_at: string;
+          svix_id: string;
+        };
+        Insert: {
+          event_type: string;
+          received_at?: string;
+          svix_id: string;
+        };
+        Update: {
           event_type?: string;
           received_at?: string;
+          svix_id?: string;
         };
         Relationships: [];
       };
@@ -535,17 +528,29 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      current_app_user_id: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
+      album_song_counts: {
+        Args: never;
+        Returns: {
+          album_name: string;
+          cover_path: string;
+          song_count: number;
+        }[];
       };
-      is_admin: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
+      artist_song_counts: {
+        Args: never;
+        Returns: {
+          artist_name: string;
+          song_count: number;
+        }[];
       };
+      current_app_user_id: { Args: never; Returns: string };
+      is_admin: { Args: never; Returns: boolean };
       song_like_counts: {
         Args: { p_song_ids: string[] };
-        Returns: { song_id: string; like_count: number }[];
+        Returns: {
+          like_count: number;
+          song_id: string;
+        }[];
       };
     };
     Enums: {
@@ -564,11 +569,134 @@ export type Database = {
   };
 };
 
-type PublicSchema = Database['public'];
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
-export type Tables<T extends keyof PublicSchema['Tables']> = PublicSchema['Tables'][T]['Row'];
-export type TablesInsert<T extends keyof PublicSchema['Tables']> =
-  PublicSchema['Tables'][T]['Insert'];
-export type TablesUpdate<T extends keyof PublicSchema['Tables']> =
-  PublicSchema['Tables'][T]['Update'];
-export type Enums<T extends keyof PublicSchema['Enums']> = PublicSchema['Enums'][T];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {
+      AlbumType: ['ALBUM', 'SINGLE', 'EP', 'COMPILATION', 'SOUNDTRACK'],
+      CreditRole: [
+        'PRIMARY_ARTIST',
+        'FEATURED_ARTIST',
+        'PRODUCER',
+        'COMPOSER',
+        'LYRICIST',
+        'ARRANGER',
+      ],
+      SignupMethod: ['EMAIL', 'GOOGLE'],
+      UploadItemStatus: ['PENDING', 'SIGNED', 'UPLOADED', 'COMPLETED', 'FAILED'],
+      UploadJobStatus: ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'EXPIRED'],
+      UserRole: ['USER', 'ADMIN'],
+      UserStatus: ['ACTIVE', 'INACTIVE', 'SUSPENDED'],
+    },
+  },
+} as const;

@@ -4,7 +4,13 @@
  */
 
 // Song Queries
-export { useSongsInfinite, useLikedSongs, useSongMutations, SONG_KEYS } from './useSongQueries';
+export {
+  useSongsInfinite,
+  useSongsByFilter,
+  useLikedSongs,
+  useSongMutations,
+  SONG_KEYS,
+} from './useSongQueries';
 
 // Playlist Queries
 export {

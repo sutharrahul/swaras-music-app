@@ -28,7 +28,7 @@ import { signAudioUrls } from '@/lib/storage.server';
  * public URL for covers.
  */
 export const SONG_COLUMNS =
-  'id, title, duration, audio_path, artist, composers, album, genre, cover_path, lyrics, created_at, updated_at';
+  'id, title, duration, audio_path, artist, composers, album, movie, genre, cover_path, lyrics, created_at, updated_at';
 
 type SongRow = Pick<
   Tables<'songs'>,
@@ -39,6 +39,7 @@ type SongRow = Pick<
   | 'artist'
   | 'composers'
   | 'album'
+  | 'movie'
   | 'genre'
   | 'cover_path'
   | 'lyrics'
@@ -60,6 +61,7 @@ export type SongDto = {
   artist: string[];
   composers: string[];
   album: string | null;
+  movie: string | null;
   genre: string | null;
   coverUrl: string | null;
   lyrics: string | null;
@@ -77,6 +79,7 @@ function toSongDto(row: SongRow, likes: number, audioUrl: string | null): SongDt
     artist: row.artist,
     composers: row.composers,
     album: row.album,
+    movie: row.movie,
     genre: row.genre,
     coverUrl: coverUrl(row.cover_path),
     lyrics: row.lyrics,
@@ -140,6 +143,64 @@ export async function toSongDtos(supabase: ServerClient, rows: SongRow[]): Promi
     toSongDto(row, counts.get(row.id) ?? 0, audioUrls.get(row.audio_path) ?? null)
   );
 }
+
+/**
+ * Artists.
+ *
+ * `public.artists` is a PROFILE side-table keyed by `name` — it carries the
+ * photo and nothing else the app reads. Which songs belong to an artist is
+ * still answered by `songs.artist text[]`, via the `artist_song_counts()`
+ * aggregate. There is no FK between the two, so an artist with no row here is
+ * the normal case, not an error: it just has no photo.
+ */
+export const ARTIST_COLUMNS = 'name, bio, image_path';
+
+export type ArtistDto = {
+  name: string;
+  songCount: number;
+  /** Null when the artist has no `artists` row, or has one with no photo. Both are normal. */
+  imageUrl: string | null;
+};
+
+/**
+ * Photos for a page of artist names — one round-trip for the whole page rather
+ * than one per artist. Same shape as `likeCounts()` above, and the same reason.
+ *
+ * Returns an empty map on failure rather than throwing: a missing photo degrades
+ * a card to its placeholder glyph, which is not worth failing a listing over.
+ * That also means this survives `image_path` not existing yet — unlike
+ * `SONG_COLUMNS`, which took the whole app down when it named a column the
+ * database did not have (see the `movie` comment at the top of this file).
+ */
+export async function artistImagePaths(
+  supabase: ServerClient,
+  names: string[]
+): Promise<Map<string, string | null>> {
+  if (names.length === 0) return new Map();
+
+  const { data, error } = await supabase.from('artists').select(ARTIST_COLUMNS).in('name', names);
+
+  if (error) {
+    console.error('Failed to load artist photos:', error);
+    return new Map();
+  }
+
+  return new Map((data ?? []).map(row => [row.name, row.image_path]));
+}
+
+/**
+ * Albums, derived from `songs.album` by `album_song_counts()`.
+ *
+ * No profile side-table and no `artistImagePaths` equivalent: an album's artwork
+ * is one of its songs' covers, which the aggregate already returns, so there is
+ * nothing to merge in and nothing that can drift.
+ */
+export type AlbumDto = {
+  name: string;
+  songCount: number;
+  /** The newest song artwork in the album, or null when none of them have any. */
+  coverUrl: string | null;
+};
 
 export const PLAYLIST_COLUMNS = 'id, name, description, created_at, updated_at';
 

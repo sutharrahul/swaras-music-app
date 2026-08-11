@@ -21,8 +21,26 @@ export default function useSongApi() {
   const { get, post, del } = useApiClient();
 
   const getSongs = useCallback(
-    async ({ page, limit }: { page: number; limit: number }): Promise<SongsPage> => {
-      const response = await get(`${SONG_ROUTE.GET_SONGS}?page=${page}&limit=${limit}`);
+    async ({
+      page,
+      limit,
+      artist,
+      album,
+      movie,
+    }: {
+      page: number;
+      limit: number;
+      /** Catalogue filters for the singer/album/movie browse pages. */
+      artist?: string;
+      album?: string;
+      movie?: string;
+    }): Promise<SongsPage> => {
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      if (artist) params.set('artist', artist);
+      if (album) params.set('album', album);
+      if (movie) params.set('movie', movie);
+
+      const response = await get(`${SONG_ROUTE.GET_SONGS}?${params.toString()}`);
       return response.data.data;
     },
     [get]

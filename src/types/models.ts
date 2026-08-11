@@ -27,6 +27,7 @@ export type Song = {
   artist: string[];
   composers: string[];
   album: string | null;
+  movie: string | null;
   genre: string | null;
   /** Derived from the object path; `song-covers` is public, so this is stable. */
   coverUrl: string | null;

@@ -44,13 +44,37 @@ export async function GET(request: Request) {
   const { page, limit } = pagination.data;
   const from = (page - 1) * limit;
 
+  // Optional catalogue filters, for the singer/album/movie browse pages. At
+  // most one is expected per request, but nothing stops combining them —
+  // Supabase just ANDs the extra conditions together.
+  const { searchParams } = new URL(request.url);
+  const artist = searchParams.get('artist');
+  const album = searchParams.get('album');
+  const movie = searchParams.get('movie');
+
   const supabase = await createClient();
 
-  const { data, count, error } = await supabase
+  let query = supabase
     .from('songs')
     .select(SONG_COLUMNS, { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(from, from + limit - 1);
+    .order('created_at', { ascending: false });
+
+  // `.contains()` builds a bare `{el1,el2}` PostgREST array literal without
+  // quoting elements — a comma *inside* one artist name (this catalogue
+  // genuinely has one: `["Shakira, Burna Boy"]` as a single un-split tag) gets
+  // read as a second array element, so the containment check silently looks
+  // for two elements that don't exist and returns zero rows. `.filter()` with
+  // a manually-quoted literal is PostgREST's own escape hatch for exactly
+  // this; backslashes are escaped before quotes so an already-escaped
+  // backslash isn't escaped again.
+  if (artist) {
+    const escaped = artist.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    query = query.filter('artist', 'cs', `{"${escaped}"}`);
+  }
+  if (album) query = query.eq('album', album);
+  if (movie) query = query.eq('movie', movie);
+
+  const { data, count, error } = await query.range(from, from + limit - 1);
 
   if (error) return respondToDbError(error, 'Failed to fetch songs');
 
