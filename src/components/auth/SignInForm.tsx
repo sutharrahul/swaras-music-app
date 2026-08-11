@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { createClient } from '@/utils/supabase/client';
 import { credentialsSchema, describeAuthError, fieldErrors, safeNextPath } from '@/lib/authForm';
 
-export default function SignInForm() {
+export default function SignInForm({ bare = false }: { bare?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -58,12 +58,13 @@ export default function SignInForm() {
       title="Welcome back"
       description="Sign in to reach your playlists and liked songs."
       footer={{ prompt: 'New here?', linkLabel: 'Create an account', href: '/sign-up' }}
+      bare={bare}
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <AuthError message={formError} />
 
         <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium text-white">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground">
             Email
           </label>
           <Input
@@ -77,7 +78,7 @@ export default function SignInForm() {
             disabled={submitting}
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? 'email-error' : undefined}
-            className="bg-surface-strong dark:bg-surface-strong border-border text-white"
+            className="bg-surface-strong border-border text-foreground"
           />
           {errors.email && (
             <p id="email-error" className="text-sm text-destructive">
@@ -87,7 +88,7 @@ export default function SignInForm() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-medium text-white">
+          <label htmlFor="password" className="block text-sm font-medium text-foreground">
             Password
           </label>
           <PasswordInput
@@ -100,7 +101,7 @@ export default function SignInForm() {
             disabled={submitting}
             aria-invalid={Boolean(errors.password)}
             aria-describedby={errors.password ? 'password-error' : undefined}
-            className="bg-surface-strong dark:bg-surface-strong border-border text-white"
+            className="bg-surface-strong border-border text-foreground"
           />
           {errors.password && (
             <p id="password-error" className="text-sm text-destructive">
@@ -112,7 +113,7 @@ export default function SignInForm() {
         <Button
           type="submit"
           disabled={submitting}
-          className="w-full bg-brand-gradient hover:bg-brand-gradient-hover text-white"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {submitting ? (
             <>

@@ -23,7 +23,7 @@ import { credentialsSchema, describeAuthError, fieldErrors } from '@/lib/authFor
  * can happen atomically with the auth identity. Doing it from the client would
  * mean an authenticated user with no profile whenever the second call failed.
  */
-export default function SignUpForm() {
+export default function SignUpForm({ bare = false }: { bare?: boolean }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -76,11 +76,12 @@ export default function SignUpForm() {
         title="Check your inbox"
         description="One more step before you can sign in."
         footer={{ prompt: 'Already confirmed?', linkLabel: 'Sign in', href: '/sign-in' }}
+        bare={bare}
       >
         <div className="flex flex-col items-center gap-3 text-center">
           <MailCheck aria-hidden="true" className="h-10 w-10 text-brand" />
           <p className="text-sm text-muted-foreground">
-            If <span className="font-medium text-white">{email}</span> can be registered, a
+            If <span className="font-medium text-foreground">{email}</span> can be registered, a
             confirmation link is on its way. Open it to finish creating your account.
           </p>
         </div>
@@ -93,12 +94,13 @@ export default function SignUpForm() {
       title="Create your account"
       description="Save playlists and keep every track you like."
       footer={{ prompt: 'Already have an account?', linkLabel: 'Sign in', href: '/sign-in' }}
+      bare={bare}
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <AuthError message={formError} />
 
         <div className="space-y-2">
-          <label htmlFor="email" className="block text-sm font-medium text-white">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground">
             Email
           </label>
           <Input
@@ -112,7 +114,7 @@ export default function SignUpForm() {
             disabled={submitting}
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? 'email-error' : undefined}
-            className="bg-surface-strong dark:bg-surface-strong border-border text-white"
+            className="bg-surface-strong border-border text-foreground"
           />
           {errors.email && (
             <p id="email-error" className="text-sm text-destructive">
@@ -122,7 +124,7 @@ export default function SignUpForm() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-medium text-white">
+          <label htmlFor="password" className="block text-sm font-medium text-foreground">
             Password
           </label>
           <PasswordInput
@@ -135,7 +137,7 @@ export default function SignUpForm() {
             disabled={submitting}
             aria-invalid={Boolean(errors.password)}
             aria-describedby={errors.password ? 'password-error' : 'password-hint'}
-            className="bg-surface-strong dark:bg-surface-strong border-border text-white"
+            className="bg-surface-strong border-border text-foreground"
           />
           {errors.password ? (
             <p id="password-error" className="text-sm text-destructive">
@@ -151,7 +153,7 @@ export default function SignUpForm() {
         <Button
           type="submit"
           disabled={submitting}
-          className="w-full bg-brand-gradient hover:bg-brand-gradient-hover text-white"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {submitting ? (
             <>
