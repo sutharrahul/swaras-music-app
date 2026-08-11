@@ -47,7 +47,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           className="flex items-center gap-3 hover:text-brand transition-colors"
           onClick={onNavigate}
         >
-          <Heart aria-hidden="true" className="h-5 w-5" />
+          <Heart aria-hidden="true" className="h-5 w-5 text-brand fill-brand" />
           <span>Liked Songs</span>
         </Link>
 
