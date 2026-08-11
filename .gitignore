@@ -44,3 +44,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# secrets handed to tooling at runtime — never committed
+supabaseToken.md
+*.token
+
+# Supabase CLI link state. Local to whoever ran `supabase link`, and
+# `pooler-url` carries a connection string — never commit it. The migrations
+# under supabase/migrations/ ARE tracked; only this scratch dir is not.
+supabase/.temp/
