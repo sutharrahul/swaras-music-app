@@ -24,15 +24,18 @@ import { useMediaSession } from '@/hooks/useMediaSession';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { useLikedSongs, useSongMutations } from '@/hook/query';
 import toast from 'react-hot-toast';
+import ExpandedPlayer from '@/components/ExpandedPlayer';
 
 /**
- * Repaints the shadcn Slider to match the player's scrubber: a fat 8px track
- * with a light unfilled remainder and a brand-red, white-ringed thumb.
+ * Repaints the shadcn Slider to match the player's scrubber: a fat 8px,
+ * pill-shaped (rounded-full) track with a light unfilled remainder and a
+ * brand-accent fill. The thumb is never visible — the bar itself is still
+ * draggable.
  */
-const SCRUBBER =
-  '[&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-track ' +
-  '[&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border-2 ' +
-  '[&_[data-slot=slider-thumb]]:border-white [&_[data-slot=slider-thumb]]:bg-primary';
+export const SCRUBBER =
+  '[&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:rounded-full ' +
+  '[&_[data-slot=slider-track]]:bg-track [&_[data-slot=slider-range]]:bg-brand ' +
+  '[&_[data-slot=slider-thumb]]:opacity-0';
 
 export default function MusicPlayer() {
   const {
@@ -48,6 +51,7 @@ export default function MusicPlayer() {
   const [currectTime, setCurrectTime] = useState<number>(0);
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   /**
@@ -306,7 +310,7 @@ export default function MusicPlayer() {
   return (
     <>
       {currentSong && !unplayable && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-b from-brand-tint to-surface-deep border-t border-brand/20 pb-[env(safe-area-inset-bottom)]">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border pb-[env(safe-area-inset-bottom)]">
           <audio
             ref={audioRef}
             // Never null here — the bar is not rendered without a URL, so there
@@ -346,15 +350,22 @@ export default function MusicPlayer() {
               <div className="flex items-center justify-between gap-3">
                 {/* Album Art + Info */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Image
-                    className="h-14 w-14 rounded-md object-cover flex-shrink-0"
-                    src={currentSong?.coverUrl || '/assets/songicon.png'}
-                    alt=""
-                    width={56}
-                    height={56}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded(true)}
+                    aria-label="Open now playing"
+                    className="flex-shrink-0 transition-transform hover:scale-105"
+                  >
+                    <Image
+                      className="h-14 w-14 rounded-md object-cover"
+                      src={currentSong?.coverUrl || '/assets/songicon.png'}
+                      alt=""
+                      width={56}
+                      height={56}
+                    />
+                  </button>
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-sm font-semibold truncate text-white">
+                    <span className="text-sm font-semibold truncate text-foreground">
                       {truncateByLetters(currentSong?.title, 25)}
                     </span>
                     <span className="text-xs text-muted-foreground truncate">
@@ -381,17 +392,25 @@ export default function MusicPlayer() {
                     aria-label="Previous song"
                     className="p-1 hover:scale-110 transition-transform"
                   >
-                    <PreviousButton className="h-4 w-4 text-white" />
+                    <PreviousButton className="h-4 w-4 text-foreground" />
                   </button>
                   <button
                     onClick={toggle}
                     aria-label={playLabel}
-                    className="p-2 bg-brand-gradient rounded-full hover:scale-105 transition-transform"
+                    className="p-2 bg-primary hover:bg-primary/90 rounded-full hover:scale-105 transition-transform"
                   >
                     {isPlaying ? (
-                      <Pause aria-hidden="true" className="h-5 w-5 text-white" fill="white" />
+                      <Pause
+                        aria-hidden="true"
+                        className="h-5 w-5 text-primary-foreground"
+                        fill="currentColor"
+                      />
                     ) : (
-                      <Play aria-hidden="true" className="h-5 w-5 text-white" fill="white" />
+                      <Play
+                        aria-hidden="true"
+                        className="h-5 w-5 text-primary-foreground"
+                        fill="currentColor"
+                      />
                     )}
                   </button>
                   <button
@@ -399,7 +418,7 @@ export default function MusicPlayer() {
                     aria-label="Next song"
                     className="p-1 hover:scale-110 transition-transform"
                   >
-                    <NextButton className="h-4 w-4 text-white" />
+                    <NextButton className="h-4 w-4 text-foreground" />
                   </button>
                   <button
                     onClick={toggleShuffle}
@@ -438,15 +457,22 @@ export default function MusicPlayer() {
                   bar, so the artwork stays small and the album line is dropped
                   rather than truncating the title to three letters. */}
               <div className="flex items-center gap-2.5 lg:gap-4 min-w-0">
-                <Image
-                  className="h-12 w-12 lg:h-16 lg:w-16 rounded-md object-cover flex-shrink-0 shadow-lg ring-1 ring-border/60"
-                  src={currentSong?.coverUrl || '/assets/songicon.png'}
-                  alt=""
-                  width={64}
-                  height={64}
-                />
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(true)}
+                  aria-label="Open now playing"
+                  className="flex-shrink-0 transition-transform hover:scale-105"
+                >
+                  <Image
+                    className="h-12 w-12 lg:h-16 lg:w-16 rounded-md object-cover shadow-lg ring-1 ring-border/60"
+                    src={currentSong?.coverUrl || '/assets/songicon.png'}
+                    alt=""
+                    width={64}
+                    height={64}
+                  />
+                </button>
                 <div className="flex flex-col min-w-0 flex-1 gap-0.5">
-                  <span className="text-sm lg:text-[15px] font-semibold leading-tight truncate text-white">
+                  <span className="text-sm lg:text-[15px] font-semibold leading-tight truncate text-foreground">
                     {currentSong?.title}
                   </span>
                   <span className="text-xs text-muted-foreground truncate">
@@ -500,12 +526,20 @@ export default function MusicPlayer() {
                     <TooltipTrigger
                       onClick={toggle}
                       aria-label={playLabel}
-                      className="p-3 bg-brand-gradient rounded-full hover:scale-105 transition-transform"
+                      className="p-3 bg-primary hover:bg-primary/90 rounded-full hover:scale-105 transition-transform"
                     >
                       {isPlaying ? (
-                        <Pause aria-hidden="true" className="h-6 w-6 text-white" fill="white" />
+                        <Pause
+                          aria-hidden="true"
+                          className="h-6 w-6 text-primary-foreground"
+                          fill="currentColor"
+                        />
                       ) : (
-                        <Play aria-hidden="true" className="h-6 w-6 text-white" fill="white" />
+                        <Play
+                          aria-hidden="true"
+                          className="h-6 w-6 text-primary-foreground"
+                          fill="currentColor"
+                        />
                       )}
                     </TooltipTrigger>
                     <TooltipContent>{playLabel} (Space)</TooltipContent>
@@ -581,6 +615,29 @@ export default function MusicPlayer() {
             </div>
           </div>
         </div>
+      )}
+
+      {currentSong && !unplayable && (
+        <ExpandedPlayer
+          song={currentSong}
+          open={isExpanded}
+          onOpenChange={setIsExpanded}
+          isPlaying={isPlaying}
+          currentTime={currectTime}
+          onSeek={handleProgressBar}
+          onToggle={toggle}
+          onNext={nextSong}
+          onPrevious={previousSong}
+          isShuffled={isShuffled}
+          onToggleShuffle={toggleShuffle}
+          repeatMode={repeatMode}
+          onToggleRepeat={toggleRepeat}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          volume={volume}
+          onVolumeChange={handleVolumeBar}
+          onMute={mute}
+        />
       )}
     </>
   );
