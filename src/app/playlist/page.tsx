@@ -91,7 +91,7 @@ export default function PlaylistsPage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
           <ListMusic aria-hidden="true" className="w-8 h-8 text-brand" />
           My Playlists
         </h1>
@@ -103,7 +103,7 @@ export default function PlaylistsPage() {
         {!showCreateForm ? (
           <Button
             onClick={() => setShowCreateForm(true)}
-            className="bg-brand-gradient hover:bg-brand-gradient-hover"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Plus aria-hidden="true" className="w-5 h-5 mr-2" />
             Create New Playlist
@@ -111,7 +111,7 @@ export default function PlaylistsPage() {
         ) : (
           <Card className="border-border">
             <CardHeader>
-              <CardTitle className="text-white">Create New Playlist</CardTitle>
+              <CardTitle className="text-foreground">Create New Playlist</CardTitle>
               <CardDescription>Add a name for your playlist</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -121,14 +121,14 @@ export default function PlaylistsPage() {
                   aria-label="Playlist name"
                   value={newPlaylistName}
                   onChange={e => setNewPlaylistName(e.target.value)}
-                  className="bg-secondary dark:bg-secondary border-border text-white"
+                  className="bg-secondary border-border text-foreground"
                 />
               </div>
               <div className="flex gap-2">
                 <Button
                   onClick={createPlaylist}
                   disabled={createPlaylistMutation.isPending}
-                  className="bg-brand-gradient hover:bg-brand-gradient-hover"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {createPlaylistMutation.isPending ? (
                     <>
@@ -145,7 +145,7 @@ export default function PlaylistsPage() {
                     setNewPlaylistName('');
                   }}
                   variant="outline"
-                  className="border-border text-white hover:bg-secondary"
+                  className="border-border text-foreground hover:bg-secondary"
                 >
                   Cancel
                 </Button>
@@ -178,7 +178,7 @@ export default function PlaylistsPage() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-white text-lg mb-1">
+                    <CardTitle className="text-foreground text-lg mb-1">
                       {/* Stretched link: the whole card is clickable, but only
                           this anchor is in the tab order. */}
                       <Link

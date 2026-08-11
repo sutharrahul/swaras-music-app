@@ -39,7 +39,7 @@ export default function LikedSongsPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
           <Heart aria-hidden="true" className="w-8 h-8 text-brand fill-brand" />
           Liked Songs
         </h1>

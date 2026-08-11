@@ -69,7 +69,10 @@ export default function PlaylistDetailPage() {
           title="Playlist not found"
           description="It may have been deleted, or it never belonged to this account."
           action={
-            <Button onClick={() => router.push('/playlist')} className="bg-brand-gradient">
+            <Button
+              onClick={() => router.push('/playlist')}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               Back to Playlists
             </Button>
           }
@@ -87,7 +90,7 @@ export default function PlaylistDetailPage() {
         <Button
           onClick={() => router.push('/playlist')}
           variant="ghost"
-          className="mb-4 text-muted-foreground hover:text-white"
+          className="mb-4 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft aria-hidden="true" className="w-4 h-4 mr-2" />
           Back to Playlists
@@ -95,7 +98,7 @@ export default function PlaylistDetailPage() {
 
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">{playlist.name}</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-2">{playlist.name}</h1>
             <p className="text-muted-foreground/70">
               {playlist.playlistSongs.length} song{playlist.playlistSongs.length !== 1 ? 's' : ''}
             </p>

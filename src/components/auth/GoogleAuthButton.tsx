@@ -73,7 +73,7 @@ export default function GoogleAuthButton({ next }: { next?: string | null }) {
         variant="outline"
         onClick={handleClick}
         disabled={pending}
-        className="w-full border-border bg-transparent text-white hover:bg-secondary"
+        className="w-full border-border bg-transparent text-foreground hover:bg-secondary"
       >
         {pending ? (
           <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />

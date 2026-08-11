@@ -15,12 +15,12 @@
  */
 
 /** Mirrors `--background` in globals.css — for <meta name="theme-color">. */
-export const themeColor = '#0e0e0e';
+export const themeColor = '#f5f4ee';
 
 /** react-hot-toast styling; mirrors `--surface-subtle` / `--foreground`. */
 export const toastOptions = {
   style: {
-    background: '#1a1a1a',
-    color: '#ffffff',
+    background: '#fbfaf5',
+    color: '#1e2a2a',
   },
 };

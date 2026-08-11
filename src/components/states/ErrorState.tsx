@@ -24,11 +24,11 @@ export default function ErrorState({
   return (
     <div role="alert" className="flex flex-col items-center justify-center gap-4 py-20 text-center">
       <AlertCircle aria-hidden="true" className="w-12 h-12 text-destructive" />
-      <h2 className="text-xl font-semibold text-white">{title}</h2>
+      <h2 className="text-xl font-semibold text-foreground">{title}</h2>
       <p className="max-w-md text-muted-foreground">{description}</p>
       <div className="flex items-center gap-3">
         {onRetry && (
-          <Button onClick={onRetry} className="bg-brand-gradient hover:bg-brand-gradient-hover">
+          <Button onClick={onRetry} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             {retryLabel}
           </Button>
         )}

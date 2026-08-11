@@ -42,19 +42,19 @@ export default function SongCard({ song }: { song: ShelfSong }) {
         {/* Revealed on hover, and on keyboard focus so it is not mouse-only. */}
         <span
           aria-hidden="true"
-          className={`absolute bottom-2 right-2 flex size-9 items-center justify-center rounded-full bg-brand-gradient shadow-lg transition-all duration-200 ${
+          className={`absolute bottom-2 right-2 flex size-9 items-center justify-center rounded-full bg-primary shadow-lg transition-all duration-200 ${
             isCurrent
               ? 'translate-y-0 opacity-100'
               : 'translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100'
           }`}
         >
-          <Play className="size-4 text-white" fill="currentColor" />
+          <Play className="size-4 text-primary-foreground" fill="currentColor" />
         </span>
       </span>
 
       <span
         className={`mt-2.5 block truncate text-sm font-semibold ${
-          isCurrent ? 'text-brand' : 'text-white'
+          isCurrent ? 'text-brand' : 'text-foreground'
         }`}
       >
         {song.title}

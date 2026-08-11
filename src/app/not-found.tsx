@@ -16,7 +16,7 @@ export default function NotFound() {
         action={
           <Link
             href="/"
-            className="rounded-lg bg-brand-gradient px-5 py-2.5 text-sm font-medium text-white"
+            className="rounded-lg bg-primary hover:bg-primary/90 px-5 py-2.5 text-sm font-medium text-primary-foreground"
           >
             Back to all songs
           </Link>

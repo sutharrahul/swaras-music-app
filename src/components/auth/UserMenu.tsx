@@ -42,10 +42,10 @@ export default function UserMenu() {
   if (!user) {
     return (
       <div className="flex items-center gap-1.5 sm:gap-2">
-        <Button asChild variant="ghost" size="sm" className="text-white hover:bg-secondary">
+        <Button asChild variant="ghost" size="sm" className="text-foreground hover:bg-secondary">
           <Link href="/sign-in">Sign in</Link>
         </Button>
-        <Button asChild size="sm" className="bg-brand-gradient hover:bg-brand-gradient-hover">
+        <Button asChild size="sm">
           <Link href="/sign-up">Sign up</Link>
         </Button>
       </div>
@@ -70,7 +70,7 @@ export default function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label={`Account menu for ${label}`}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         <UserIcon aria-hidden="true" className="h-4 w-4" />
       </DropdownMenuTrigger>

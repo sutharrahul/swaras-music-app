@@ -190,3 +190,74 @@ reading why.
 ## Your notes
 
 <!-- Yours. Nothing above this line is user-authored; add project preferences here. -->
+## Design System
+
+Target reference: `Pulse-Music-Listener-Admin.png` (a "Pulse" music app mockup).
+**Light theme only — there is no dark mode.** Values below were pixel-sampled
+directly from the reference image (not eyeballed), so they should be treated as
+exact. If you retheme again from a new screenshot, resample rather than reusing
+these — don't assume they still apply.
+
+### Fonts
+- **Single family for everything** — headlines, headings, nav labels, and body/UI
+  text in the reference are all the same bold geometric sans at different weights,
+  not two separate families.
+- Font: **'Poppins', system-ui, -apple-system, sans-serif** — weights 400 (body),
+  500 (labels/meta), 600–700 (nav, card titles, sub-headings), 800 (hero headline).
+  Poppins is already loaded in this app (`next/font/google`) and is the closest
+  real, freely-licensed match to the reference's letterforms (tall x-height,
+  circular counters, double-story 'a', open-tail 'g'). **This is a best-effort
+  visual match, not a confirmed font identity** — exact font ID isn't derivable
+  from a raster image. If you have the real font name (e.g. from a Figma source),
+  swap it in; otherwise Poppins stands.
+- Code: 'JetBrains Mono', Menlo, Monaco, monospace (unchanged — no code UI in the
+  reference to sample from)
+
+### Colors
+- background (page): **#F5F4EE** (warm cream)
+- card / surface-1 (search bar, pills, input fields — lightest surface): **#FBFAF5**
+- secondary / muted surface (active nav pill, hover rows, "now playing" card,
+  highlighted list rows): **#E7EBE3** (pale sage)
+- foreground (primary text/headings): **#1E2A2A** (near-black, teal-charcoal —
+  not pure black)
+- muted-foreground (secondary text — artist names, meta, timestamps):
+  **rgba(30,42,42,0.6)** (renders ≈ #747A78 on the cream background)
+- border: **rgba(30,42,42,0.12)** (renders ≈ #DBDBD6)
+- primary (hero/feature cards, large CTA surfaces — the deep forest green):
+  **#274747**
+- primary-foreground (text/icons on primary): **#F7EFE6**
+- brand accent (hearts, links, "See all", progress fill, headline highlight word):
+  **#D46E49** (terracotta/burnt-orange — confirmed via multiple clean flat-fill
+  samples, e.g. the filled heart icons)
+- brand accent light (button fills like "Play session", the "+" add circle —
+  icon/text on top is primary-colored, not white): **#F5C1A5**
+- brand accent dark (hover/active state — not present in the reference at full
+  size, derived by darkening the accent ~20%): **#B35A3A**
+- sidebar: **#FBFAF5 (card) with a right border** in `border`. It was originally
+  specced as the same cream as the page "split only by a border", but the border
+  was never applied and the two surfaces are byte-identical, so the rail was
+  invisible. Note it must NOT use the pale-sage secondary — that is the active
+  nav pill's colour, and tinting the whole rail with it erases the indicator.
+- surface-0: alias for background, #F5F4EE
+- surface-1: alias for card, #FBFAF5
+- surface-2: alias for secondary/muted, #E7EBE3
+- surface-3 (rarely-needed third elevation step, derived): **#DEE2D8**
+
+### Other tokens
+- Border radius: base 1rem; scale — pills/badges/buttons = fully rounded (9999px),
+  song rows/inputs ≈ 0.75–1rem, feature/hero cards ≈ 1.5–2rem
+- Focus/ring color: #D46E49
+- Card shadow: 0 1px 3px rgba(30,42,42,0.06), 0 4px 16px rgba(30,42,42,0.04)
+- Card hover shadow: 0 4px 20px rgba(30,42,42,0.10), 0 8px 40px rgba(30,42,42,0.06)
+- Selection/scrollbar accent: rgba(212,110,73,0.25)
+
+### Style summary
+Warm, light, editorial-feeling design system built on Poppins at varying weights
+(no separate display/body families). Cream page background (#F5F4EE) with a
+near-white card surface (#FBFAF5) and a pale-sage muted surface (#E7EBE3) for
+active/elevated states. Near-black teal-charcoal text (#1E2A2A), never pure
+black. A deep forest green (#274747) is the second major surface color — used
+for hero/feature cards and "now playing" emphasis, not just an accent. A single
+terracotta accent (#D46E49, light tint #F5C1A5) marks likes, links, and
+highlighted words. Generously rounded corners (fully pill-shaped buttons/badges,
+large 1.5–2rem radii on feature cards), soft warm-toned shadows, no dark mode.

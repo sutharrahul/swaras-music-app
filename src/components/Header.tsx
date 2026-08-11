@@ -153,8 +153,19 @@ export default function Header() {
     }`;
 
   return (
-    <header className="fixed top-0 right-0 left-0 md:left-64 z-40 bg-brand-fade backdrop-blur-sm border-b border-brand/10">
-      <div className="flex items-center justify-between gap-2 px-2 sm:px-4 md:px-8 py-3 md:py-4 ml-12 md:ml-0">
+    // `h-header` and an OPAQUE background, not the old fade + blur.
+    //
+    // The scroll container reserves `--header-height` (5rem) of padding for this
+    // bar, but the bar only measured 69px, so an 11px strip of reserved space
+    // sat below it with nothing covering it — and because the old background was
+    // a gradient to transparent, scrolled content ghosted through both that
+    // strip and the bar's own lower half. Pinning the height to the same token
+    // the padding uses makes the two agree by construction, and a solid fill
+    // means nothing shows through.
+    <header className="fixed top-0 right-0 left-0 md:left-64 z-40 h-header bg-background border-b border-border">
+      {/* `h-full` + centring instead of vertical padding: the height now comes
+          from the header itself, so padding would only fight it. */}
+      <div className="flex h-full items-center justify-between gap-2 px-2 sm:px-4 md:px-8 ml-12 md:ml-0">
         {/* Search Bar — hidden on /admin, which has its own (Manage Songs) search */}
         {!isAdminPage && (
           <div className="flex-1 max-w-xs sm:max-w-md md:max-w-2xl relative" ref={searchRef}>
@@ -175,7 +186,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base bg-secondary dark:bg-secondary border-border text-white placeholder:text-muted-foreground"
+                className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base bg-secondary border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
 
@@ -213,7 +224,7 @@ export default function Header() {
                           className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
                         />
                         <div className="flex-1 text-left min-w-0">
-                          <p className="text-white text-xs sm:text-sm font-medium truncate">
+                          <p className="text-foreground text-xs sm:text-sm font-medium truncate">
                             {song.title}
                           </p>
                           <p className="text-muted-foreground text-[10px] sm:text-xs truncate">
@@ -243,11 +254,14 @@ export default function Header() {
                         onClick={() => handlePlaylistClick(playlist.id)}
                         className={optionClasses(songs.length + index)}
                       >
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-brand-gradient flex items-center justify-center flex-shrink-0">
-                          <List aria-hidden="true" className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-primary flex items-center justify-center flex-shrink-0">
+                          <List
+                            aria-hidden="true"
+                            className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground"
+                          />
                         </div>
                         <div className="flex-1 text-left min-w-0">
-                          <p className="text-white text-xs sm:text-sm font-medium truncate">
+                          <p className="text-foreground text-xs sm:text-sm font-medium truncate">
                             {playlist.name}
                           </p>
                         </div>
@@ -288,7 +302,7 @@ export default function Header() {
           {isSignedIn && isAdmin && !isAdminPage && (
             <button
               onClick={() => router.push('/admin?tab=upload')}
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-primary hover:bg-brand-hover text-white rounded-lg transition-colors font-medium text-xs sm:text-sm"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg transition-colors font-medium text-xs sm:text-sm"
             >
               <Upload aria-hidden="true" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Admin</span>

@@ -43,17 +43,28 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  colorScheme: 'dark',
+  colorScheme: 'light',
   themeColor,
 };
 
 export default function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  /**
+   * The `@modal` parallel route slot. `src/app/@modal/(.)sign-in` and
+   * `(.)sign-up` intercept client-side navigation to `/sign-in`/`/sign-up` and
+   * render here as a dialog on top of whatever page is already showing. A hard
+   * navigation (typed URL, the middleware's redirect for a protected route)
+   * bypasses interception entirely and renders the real full-page route
+   * instead — `modal` is null in that case, this renders nothing extra, and
+   * `src/app/sign-in/page.tsx` / `sign-up/page.tsx` are what the visitor sees.
+   */
+  modal: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark h-dvh">
+    <html lang="en" className="h-dvh">
       <body
         className={`${poppins.variable} ${poppins.className} antialiased flex bg-background h-dvh overflow-hidden`}
       >
@@ -67,6 +78,7 @@ export default function RootLayout({
                 <div className="h-full overflow-y-auto pr-2 pb-player pt-header">{children}</div>
                 <MusicPlayer />
               </div>
+              {modal}
             </TooltipProvider>
           </SongProvider>
         </Providers>

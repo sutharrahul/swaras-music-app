@@ -19,7 +19,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="en" className="dark h-dvh">
+    <html lang="en" className="h-dvh">
       <body className="antialiased bg-background text-foreground h-dvh">
         <main
           role="alert"
@@ -31,7 +31,7 @@ export default function GlobalError({
           </p>
           <button
             onClick={reset}
-            className="rounded-lg bg-brand-gradient px-5 py-2.5 text-sm font-medium text-white"
+            className="rounded-lg bg-primary hover:bg-primary/90 px-5 py-2.5 text-sm font-medium text-primary-foreground"
           >
             Reload the app
           </button>
