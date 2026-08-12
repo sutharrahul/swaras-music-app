@@ -52,9 +52,20 @@ type PlayListProps = {
    * was rendering. The parent passes it now.
    */
   playlistId?: string;
+  /**
+   * Number the rows 1, 2, 3… Off by default so the home screen and playlists are
+   * unchanged; on for a single-artist listing, where the rank is meaningful
+   * because every row belongs to the same performer.
+   */
+  showIndex?: boolean;
 };
 
-export default function PlayList({ songData, dataType, playlistId }: PlayListProps) {
+export default function PlayList({
+  songData,
+  dataType,
+  playlistId,
+  showIndex = false,
+}: PlayListProps) {
   const { playSong, currentSong } = useSong();
   const { user } = useSupabaseUser();
 
@@ -152,7 +163,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
   return (
     <>
       <ul className="space-y-1 px-2 md:px-8">
-        {songData?.map(song => {
+        {songData?.map((song, index) => {
           const isCurrent = song.id === currentSong?.id;
 
           return (
@@ -169,6 +180,18 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                 aria-current={isCurrent ? 'true' : undefined}
                 className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 cursor-pointer text-left rounded"
               >
+                {showIndex && (
+                  // `aria-hidden`: the position is a visual affordance, and a
+                  // screen reader already gets it from the list semantics — the
+                  // row would otherwise be announced as "3 Hips Dont Lie".
+                  // Tabular figures so the column does not jitter at 10+.
+                  <span
+                    aria-hidden="true"
+                    className="w-5 flex-shrink-0 text-right text-sm tabular-nums text-muted-foreground"
+                  >
+                    {index + 1}
+                  </span>
+                )}
                 <Image
                   src={song.coverUrl || '/assets/songicon.png'}
                   alt=""
@@ -178,7 +201,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                 />
 
                 <div className="flex flex-col md:grid md:grid-cols-3 md:gap-4 md:flex-1 min-w-0">
-                  <span className="text-white text-sm md:font-semibold truncate">
+                  <span className="text-foreground text-sm md:font-semibold truncate">
                     {truncateByLetters(song.title, 25)}
                   </span>
                   <span className="text-muted-foreground text-xs md:text-sm truncate">
@@ -212,7 +235,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                   <DropdownMenuTrigger
                     aria-label={`Actions for ${song.title}`}
                     disabled={pendingSongId === song.id}
-                    className="p-1 rounded text-foreground/80 hover:text-white disabled:opacity-50 disabled:cursor-wait"
+                    className="p-1 rounded text-foreground/80 hover:text-foreground disabled:opacity-50 disabled:cursor-wait"
                   >
                     <MoreVertical aria-hidden="true" className="h-5 w-5 md:h-6 md:w-6" />
                   </DropdownMenuTrigger>
@@ -246,7 +269,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white">Add to Playlist</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-foreground">Add to Playlist</DialogTitle>
           </DialogHeader>
 
           {loadingPlaylists ? (
@@ -256,21 +279,21 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
               {/* Create New Playlist Form */}
               {showCreateForm ? (
                 <div className="p-4 bg-secondary rounded-lg">
-                  <h4 className="text-white font-medium mb-3">Create New Playlist</h4>
+                  <h4 className="text-foreground font-medium mb-3">Create New Playlist</h4>
                   <Input
                     type="text"
                     value={newPlaylistName}
                     onChange={e => setNewPlaylistName(e.target.value)}
                     placeholder="Playlist name"
                     aria-label="Playlist name"
-                    className="w-full px-3 py-2 bg-card dark:bg-card text-white rounded-lg border-border mb-3"
+                    className="w-full px-3 py-2 bg-card text-foreground rounded-lg border-border mb-3"
                     disabled={createPlaylistMutation.isPending}
                   />
                   <div className="flex gap-2">
                     <Button
                       onClick={handleCreatePlaylist}
                       disabled={createPlaylistMutation.isPending}
-                      className="flex-1 bg-primary hover:bg-brand-hover text-white"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       {createPlaylistMutation.isPending ? 'Creating...' : 'Create'}
                     </Button>
@@ -290,7 +313,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
               ) : (
                 <Button
                   onClick={() => setShowCreateForm(true)}
-                  className="w-full py-3 bg-primary hover:bg-brand-hover text-white font-medium"
+                  className="w-full py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 >
                   + Create New Playlist
                 </Button>
@@ -310,7 +333,7 @@ export default function PlayList({ songData, dataType, playlistId }: PlayListPro
                       onClick={() => handleAddToPlaylist(playlist.id)}
                       className="w-full text-left p-3 hover:bg-secondary rounded-lg transition-colors"
                     >
-                      <p className="text-white font-medium">{playlist.name}</p>
+                      <p className="text-foreground font-medium">{playlist.name}</p>
                       <p className="text-muted-foreground text-sm">
                         {playlist._count.playlistSongs} songs
                       </p>

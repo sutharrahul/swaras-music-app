@@ -13,6 +13,13 @@ type MusicPlayerContextType = {
   // UI State (managed by context)
   currentSong: SongeType | null;
   playSong: (songId: string) => void;
+  /**
+   * Play an explicit list and make it the queue, so next/previous walk THAT
+   * list rather than the whole catalogue. Used by "play all" on a filtered
+   * screen (an artist, an album) where the catalogue order is not what the
+   * listener is looking at.
+   */
+  playQueue: (songs: SongeType[], startIndex?: number) => void;
   isShuffled: boolean;
   toggleShuffle: () => void;
   repeatMode: RepeatMode;
@@ -47,20 +54,46 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
   const [shuffledSongs, setShuffledSongs] = useState<SongeType[]>([]);
 
+  /**
+   * An explicit queue set by `playQueue`, or null to mean "the catalogue".
+   * Null rather than defaulting to a copy of `songData`, so the queue keeps
+   * GROWING as infinite scroll appends pages — which is the behaviour the home
+   * screen has always relied on.
+   */
+  const [queue, setQueue] = useState<SongeType[] | null>(null);
+  const activeQueue = queue ?? songData;
+
   // Get the current playlist (shuffled or original)
-  const currentPlaylist = isShuffled ? shuffledSongs : songData;
+  const currentPlaylist = isShuffled ? shuffledSongs : activeQueue;
 
   const playSong = (songId: string) => {
-    const selectSong = songData.find((song: SongeType) => song.id === songId);
+    // The active queue first, the catalogue second. The fallback matters: a row
+    // on a filtered screen can be a song that is not in the loaded catalogue
+    // pages at all, and looking only at `songData` would silently do nothing.
+    const selectSong =
+      activeQueue.find((song: SongeType) => song.id === songId) ??
+      songData.find((song: SongeType) => song.id === songId);
     if (selectSong) {
       setCurrentSong(selectSong);
     }
   };
 
+  const playQueue = (songs: SongeType[], startIndex = 0) => {
+    if (songs.length === 0) return;
+    const index = Math.min(Math.max(startIndex, 0), songs.length - 1);
+    setQueue(songs);
+    // A fresh queue starts in its own order. Inheriting a shuffle from whatever
+    // the listener did on a previous screen would make "play" mean something
+    // different depending on history.
+    setIsShuffled(false);
+    setCurrentSong(songs[index]);
+  };
+
   const toggleShuffle = () => {
     if (!isShuffled) {
-      // Shuffle the songs
-      const shuffled = [...songData].sort(() => Math.random() - 0.5);
+      // Shuffles whatever is actually playing — the artist's songs when one is
+      // queued, the catalogue otherwise.
+      const shuffled = [...activeQueue].sort(() => Math.random() - 0.5);
       setShuffledSongs(shuffled);
       setIsShuffled(true);
     } else {
@@ -121,6 +154,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
         // UI State
         currentSong,
         playSong,
+        playQueue,
         isShuffled,
         toggleShuffle,
         repeatMode,
