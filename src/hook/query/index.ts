@@ -20,6 +20,14 @@ export {
   PLAYLIST_KEYS,
 } from './usePlaylistQueries';
 
+// Artist Queries
+export {
+  useArtistsInfinite,
+  useArtistProfile,
+  useArtistMutations,
+  ARTIST_KEYS,
+} from './useArtistQueries';
+
 // Admin Queries
 export { useAdminMutations } from './useAdminQueries';
 

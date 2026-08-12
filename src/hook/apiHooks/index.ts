@@ -7,5 +7,6 @@ export { useApiClient, apiErrorMessage } from './useApiClient';
 export { default as useSongApi } from './useSongApi';
 export { default as usePlaylistApi } from './usePlaylistApi';
 export { default as useAdminApi } from './useAdminApi';
+export { default as useArtistApi } from './useArtistApi';
 export { useGetSongApi } from './useGetSongApi';
 export { default as useUserApi } from './useUserApi';

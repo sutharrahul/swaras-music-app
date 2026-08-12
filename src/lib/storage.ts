@@ -116,6 +116,50 @@ export function coverUrl(path: string | null): string | null {
 }
 
 /**
+ * Artist photos. Public for the same reasons `song-covers` is: `next/image`
+ * needs a stable src, and `next.config.ts` pins `remotePatterns` to
+ * `/storage/v1/object/public/**`, which a signed URL would not match.
+ *
+ * Deliberately reuses `MAX_COVER_BYTES` and `ALLOWED_COVER_TYPES` rather than
+ * declaring artist-specific twins: the bucket is configured with the identical
+ * 10MiB limit and the identical four mime types, and two constants that must
+ * never diverge should not be two constants.
+ */
+export const ARTIST_IMAGE_BUCKET = 'artist-images';
+
+/**
+ * The object key for one artist photo.
+ *
+ * Both ids are SERVER-minted -- `artistId` from the row the mint endpoint just
+ * found-or-created, `photoId` a fresh `randomUUID()` per upload -- and both are
+ * re-validated here, because this is the last thing standing between a request
+ * body and a bucket key. Anything outside [A-Za-z0-9_-] is rejected rather than
+ * escaped: a key is not a place to be clever about `../`.
+ *
+ * A FRESH `photoId` per upload, not a fixed `photo.jpg`. A stable key replaced
+ * in place keeps its URL, and both the Supabase CDN and the `next/image`
+ * optimizer cache by URL -- an admin would replace a photo and keep being shown
+ * the old one, with no way to tell whether it worked. A new key is a new URL, so
+ * a replacement is visible immediately; the superseded object is deleted once
+ * the row points at the new one.
+ */
+export function artistPhotoPath(artistId: string, photoId: string, contentType: string): string {
+  const safe = /^[A-Za-z0-9_-]+$/;
+  if (!safe.test(artistId) || !safe.test(photoId)) {
+    throw new Error('Unsafe artist photo path component');
+  }
+  return `artists/${artistId}/${photoId}.${COVER_EXTENSIONS[contentType] ?? 'jpg'}`;
+}
+
+/** `artist-images` is public, so this is a pure function of the path. Mirrors `coverUrl`. */
+export function artistImageUrl(path: string | null): string | null {
+  if (!path) return null;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return null;
+  return `${base}/storage/v1/object/public/${ARTIST_IMAGE_BUCKET}/${path}`;
+}
+
+/**
  * How long a playback URL stays valid.
  *
  * Long, and that is the point: an <audio> element seeks by re-requesting the URL

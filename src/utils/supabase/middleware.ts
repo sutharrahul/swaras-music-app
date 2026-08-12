@@ -29,6 +29,24 @@ const PUBLIC_ROUTES = [
   // The public catalogue. Both were public under Clerk too.
   /^\/api\/get-songs$/,
   /^\/api\/search$/,
+  // Artist discovery: the directory page and the two endpoints behind it. The
+  // `/^\/artist\/.+$/` entry below does NOT cover `/artists` — it requires the
+  // trailing slash — so without these the whole feature would be signed-in-only
+  // despite being part of the same public catalogue. `/api/admin/artist-photo`
+  // is deliberately NOT listed: it stays deny-by-default, so an anonymous caller
+  // is refused here before `requireAdmin()` is ever reached.
+  /^\/artists$/,
+  /^\/api\/artists(\/.*)?$/,
+  // Album discovery, and the same trailing-slash trap: `/^\/album\/.+$/` below
+  // does not match `/albums` either.
+  /^\/albums$/,
+  /^\/api\/albums(\/.*)?$/,
+  // The singer/album/movie browse pages — public like `/`, not gated like
+  // playlists. Signed-out visitors can already browse and listen from the
+  // home page; these are the same catalogue filtered to one name.
+  /^\/artist\/.+$/,
+  /^\/album\/.+$/,
+  /^\/movie\/.+$/,
 ];
 
 const AUTH_ROUTES = [/^\/sign-in(\/.*)?$/, /^\/sign-up(\/.*)?$/];
