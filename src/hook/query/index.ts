@@ -28,6 +28,9 @@ export {
   ARTIST_KEYS,
 } from './useArtistQueries';
 
+// Album Queries
+export { useAlbumsInfinite, ALBUM_KEYS } from './useAlbumQueries';
+
 // Admin Queries
 export { useAdminMutations } from './useAdminQueries';
 

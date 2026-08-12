@@ -8,5 +8,6 @@ export { default as useSongApi } from './useSongApi';
 export { default as usePlaylistApi } from './usePlaylistApi';
 export { default as useAdminApi } from './useAdminApi';
 export { default as useArtistApi } from './useArtistApi';
+export { default as useAlbumApi } from './useAlbumApi';
 export { useGetSongApi } from './useGetSongApi';
 export { default as useUserApi } from './useUserApi';
