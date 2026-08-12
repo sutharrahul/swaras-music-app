@@ -152,7 +152,15 @@ export default function AlbumPage() {
           </span>
 
           <div className="min-w-0">
-            <h1 className="text-4xl font-extrabold tracking-tight text-primary-foreground break-words md:text-6xl lg:text-7xl">
+            {/* A step smaller than the artist page's `lg:text-6xl`, not larger.
+                Album names are routinely far longer than a person's name — a
+                real one here is "Dhurandhar (Original Motion Picture
+                Soundtrack)" — so the same scale that flatters "Shakira" wraps a
+                soundtrack title onto three lines and leaves it towering over the
+                cover art it belongs to. `max-w-3xl` stops a long title running
+                the full width of a wide screen for the same reason the artist
+                bio is capped. */}
+            <h1 className="max-w-3xl text-2xl font-extrabold tracking-tight text-primary-foreground break-words md:text-3xl lg:text-4xl">
               {name}
             </h1>
             {!isLoading && !isError && (
