@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { parseBlob } from 'music-metadata';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { SONG_KEYS } from '@/hook/query';
+import { ALBUM_KEYS, ARTIST_KEYS, SONG_KEYS } from '@/hook/query';
 import { Progress } from '@/components/ui/progress';
 import type { TablesUpdate } from '@/lib/database.types';
 import {
@@ -98,11 +98,36 @@ function decodeHtmlEntities(value: string): string {
   return el.value;
 }
 
+/**
+ * ID3 stores a list of people as one free-text field, and taggers overwhelmingly
+ * comma-separate it — `"Shakira, Burna Boy"` is two artists, not one whose name
+ * contains a comma. Left unsplit it becomes a single artist for the whole of the
+ * app: its own card in the artists rail, its own `/artist/...` page, and a song
+ * that never appears under either real performer.
+ *
+ * Splitting here is CONSISTENCY, not a new policy: the admin edit dialog
+ * (`parseList` in ManageSongsPanel) has always split this field on commas, so
+ * until now the same value meant two different things depending on whether it
+ * arrived by upload or by hand.
+ *
+ * The known false positive is a name that genuinely contains a comma — "Tyler,
+ * The Creator", "Earth, Wind & Fire" — which lands as two artists. That is
+ * accepted deliberately: it is far rarer than the multi-artist case, it is
+ * visible immediately in the artists list, and it is repairable in the edit
+ * dialog. There is no reliable way to tell the two apart from the tag alone.
+ *
+ * Only commas. Not `;` or `/` or `&`, which the edit dialog does not split
+ * either — one delimiter, one meaning, both directions.
+ */
 function toStringArray(value: unknown, max: number): string[] {
   const list = Array.isArray(value) ? value : [value];
   return list
     .filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '')
+    .flatMap(entry => entry.split(','))
     .map(entry => trim(decodeHtmlEntities(entry), PERSON_MAX))
+    // A trailing or doubled comma ("A, B,") would otherwise contribute an empty
+    // performer, which the server's `min(1)` per element would then reject.
+    .filter(entry => entry !== '')
     .slice(0, max);
 }
 
@@ -354,7 +379,17 @@ export default function UploadSongsPanel() {
       else if (succeeded > 0) toast.error(`Uploaded ${succeeded}. ${failed} failed.`);
       else toast.error('All uploads failed.');
 
-      if (succeeded > 0) queryClient.invalidateQueries({ queryKey: SONG_KEYS.all });
+      if (succeeded > 0) {
+        queryClient.invalidateQueries({ queryKey: SONG_KEYS.all });
+        // Uploading is the third writer of `songs.artist`, alongside the delete
+        // and retag mutations in `useAdminQueries`. The artist list is derived
+        // from that column, so a track by a brand-new artist creates an artist —
+        // and without this the Artists tab never lists them, which means they can
+        // never be given a photo. `refetchType: 'all'` because that tab is
+        // unmounted right now; see the note on ARTIST_KEYS.
+        queryClient.invalidateQueries({ queryKey: ARTIST_KEYS.all, refetchType: 'all' });
+        queryClient.invalidateQueries({ queryKey: ALBUM_KEYS.all, refetchType: 'all' });
+      }
 
       // A song that finished belongs in the catalogue, not in this list —
       // leaving it here read as "still pending" and the button re-offered to
@@ -379,13 +414,16 @@ export default function UploadSongsPanel() {
     <div className="flex flex-col items-center px-6 py-8">
       <div className="w-full min-w-[330px] max-w-md bg-surface-elevated/80 rounded-lg shadow">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-          <h2 className="text-xl text-center font-bold leading-tight tracking-tight md:text-2xl text-white">
+          <h2 className="text-xl text-center font-bold leading-tight tracking-tight md:text-2xl text-foreground">
             Upload Songs
           </h2>
 
           <div className="space-y-4 md:space-y-6">
             <div>
-              <label htmlFor="song-files" className="block mb-2 text-sm font-medium text-white">
+              <label
+                htmlFor="song-files"
+                className="block mb-2 text-sm font-medium text-foreground"
+              >
                 Select audio files (max {MAX_FILES_PER_JOB}, up to 100MB each)
               </label>
               <input
@@ -396,7 +434,7 @@ export default function UploadSongsPanel() {
                 accept={AUDIO_ACCEPT}
                 onChange={handleFileChange}
                 disabled={uploading}
-                className="text-sm font-light rounded-lg block w-full p-2.5 bg-secondary border-border text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-sm font-light rounded-lg block w-full p-2.5 bg-secondary border-border text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -440,7 +478,7 @@ export default function UploadSongsPanel() {
                       <Progress
                         value={item.progress}
                         aria-label={`Upload progress for ${item.file.name}`}
-                        className="h-1.5 bg-muted-foreground/30 [&_[data-slot=progress-indicator]]:bg-brand-gradient"
+                        className="h-1.5 bg-muted-foreground/30 [&_[data-slot=progress-indicator]]:bg-brand"
                       />
                     )}
 
@@ -453,7 +491,7 @@ export default function UploadSongsPanel() {
             <button
               onClick={handleUpload}
               disabled={uploading || items.length === 0}
-              className="w-full text-white bg-brand-gradient focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-primary-foreground bg-primary hover:bg-primary/90 focus:ring-1 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? (
                 <span className="flex items-center justify-center gap-4">
