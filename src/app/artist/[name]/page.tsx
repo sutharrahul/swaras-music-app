@@ -68,12 +68,6 @@ export default function ArtistPage() {
     return () => observer.disconnect();
   }, []);
 
-  // The server's total, not `songs.length`: the latter counts only the pages
-  // fetched so far, so it caps at 20 and would be a visible lie printed under a
-  // full-width banner. Used by BOTH header branches — the count must not change
-  // depending on whether the artist happens to have a photo.
-  const songCount = data?.pages[0]?.pagination.total ?? songs.length;
-
   return (
     <div className="px-6 pb-6 max-w-7xl mx-auto">
       {/*
@@ -133,8 +127,8 @@ export default function ArtistPage() {
 
           With a bio, `md:items-start` pins the name to the top of the avatar —
           the same y on every artist page, whatever the bio does below it.
-          Without one, the block is just a name and a count and top-aligning it
-          would strand it against a 13rem circle, so it centers instead.
+          Without one, the block is just the name and top-aligning it would
+          strand it against a 13rem circle, so it centers instead.
         */}
         <div
           className={`flex flex-col items-center gap-6 text-center md:flex-row md:gap-8 md:text-left ${
@@ -162,27 +156,17 @@ export default function ArtistPage() {
           </span>
 
           <div className="min-w-0">
-            {/* Name, then bio, then the count — the count sits last because it
-                is the least interesting line, and putting it directly under the
-                name pushed the bio into looking like a caption on it. */}
             <h1 className="text-4xl font-extrabold tracking-tight text-primary-foreground break-words md:text-5xl lg:text-6xl">
               {name}
             </h1>
 
-            {/* Only rendered when there is one. An empty paragraph would still
-                take its margin and leave the count floating away from the name
-                for every artist nobody has written about yet. `max-w-2xl` so a
-                long bio wraps into a readable column instead of one long line
-                across a wide screen. */}
+            {/* Only rendered when there is one, so an artist nobody has written
+                about yet gets a clean name rather than an empty paragraph still
+                taking its margin. `max-w-2xl` so a long bio wraps into a
+                readable column instead of one long line across a wide screen. */}
             {profile?.bio && (
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-primary-foreground/85 md:text-base">
                 {profile.bio}
-              </p>
-            )}
-
-            {!isLoading && !isError && (
-              <p className="mt-3 text-sm text-primary-foreground/70">
-                {songCount} song{songCount !== 1 ? 's' : ''}
               </p>
             )}
           </div>
