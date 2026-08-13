@@ -9,6 +9,7 @@ import axios from 'axios';
 import { useSong } from '@/context/SongContextProvider';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import UserMenu from '@/components/auth/UserMenu';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useUserQueries } from '@/hook/query';
 
 interface SearchResult {
@@ -309,6 +310,8 @@ export default function Header() {
               <span className="sr-only sm:hidden">Admin panel</span>
             </button>
           )}
+
+          <ThemeToggle />
 
           <UserMenu />
         </div>

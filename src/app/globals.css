@@ -162,8 +162,9 @@ input:-webkit-autofill {
   --header-height: 5rem;
   --player-height: 7rem;
 
-  /* Brand surfaces — pixel-sampled from the Pulse Music reference. Light only,
-     there is no dark mode. See CLAUDE.md "Design System" for provenance. */
+  /* Brand surfaces — pixel-sampled from the Pulse Music reference. This is the
+     light theme and the default; the `.dark` block below overrides it. See
+     CLAUDE.md "Design System" for provenance. */
   --surface: #f5f4ee; /* page bg */
   --surface-deep: #f5f4ee; /* no darker elevation in a light theme; alias of surface */
   /* Was the sidebar fill. The sidebar now uses `card` + a right border, because
@@ -214,6 +215,72 @@ input:-webkit-autofill {
   --sidebar-accent-foreground: #1e2a2a;
   --sidebar-border: rgba(30, 42, 42, 0.12);
   --sidebar-ring: #d46e49;
+}
+
+/**
+ * Dark mode.
+ *
+ * Applied by the `dark` class on <html> (see `@custom-variant dark` at the top
+ * of this file and `ThemeToggle`). Every value below is an override of a token
+ * declared in `:root` — nothing outside this block hardcodes a colour, so the
+ * whole app re-themes from here.
+ *
+ * Derived from the light palette rather than invented: the page is the light
+ * theme's *text* colour (#1e2a2a) taken down, and the text is its
+ * primary-foreground cream, so the app stays warm teal-charcoal instead of
+ * turning the neutral grey that a generic dark theme would.
+ *
+ * Two inversions that are deliberate, not oversights:
+ *  - `--primary` gets LIGHTER (#2f5757 vs #274747). In the light theme the deep
+ *    forest green is the darkest surface on screen; on a dark page a surface
+ *    that dark would vanish into the background, so it lifts to stay readable
+ *    as a raised card.
+ *  - `--brand-hover` gets lighter than `--brand` instead of darker. Hover means
+ *    "more prominent", and on a dark ground darkening does the opposite.
+ */
+.dark {
+  --surface: #131c1c;
+  --surface-deep: #0e1616;
+  --surface-elevated: #131c1c;
+  --surface-subtle: #1b2626;
+  --surface-strong: #243131;
+
+  --brand: #e07c55;
+  --brand-strong: #d46e49;
+  --brand-bright: #ee9873;
+  --brand-deep: #c4623f;
+  --brand-deeper: #b35a3a;
+  --brand-hover: #ee9873;
+  --brand-tint: rgba(19, 28, 28, 0.92);
+
+  --track: #243131;
+
+  --background: #131c1c;
+  --foreground: #ece7de;
+  --card: #1b2626;
+  --card-foreground: #ece7de;
+  --popover: #1b2626;
+  --popover-foreground: #ece7de;
+  --primary: #2f5757;
+  --primary-foreground: #f7efe6;
+  --secondary: #243131;
+  --secondary-foreground: #ece7de;
+  --muted: #243131;
+  --muted-foreground: rgba(236, 231, 222, 0.6);
+  --accent: #243131;
+  --accent-foreground: #ece7de;
+  --destructive: oklch(0.65 0.21 27.325);
+  --border: rgba(236, 231, 222, 0.14);
+  --input: rgba(236, 231, 222, 0.14);
+  --ring: #e07c55;
+  --sidebar: #1b2626;
+  --sidebar-foreground: #ece7de;
+  --sidebar-primary: #2f5757;
+  --sidebar-primary-foreground: #f7efe6;
+  --sidebar-accent: #243131;
+  --sidebar-accent-foreground: #ece7de;
+  --sidebar-border: rgba(236, 231, 222, 0.14);
+  --sidebar-ring: #e07c55;
 }
 
 @layer base {

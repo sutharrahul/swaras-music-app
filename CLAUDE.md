@@ -193,7 +193,12 @@ reading why.
 ## Design System
 
 Target reference: `Pulse-Music-Listener-Admin.png` (a "Pulse" music app mockup).
-**Light theme only — there is no dark mode.** Values below were pixel-sampled
+**Light is the design of record; dark mode is a derived second theme.** Every
+value below is the light theme — it is what was sampled from the reference and
+what the app defaults to. Dark mode was added later and lives entirely in the
+`.dark` block of `globals.css` as token overrides; it was *derived* from these
+values, not sampled from anything, so if you re-theme from a new screenshot,
+resample the light values here and re-derive dark from them. Values below were pixel-sampled
 directly from the reference image (not eyeballed), so they should be treated as
 exact. If you retheme again from a new screenshot, resample rather than reusing
 these — don't assume they still apply.
@@ -260,4 +265,9 @@ black. A deep forest green (#274747) is the second major surface color — used
 for hero/feature cards and "now playing" emphasis, not just an accent. A single
 terracotta accent (#D46E49, light tint #F5C1A5) marks likes, links, and
 highlighted words. Generously rounded corners (fully pill-shaped buttons/badges,
-large 1.5–2rem radii on feature cards), soft warm-toned shadows, no dark mode.
+large 1.5–2rem radii on feature cards), soft warm-toned shadows. A dark theme
+derives from these tokens: the page becomes the light theme's text colour taken
+down (#131C1C) and the text becomes its cream, so the palette stays warm
+teal-charcoal rather than neutral grey. Two values deliberately invert — the
+forest-green `primary` gets *lighter* (#2F5757), since on a dark page the
+darkest surface would vanish, and `brand-hover` lightens rather than darkens.
