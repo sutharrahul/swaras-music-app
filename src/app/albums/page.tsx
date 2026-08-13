@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { Disc3, Loader2 } from 'lucide-react';
 import AlbumCard from '@/components/AlbumCard';
 import ShelfSkeleton from '@/components/states/ShelfSkeleton';
 import EmptyState from '@/components/states/EmptyState';
 import ErrorState from '@/components/states/ErrorState';
 import { useAlbumsInfinite } from '@/hook/query';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 /**
  * The full album grid, reached from the home rail's "Show all".
@@ -26,30 +27,7 @@ export default function AlbumsPage() {
   // climb as the reader scrolls, which reads as a bug rather than as a count.
   const total = data?.pages[0]?.pagination.total ?? albums.length;
 
-  const observerTarget = useRef<HTMLDivElement>(null);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const observerTarget = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
