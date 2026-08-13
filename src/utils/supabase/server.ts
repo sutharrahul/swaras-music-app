@@ -46,39 +46,3 @@ export async function createClient() {
     }
   );
 }
-
-/**
- * A client bound to a *snapshot* of this request's cookies, for work that
- * outlives the response.
- *
- * `createClient()` above reads `cookies()` lazily on every query, which is
- * exactly wrong for the fire-and-forget background pass in
- * `POST /api/upload-song`: by the time it inserts a song the request store may
- * no longer be readable, and setting a refreshed cookie certainly is not. This
- * captures the cookies once, while the request is alive, and never writes any
- * back — so it keeps the caller's identity (and therefore RLS) without touching
- * a store that has gone away.
- *
- * It carries the access token as it was at request time, so it stops working
- * when that token expires. Fine for a job that runs for seconds; not a substitute
- * for a real background worker.
- */
-export async function createSnapshotClient() {
-  const cookieStore = await cookies();
-  const snapshot = cookieStore.getAll();
-
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return snapshot;
-        },
-        setAll() {
-          // Deliberately a no-op: there is no response left to write to.
-        },
-      },
-    }
-  );
-}

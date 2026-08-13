@@ -39,7 +39,6 @@
 
   /* Brand surfaces — the dark greys the app is actually built out of */
   --color-surface: var(--surface);
-  --color-surface-deep: var(--surface-deep);
   --color-surface-elevated: var(--surface-elevated);
   --color-surface-subtle: var(--surface-subtle);
   --color-surface-strong: var(--surface-strong);
@@ -47,11 +46,7 @@
   /* Brand reds */
   --color-brand: var(--brand);
   --color-brand-strong: var(--brand-strong);
-  --color-brand-bright: var(--brand-bright);
-  --color-brand-deep: var(--brand-deep);
-  --color-brand-deeper: var(--brand-deeper);
   --color-brand-hover: var(--brand-hover);
-  --color-brand-tint: var(--brand-tint);
 
   /* Unfilled portion of the player scrubbers */
   --color-track: var(--track);
@@ -69,23 +64,12 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* Brand gradients — previously copy-pasted across ~6 components */
-@utility bg-brand-gradient {
-  background-image: linear-gradient(to right, var(--brand-deep), var(--brand));
-}
-
-@utility bg-brand-gradient-hover {
-  background-image: linear-gradient(to right, var(--brand-deeper), var(--brand-hover));
-}
-
+/* The one surviving brand gradient — the wordmark and the auth card titles.
+   Its `bg-*` siblings were removed: nothing had used them since the retheme. */
 @utility text-brand-gradient {
   background-image: linear-gradient(to right, var(--brand-strong), var(--brand));
   background-clip: text;
   color: transparent;
-}
-
-@utility bg-brand-fade {
-  background-image: linear-gradient(to bottom, var(--brand-tint), transparent);
 }
 
 /**
@@ -115,46 +99,6 @@ input:-webkit-autofill {
   transition: background-color 5000s ease-in-out 0s !important;
 }
 
-/* Input range slider */
-
-.music-range {
-  @apply w-full h-2 appearance-none rounded-lg cursor-pointer bg-transparent;
-}
-
-.music-range::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 999px;
-  background: transparent;
-}
-
-.music-range::-webkit-slider-thumb {
-  @apply appearance-none w-4 h-4 rounded-full;
-  background-color: var(--brand);
-  border: 2px solid var(--card);
-  margin-top: -6px;
-}
-
-.music-range::-moz-range-thumb {
-  height: 16px;
-  width: 16px;
-  background-color: var(--brand);
-  border: 2px solid var(--card);
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.music-range::-moz-range-track {
-  height: 4px;
-  background: var(--track);
-  border-radius: 999px;
-}
-
-.music-range::-moz-range-progress {
-  background: var(--brand);
-  height: 4px;
-  border-radius: 999px;
-}
-
 :root {
   --radius: 1rem;
 
@@ -166,7 +110,6 @@ input:-webkit-autofill {
      light theme and the default; the `.dark` block below overrides it. See
      CLAUDE.md "Design System" for provenance. */
   --surface: #f5f4ee; /* page bg */
-  --surface-deep: #f5f4ee; /* no darker elevation in a light theme; alias of surface */
   /* Was the sidebar fill. The sidebar now uses `card` + a right border, because
      this value is identical to `background` and left the rail invisible. Kept
      as an alias so existing references keep resolving. */
@@ -176,11 +119,7 @@ input:-webkit-autofill {
 
   --brand: #d46e49;
   --brand-strong: #c4623f;
-  --brand-bright: #e29171;
-  --brand-deep: #b35a3a;
-  --brand-deeper: #96492e;
   --brand-hover: #b35a3a;
-  --brand-tint: rgba(245, 244, 238, 0.92);
 
   --track: #e7ebe3;
 
@@ -240,18 +179,13 @@ input:-webkit-autofill {
  */
 .dark {
   --surface: #131c1c;
-  --surface-deep: #0e1616;
   --surface-elevated: #131c1c;
   --surface-subtle: #1b2626;
   --surface-strong: #243131;
 
   --brand: #e07c55;
   --brand-strong: #d46e49;
-  --brand-bright: #ee9873;
-  --brand-deep: #c4623f;
-  --brand-deeper: #b35a3a;
   --brand-hover: #ee9873;
-  --brand-tint: rgba(19, 28, 28, 0.92);
 
   --track: #243131;
 

@@ -101,10 +101,7 @@ function toSongDto(row: SongRow, likes: number, audioUrl: string | null): SongDt
  * Returns an empty map on failure: a missing like count degrades a badge, and
  * that is not worth failing the whole request over.
  */
-export async function likeCounts(
-  supabase: ServerClient,
-  songIds: string[]
-): Promise<Map<string, number>> {
+async function likeCounts(supabase: ServerClient, songIds: string[]): Promise<Map<string, number>> {
   if (songIds.length === 0) return new Map();
 
   const { data, error } = await supabase.rpc('song_like_counts', { p_song_ids: songIds });

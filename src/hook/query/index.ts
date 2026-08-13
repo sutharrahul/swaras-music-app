@@ -14,13 +14,9 @@ export {
   SONGS_PER_PAGE,
 } from './useSongQueries';
 
-// Playlist Queries
-export {
-  useUserPlaylists,
-  usePlaylist,
-  usePlaylistMutations,
-  PLAYLIST_KEYS,
-} from './usePlaylistQueries';
+// Playlist Queries. `PLAYLIST_KEYS` is not re-exported: its only consumer is
+// `useAdminQueries`, which is a sibling and imports it directly.
+export { useUserPlaylists, usePlaylist, usePlaylistMutations } from './usePlaylistQueries';
 
 // Artist Queries
 export {

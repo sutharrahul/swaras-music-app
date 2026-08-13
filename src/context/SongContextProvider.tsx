@@ -32,9 +32,9 @@ type MusicPlayerContextType = {
   error: string | undefined;
 };
 
-export const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
+const SongContext = createContext<MusicPlayerContextType | undefined>(undefined);
 
-export function MusicPlayerProvider({ children }: { children: ReactNode }) {
+export function SongProvider({ children }: { children: ReactNode }) {
   // ============== TanStack Query (Server State) ==============
   // The same cache entry the home screen paginates, so the queue grows as the
   // reader scrolls instead of being stuck on page one.
@@ -149,7 +149,7 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MusicPlayerContext.Provider
+    <SongContext.Provider
       value={{
         // UI State
         currentSong,
@@ -168,22 +168,14 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </MusicPlayerContext.Provider>
+    </SongContext.Provider>
   );
 }
 
-// Hook to use the music player context
-export function useMusicPlayer() {
-  const context = useContext(MusicPlayerContext);
-  if (!context) throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');
+/** Read the player. Throws rather than returning undefined, so a component
+ *  mounted outside the provider fails loudly instead of silently no-op-ing. */
+export function useSong() {
+  const context = useContext(SongContext);
+  if (!context) throw new Error('useSong must be used within a SongProvider');
   return context;
 }
-
-// Backward compatibility - keep old hook name
-export function useSong() {
-  return useMusicPlayer();
-}
-
-// Re-export provider with old name for backward compatibility
-export const SongProvider = MusicPlayerProvider;
-export const SongContext = MusicPlayerContext;

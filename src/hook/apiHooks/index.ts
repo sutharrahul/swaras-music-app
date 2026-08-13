@@ -1,13 +1,10 @@
 /**
- * Central export file for all API hooks
- * Import from this file to use API call hooks
+ * Shared helper for the API-hook layer.
+ *
+ * Deliberately thin. This used to re-export every `useXApi` hook as well, but
+ * nothing imported them from here — each query hook pulls its API hook straight
+ * from the file next to it (`../apiHooks/useSongApi`), which is one fewer
+ * indirection and keeps the two tiers paired. Only `apiErrorMessage` is used
+ * across the app, so only that is re-exported.
  */
-
-export { useApiClient, apiErrorMessage } from './useApiClient';
-export { default as useSongApi } from './useSongApi';
-export { default as usePlaylistApi } from './usePlaylistApi';
-export { default as useAdminApi } from './useAdminApi';
-export { default as useArtistApi } from './useArtistApi';
-export { default as useAlbumApi } from './useAlbumApi';
-export { useGetSongApi } from './useGetSongApi';
-export { default as useUserApi } from './useUserApi';
+export { apiErrorMessage } from './useApiClient';

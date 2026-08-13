@@ -11,7 +11,7 @@ import { z } from 'zod';
  * `?limit=999999` used to dump the whole table. The clamp lives in the schema,
  * not in each handler, so it cannot be forgotten in one of them.
  */
-export const paginationSchema = z.object({
+const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });

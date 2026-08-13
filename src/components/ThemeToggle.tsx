@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
-export const THEME_STORAGE_KEY = 'swaras-theme';
+const THEME_STORAGE_KEY = 'swaras-theme';
 
 /**
  * Flips the `dark` class on <html>, which is what every colour token in
