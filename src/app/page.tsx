@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useId, useRef, useMemo } from 'react';
+import React, { useId, useMemo } from 'react';
+import Link from 'next/link';
 import PlayList from '@/components/PlayList';
 import Shelf from '@/components/Shelf';
 import SongCard from '@/components/SongCard';
@@ -13,7 +14,7 @@ import EmptyState from '@/components/states/EmptyState';
 import ErrorState from '@/components/states/ErrorState';
 import { useAlbumsInfinite, useArtistsInfinite, useSongsInfinite } from '@/hook/query';
 import type { SongWithRelations } from '@/types/models';
-import { Loader2, Music } from 'lucide-react';
+import { Music } from 'lucide-react';
 
 /**
  * Shelf sizing.
@@ -68,8 +69,10 @@ const albumKey = (song: SongWithRelations) => (song.album?.trim() ? song.album :
 export default function Home() {
   // The player queue reads this same cache entry, so a page loaded here is a
   // page next/previous can walk — and neither side fetches page 1 twice.
-  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useSongsInfinite();
+  // Only page 1 is ever read here now — `/songs` owns the paging. The shelves
+  // below were already frozen to `pages[0]`, so nothing on this page changed
+  // shape when the infinite scroll left.
+  const { data, isLoading, isError, refetch } = useSongsInfinite();
 
   // Discovery rail. `isError` is deliberately not destructured: a failed artist
   // fetch must render nothing at all rather than drop an error block into the
@@ -93,34 +96,9 @@ export default function Home() {
   const shelfSource = pages[0]?.songs ?? [];
   const wholeCatalogLoaded = pages.length > 0 && !pages[0].pagination.hasMore;
 
-  const observerTarget = useRef<HTMLDivElement>(null);
-
   // "Recently added" mixes card types, so it cannot go through `Shelf` — the
   // markup below is `Shelf`'s, inlined, and this is the id it labels itself with.
   const recentHeadingId = useId();
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Every album the Albums rail has already loaded, by exact name. That request
   // is paid for either way, so a collapsed card can quote the album's TRUE size
@@ -282,26 +260,24 @@ export default function Home() {
             <AlbumShelf title="Albums" albums={railAlbums} showAllHref="/albums" />
           ) : null}
 
-          <h2 className="mb-3 px-2 text-lg font-bold tracking-tight text-foreground md:px-8">
-            All songs
-          </h2>
-          <PlayList songData={songs} dataType="allsong" />
-
-          {/* Infinite Scroll Trigger */}
-          {hasNextPage && (
-            <div ref={observerTarget} className="flex justify-center py-8">
-              {isFetchingNextPage && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 aria-hidden="true" className="w-5 h-5 animate-spin" />
-                  <span>Loading more songs...</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {!hasNextPage && songs.length > 0 && (
-            <p className="text-center text-muted-foreground py-8">You&apos;ve reached the end!</p>
-          )}
+          {/* A preview of the catalogue, not the catalogue. The infinite scroll
+              that used to live here moved to `/songs`: with a hundred tracks it
+              turned the home page into a hundred-row wall, so the shelves and
+              rails above became things you scrolled past rather than the point
+              of the page. Same heading-plus-"Show all" split the artist and
+              album rails already use. */}
+          <div className="mb-3 flex items-baseline justify-between px-2 md:px-8">
+            <h2 className="text-lg font-bold tracking-tight text-foreground">All songs</h2>
+            {songs.length > RAIL_MAX && (
+              <Link
+                href="/songs"
+                className="text-sm font-semibold text-brand hover:text-brand-hover"
+              >
+                Show all
+              </Link>
+            )}
+          </div>
+          <PlayList songData={songs.slice(0, RAIL_MAX)} dataType="allsong" />
         </>
       )}
     </div>

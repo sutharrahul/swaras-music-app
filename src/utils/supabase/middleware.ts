@@ -41,6 +41,10 @@ const PUBLIC_ROUTES = [
   // does not match `/albums` either.
   /^\/albums$/,
   /^\/api\/albums(\/.*)?$/,
+  // The full catalogue list that "All songs → Show all" leads to. `/` is public
+  // and this is just the rest of the same list, so gating it would sign-in-wall
+  // a page anonymous visitors can already see the first rows of.
+  /^\/songs$/,
   // The singer/album/movie browse pages — public like `/`, not gated like
   // playlists. Signed-out visitors can already browse and listen from the
   // home page; these are the same catalogue filtered to one name.
