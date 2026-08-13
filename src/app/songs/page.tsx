@@ -1,66 +1,52 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
-import { Loader2, Music } from 'lucide-react';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ChevronLeft, ChevronRight, Music } from 'lucide-react';
 import PlayList from '@/components/PlayList';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import EmptyState from '@/components/states/EmptyState';
 import ErrorState from '@/components/states/ErrorState';
-import { useSongsInfinite } from '@/hook/query';
+import { SONGS_PER_PAGE, useSongsPage } from '@/hook/query';
+import { useSong } from '@/context/SongContextProvider';
 
 /**
- * The whole catalogue, reached from the home page's "All songs → Show all".
- *
- * The infinite scroll used to live on the home page itself, which meant a
- * hundred-track catalogue turned the front page into a hundred-row wall: the
- * shelves and the artist/album rails above it became things you scrolled *past*
- * rather than the point of the page. The list moved here so home can stay a
- * short digest, the same split `/artists` and `/albums` already use.
- *
- * `useSongsInfinite()` is the same cache entry the home page and the player
- * queue read, so arriving here does not refetch page 1 — it continues from
- * whatever home already loaded, and every page loaded here is a page the
- * player's next/previous can walk.
- *
- * No back button, matching `/artists` and `/albums`: this is a top-level
- * destination, so `router.back()` would point at wherever the reader came from
- * rather than at a parent.
+ * How many numbered buttons the pager shows at once, before it starts sliding
+ * the window along. Odd, so the current page sits in the middle of it.
  */
-export default function SongsPage() {
-  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useSongsInfinite();
+const PAGER_WINDOW = 5;
 
-  const songs = useMemo(() => data?.pages.flatMap(page => page.songs) ?? [], [data]);
+/** The page numbers to draw, windowed around the current one. */
+function pageWindow(current: number, total: number) {
+  const start = Math.max(
+    1,
+    Math.min(current - Math.floor(PAGER_WINDOW / 2), total - PAGER_WINDOW + 1)
+  );
+  const end = Math.min(total, start + PAGER_WINDOW - 1);
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
 
-  // The server's total, not `songs.length`: the latter counts only the pages
-  // fetched so far, so the subline would start at 20 and climb as the reader
-  // scrolls, which reads as a bug rather than as a count.
-  const total = data?.pages[0]?.pagination.total ?? songs.length;
+function SongsPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const observerTarget = useRef<HTMLDivElement>(null);
+  // The page lives in the URL, not in component state: it survives a reload,
+  // it can be linked, and the browser's back button steps through pages the way
+  // a reader expects instead of leaving the list entirely. A junk or missing
+  // `?page=` falls back to 1 rather than rendering NaN.
+  const requested = Number(searchParams.get('page'));
+  const page = Number.isInteger(requested) && requested > 0 ? requested : 1;
 
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
+  const { data, isLoading, isError, refetch, isPlaceholderData } = useSongsPage(page);
+  const { playQueue } = useSong();
 
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
+  const songs = data?.songs ?? [];
+  const total = data?.pagination.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / SONGS_PER_PAGE));
 
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const goTo = (next: number) => {
+    router.push(next === 1 ? '/songs' : `/songs?page=${next}`, { scroll: false });
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -89,25 +75,88 @@ export default function SongsPage() {
         />
       ) : (
         <>
-          <PlayList songData={songs} dataType="allsong" showIndex />
+          {/* Dimmed while the next page is in flight. `keepPreviousData` leaves
+              the old rows mounted so the layout does not collapse, which would
+              otherwise be indistinguishable from nothing having happened. */}
+          <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
+            <PlayList
+              songData={songs}
+              dataType="allsong"
+              showIndex
+              // Rows keep counting across pages — page 3 starts at 21, not at 1.
+              indexOffset={(page - 1) * SONGS_PER_PAGE}
+              // The visible page becomes the queue. The default id lookup would
+              // miss anything past the player's own cached first page.
+              onSongSelect={(_song, index) => playQueue(songs, index)}
+            />
+          </div>
 
-          {/* Infinite Scroll Trigger */}
-          {hasNextPage && (
-            <div ref={observerTarget} className="flex justify-center py-8">
-              {isFetchingNextPage && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 aria-hidden="true" className="w-5 h-5 animate-spin" />
-                  <span>Loading more songs...</span>
-                </div>
-              )}
-            </div>
-          )}
+          {totalPages > 1 && (
+            <nav
+              aria-label="Song list pages"
+              className="mt-8 flex items-center justify-center gap-1"
+            >
+              <button
+                type="button"
+                onClick={() => goTo(page - 1)}
+                disabled={page <= 1}
+                aria-label="Previous page"
+                className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-40"
+              >
+                <ChevronLeft aria-hidden="true" className="size-5" />
+              </button>
 
-          {!hasNextPage && (
-            <p className="text-center text-muted-foreground py-8">You&apos;ve reached the end!</p>
+              {pageWindow(page, totalPages).map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => goTo(n)}
+                  aria-label={`Page ${n}`}
+                  aria-current={n === page ? 'page' : undefined}
+                  className={`flex size-9 items-center justify-center rounded-full text-sm font-semibold tabular-nums transition-colors ${
+                    n === page
+                      ? 'bg-brand text-primary-foreground'
+                      : 'text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => goTo(page + 1)}
+                disabled={page >= totalPages}
+                aria-label="Next page"
+                className="flex size-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-40"
+              >
+                <ChevronRight aria-hidden="true" className="size-5" />
+              </button>
+            </nav>
           )}
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * The whole catalogue, ten to a page, reached from the home page's
+ * "All songs → Show all".
+ *
+ * Paginated rather than infinitely scrolled: the home page used to carry the
+ * entire list, and at a hundred tracks that was a hundred-row wall with no way
+ * to reach the end of it. Numbered pages give a bounded page height and a
+ * position you can return to.
+ *
+ * The `Suspense` boundary is required, not decorative — `useSearchParams()` in a
+ * client component opts the route into client-side rendering, and Next fails the
+ * production build without one.
+ */
+export default function SongsPage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <SongsPageInner />
+    </Suspense>
   );
 }

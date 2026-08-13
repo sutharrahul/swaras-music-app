@@ -58,6 +58,21 @@ type PlayListProps = {
    * because every row belongs to the same performer.
    */
   showIndex?: boolean;
+  /**
+   * Added to the displayed row number. A numbered pager restarts `index` at 0 on
+   * every page, so page 3 of a ten-row pager would otherwise count 1–10 again
+   * instead of 21–30. Zero everywhere else, which is every existing caller.
+   */
+  indexOffset?: number;
+  /**
+   * Overrides what a row click plays. The default resolves the song by id
+   * against the player's own catalogue cache, which only holds the pages that
+   * cache happens to have fetched — fine for an infinite list that IS that
+   * cache, useless for a paginated one, where a click on row 21 would find
+   * nothing and silently do nothing. `/songs` passes a handler that makes the
+   * visible page the queue.
+   */
+  onSongSelect?: (song: SongDataType, index: number) => void;
 };
 
 export default function PlayList({
@@ -65,6 +80,8 @@ export default function PlayList({
   dataType,
   playlistId,
   showIndex = false,
+  indexOffset = 0,
+  onSongSelect,
 }: PlayListProps) {
   const { playSong, currentSong } = useSong();
   const { user } = useSupabaseUser();
@@ -176,7 +193,7 @@ export default function PlayList({
               {/* Song Click Area */}
               <button
                 type="button"
-                onClick={() => playSong(song.id)}
+                onClick={() => (onSongSelect ? onSongSelect(song, index) : playSong(song.id))}
                 aria-current={isCurrent ? 'true' : undefined}
                 className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 cursor-pointer text-left rounded"
               >
@@ -189,7 +206,7 @@ export default function PlayList({
                     aria-hidden="true"
                     className="w-5 flex-shrink-0 text-right text-sm tabular-nums text-muted-foreground"
                   >
-                    {index + 1}
+                    {indexOffset + index + 1}
                   </span>
                 )}
                 <Image

@@ -1,4 +1,10 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type { SongWithRelations } from '@/types/models';
 import useSongApi from '../apiHooks/useSongApi';
 
@@ -19,9 +25,13 @@ export const SONG_KEYS = {
   list: ['songs', 'list'] as const,
   liked: ['songs', 'liked'] as const,
   browse: ['songs', 'browse'] as const,
+  page: (page: number) => ['songs', 'page', page] as const,
 };
 
 const PAGE_SIZE = 20;
+
+/** Rows per page on `/songs`. Ten fits a laptop viewport without scrolling. */
+export const SONGS_PER_PAGE = 10;
 
 // ============== QUERIES ==============
 
@@ -47,6 +57,32 @@ export function useSongsInfinite() {
   });
 }
 
+/**
+ * One numbered page of the catalogue, for `/songs`.
+ *
+ * A separate cache entry from `useSongsInfinite`, not a slice of it: that one is
+ * keyed by 20-row pages and grows only forward, so serving page 7 of a 10-row
+ * pager from it would mean fetching — and holding — every row up to 70 just to
+ * show ten. This asks the server for exactly the ten it draws.
+ *
+ * `placeholderData: keepPreviousData` keeps the previous page's rows on screen
+ * while the next one is in flight. Without it every page change unmounts the
+ * list into the loading skeleton, so the whole page height collapses and the
+ * pager jumps up the screen under the cursor that just clicked it.
+ */
+export function useSongsPage(page: number) {
+  const { getSongs } = useSongApi();
+
+  return useQuery({
+    queryKey: SONG_KEYS.page(page),
+    queryFn: () => getSongs({ page, limit: SONGS_PER_PAGE }),
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes cache
+    refetchOnWindowFocus: false,
+  });
+}
+
 type SongBrowseFilter = { artist: string } | { album: string } | { movie: string };
 
 /**
@@ -57,7 +93,8 @@ type SongBrowseFilter = { artist: string } | { album: string } | { movie: string
  */
 export function useSongsByFilter(filter: SongBrowseFilter) {
   const { getSongs } = useSongApi();
-  const value = 'artist' in filter ? filter.artist : 'album' in filter ? filter.album : filter.movie;
+  const value =
+    'artist' in filter ? filter.artist : 'album' in filter ? filter.album : filter.movie;
 
   return useInfiniteQuery({
     queryKey: [...SONG_KEYS.browse, filter],
