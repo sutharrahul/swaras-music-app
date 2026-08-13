@@ -48,12 +48,18 @@ function SongsPageInner() {
     router.push(next === 1 ? '/songs' : `/songs?page=${next}`, { scroll: false });
   };
 
+  // Spacing here is deliberately tighter than `/artists` and `/albums`: those
+  // are card grids that are meant to scroll, this is a fixed ten rows plus a
+  // pager and the whole point is that it lands inside one screen. The heading,
+  // its count and the pager gap were all trimmed to buy the rows their height.
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">All songs</h1>
+    <div className="px-6 py-4 max-w-7xl mx-auto">
+      <div className="mb-4 flex items-baseline gap-3">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">All songs</h1>
         {!isLoading && !isError && (
-          <p className="text-muted-foreground/70">
+          // Beside the heading rather than under it — as its own line it cost a
+          // full row of height to say one number.
+          <p className="text-sm text-muted-foreground/70">
             {total} song{total !== 1 ? 's' : ''}
           </p>
         )}
@@ -85,6 +91,7 @@ function SongsPageInner() {
               showIndex
               // Rows keep counting across pages — page 3 starts at 21, not at 1.
               indexOffset={(page - 1) * SONGS_PER_PAGE}
+              compact
               // The visible page becomes the queue. The default id lookup would
               // miss anything past the player's own cached first page.
               onSongSelect={(_song, index) => playQueue(songs, index)}
@@ -94,7 +101,7 @@ function SongsPageInner() {
           {totalPages > 1 && (
             <nav
               aria-label="Song list pages"
-              className="mt-8 flex items-center justify-center gap-1"
+              className="mt-4 flex items-center justify-center gap-1"
             >
               <button
                 type="button"

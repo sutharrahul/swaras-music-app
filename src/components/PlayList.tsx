@@ -73,6 +73,15 @@ type PlayListProps = {
    * visible page the queue.
    */
   onSongSelect?: (song: SongDataType, index: number) => void;
+  /**
+   * Tightens row height so a full page of rows fits a laptop viewport without
+   * the page itself scrolling. `/songs` shows ten at a time and is the only
+   * caller: at the default density ten rows are 600px, which overflowed even an
+   * 800px-tall window once the heading and the pager were added. Everywhere else
+   * the list is either short or deliberately scrollable, so the roomier default
+   * stands.
+   */
+  compact?: boolean;
 };
 
 export default function PlayList({
@@ -82,6 +91,7 @@ export default function PlayList({
   showIndex = false,
   indexOffset = 0,
   onSongSelect,
+  compact = false,
 }: PlayListProps) {
   const { playSong, currentSong } = useSong();
   const { user } = useSupabaseUser();
@@ -179,16 +189,16 @@ export default function PlayList({
 
   return (
     <>
-      <ul className="space-y-1 px-2 md:px-8">
+      <ul className={`${compact ? 'space-y-0.5' : 'space-y-1'} px-2 md:px-8`}>
         {songData?.map((song, index) => {
           const isCurrent = song.id === currentSong?.id;
 
           return (
             <li
               key={song.id}
-              className={`flex items-center justify-between px-2 py-1.5 rounded transition-colors ${
-                isCurrent ? 'bg-brand/30 backdrop-blur-sm' : 'hover:bg-accent/40'
-              }`}
+              className={`flex items-center justify-between px-2 rounded transition-colors ${
+                compact ? 'py-1' : 'py-1.5'
+              } ${isCurrent ? 'bg-brand/30 backdrop-blur-sm' : 'hover:bg-accent/40'}`}
             >
               {/* Song Click Area */}
               <button
@@ -214,7 +224,9 @@ export default function PlayList({
                   alt=""
                   width={40}
                   height={40}
-                  className="w-9 h-9 md:w-10 md:h-10 object-cover rounded flex-shrink-0"
+                  className={`object-cover rounded flex-shrink-0 ${
+                    compact ? 'w-8 h-8' : 'w-9 h-9 md:w-10 md:h-10'
+                  }`}
                 />
 
                 <div className="flex flex-col md:grid md:grid-cols-3 md:gap-4 md:flex-1 min-w-0">
