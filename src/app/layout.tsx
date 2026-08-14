@@ -43,34 +43,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  // Both, now that there is a dark theme — this is what tells the browser to
-  // draw form controls, scrollbars and the like to match.
-  colorScheme: 'light dark',
+  colorScheme: 'light',
   themeColor,
 };
-
-/**
- * Applies the stored theme before the first paint.
- *
- * This has to be a blocking inline script rather than an effect: React effects
- * run after hydration, so a dark-mode visitor would be shown a full cream page
- * for a frame or two and then watch it snap to dark on every single navigation
- * that remounts the tree. Reading `localStorage` synchronously in <head> is the
- * standard fix and the only one without a flash.
- *
- * Falls back to the OS preference when nothing is stored, so a first visit on a
- * dark-mode machine already looks right, and defaults to light otherwise. The
- * try/catch is for Safari private mode, where reading storage can throw — the
- * app then simply stays light.
- */
-const themeInitScript = `
-try {
-  var stored = localStorage.getItem('swaras-theme');
-  var dark = stored ? stored === 'dark'
-    : window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (dark) document.documentElement.classList.add('dark');
-} catch (e) {}
-`;
 
 export default function RootLayout({
   children,
@@ -89,13 +64,7 @@ export default function RootLayout({
   modal: React.ReactNode;
 }>) {
   return (
-    // `suppressHydrationWarning`: the script above adds a class to this very
-    // element before React hydrates, so the server's `class` and the client's
-    // deliberately differ. It suppresses the warning on this node only.
-    <html lang="en" className="h-dvh" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
+    <html lang="en" className="h-dvh">
       <body
         className={`${poppins.variable} ${poppins.className} antialiased flex bg-background h-dvh overflow-hidden`}
       >
