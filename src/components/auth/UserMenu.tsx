@@ -40,15 +40,15 @@ export default function UserMenu() {
   }
 
   if (!user) {
+    // One entry point, not two. "Sign up" used to sit beside this as a second
+    // button, but the sign-in card already footers with "New here? Create an
+    // account" pointing at /sign-up — so the pair spent header width offering a
+    // choice the very next screen offers anyway. Solid rather than ghost now
+    // that it is the only call to action here.
     return (
-      <div className="flex items-center gap-1.5 sm:gap-2">
-        <Button asChild variant="ghost" size="sm" className="text-foreground hover:bg-secondary">
-          <Link href="/sign-in">Sign in</Link>
-        </Button>
-        <Button asChild size="sm">
-          <Link href="/sign-up">Sign up</Link>
-        </Button>
-      </div>
+      <Button asChild size="sm">
+        <Link href="/sign-in">Sign in</Link>
+      </Button>
     );
   }
 
