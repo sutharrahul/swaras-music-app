@@ -73,11 +73,27 @@ export default function Navbar() {
     <div>
       {/* Mobile drawer */}
       <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        {/*
+          Sized and placed to sit on the header's own centre line.
+
+          It used to be `top-4 left-4`, which positions against the page rather
+          than the header: at 16px down with a 28px glyph its centre landed at
+          y=30, while the header centres its own children (search, Sign in) at
+          y=40 — hence the 10px stagger. Spanning the full `h-header` band and
+          centring inside it makes the three agree by construction instead of by
+          a magic offset, and gives a 48×80 tap target rather than a 28px glyph.
+
+          `hidden` while the drawer is open: the trigger sits above the sheet at
+          z-[60], so it stayed on screen next to the sheet's own close button —
+          two controls for one job, which is what looked wrong.
+        */}
         <SheetTrigger
           aria-label="Open navigation menu"
-          className="absolute top-4 left-4 z-[60] md:hidden text-foreground"
+          className={`absolute top-0 left-0 z-[60] h-header w-12 items-center justify-center text-foreground md:hidden ${
+            isMenuOpen ? 'hidden' : 'flex'
+          }`}
         >
-          <Menu size={28} />
+          <Menu className="size-6" />
         </SheetTrigger>
         <SheetContent
           side="left"

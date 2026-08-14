@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useRef, KeyboardEvent } from 'react';
 import Image from 'next/image';
-import { Search, Music, List, Upload } from 'lucide-react';
+import { Search, Music, List, Upload, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import axios from 'axios';
 import { useSong } from '@/context/SongContextProvider';
@@ -47,19 +47,44 @@ export default function Header() {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  // Below `sm` the field collapses to a magnifier; there is not room for a text
+  // input, the Admin shortcut and the avatar on a phone at once.
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const wasSearchOpenRef = useRef(false);
+
+  // Opening the collapsed field should put the caret in it — otherwise the tap
+  // that opened it is wasted and a second one is needed to start typing.
+  useEffect(() => {
+    if (isSearchOpen) {
+      inputRef.current?.focus();
+      wasSearchOpenRef.current = true;
+      return;
+    }
+    // Closing unmounts the input, and focus would otherwise fall to <body> —
+    // a keyboard user would have to Tab from the top of the page to get back.
+    // Hand it to the magnifier that took the field's place. Guarded so it only
+    // fires after a real open, never on first mount.
+    if (wasSearchOpenRef.current) {
+      wasSearchOpenRef.current = false;
+      searchButtonRef.current?.focus();
+    }
+  }, [isSearchOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false);
+        if (!searchQuery.trim()) setIsSearchOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [searchQuery]);
 
   // Debounced search
   useEffect(() => {
@@ -109,12 +134,16 @@ export default function Header() {
     playSong(songId);
     closeResults();
     setSearchQuery('');
+    // Also collapse on mobile: leaving the field expanded kept the Admin
+    // shortcut and user menu hidden after the search was already over.
+    setIsSearchOpen(false);
   };
 
   const handlePlaylistClick = (playlistId: string) => {
     router.push(`/playlist/${playlistId}`);
     closeResults();
     setSearchQuery('');
+    setIsSearchOpen(false);
   };
 
   const selectOption = (index: number) => {
@@ -129,7 +158,12 @@ export default function Header() {
 
   const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      closeResults();
+      if (showResults) {
+        closeResults();
+      } else {
+        setSearchQuery('');
+        setIsSearchOpen(false);
+      }
       return;
     }
 
@@ -167,14 +201,35 @@ export default function Header() {
           from the header itself, so padding would only fight it. */}
       <div className="flex h-full items-center justify-between gap-2 px-2 sm:px-4 md:px-8 ml-12 md:ml-0">
         {/* Search Bar — hidden on /admin, which has its own (Manage Songs) search */}
+        {!isAdminPage && !isSearchOpen && (
+          // Phones only. From `sm` up the real field is always on screen, so
+          // this never renders there and there is no duplicate control.
+          <button
+            type="button"
+            ref={searchButtonRef}
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="Open search"
+            aria-expanded={false}
+            className="flex size-10 flex-shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary sm:hidden"
+          >
+            <Search aria-hidden="true" className="size-6" />
+          </button>
+        )}
+
         {!isAdminPage && (
-          <div className="flex-1 max-w-xs sm:max-w-md md:max-w-2xl relative" ref={searchRef}>
+          <div
+            ref={searchRef}
+            className={`relative flex-1 sm:block sm:max-w-md md:max-w-2xl ${
+              isSearchOpen ? 'max-w-none' : 'hidden max-w-xs'
+            }`}
+          >
             <div className="relative">
               <Search
                 aria-hidden="true"
                 className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-5 sm:h-5"
               />
               <Input
+                ref={inputRef}
                 type="text"
                 role="combobox"
                 aria-label="Search songs and playlists"
@@ -186,8 +241,26 @@ export default function Header() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm sm:text-base bg-secondary border-border text-foreground placeholder:text-muted-foreground"
+                className={`w-full pl-8 sm:pl-10 py-1.5 sm:py-2 text-sm sm:text-base bg-secondary border-border text-foreground placeholder:text-muted-foreground ${
+                  isSearchOpen ? 'pr-9 sm:pr-4' : 'pr-2 sm:pr-4'
+                }`}
               />
+              {isSearchOpen && (
+                // Collapses the field again. `sm:hidden` because from `sm` up
+                // the field is permanent and there is nothing to collapse to.
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    closeResults();
+                    setIsSearchOpen(false);
+                  }}
+                  aria-label="Close search"
+                  className="absolute right-1.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background sm:hidden"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </button>
+              )}
             </div>
 
             {/* Search Results Dropdown */}
@@ -196,7 +269,7 @@ export default function Header() {
                 id={LISTBOX_ID}
                 role="listbox"
                 aria-label="Search results"
-                className="absolute top-full mt-2 w-full sm:w-auto sm:min-w-[400px] right-0 sm:right-auto bg-card border border-border rounded-lg shadow-2xl max-h-[60vh] sm:max-h-[70vh] overflow-y-auto z-30"
+                className="absolute top-full left-0 mt-2 w-full bg-card border border-border rounded-lg shadow-2xl max-h-[60vh] sm:max-h-[70vh] overflow-y-auto z-30"
               >
                 {/* Songs Results */}
                 {songs.length > 0 && (
@@ -289,7 +362,7 @@ export default function Header() {
             {isSearching && (
               <div
                 role="status"
-                className="absolute top-full mt-2 w-full sm:w-auto sm:min-w-[400px] right-0 sm:right-auto bg-card border border-border rounded-lg p-3 sm:p-4 text-center text-muted-foreground text-sm"
+                className="absolute top-full left-0 mt-2 w-full bg-card border border-border rounded-lg p-3 sm:p-4 text-center text-muted-foreground text-sm"
               >
                 Searching...
               </div>
@@ -298,7 +371,11 @@ export default function Header() {
         )}
 
         {/* Right side - User Actions */}
-        <div className="ml-auto flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
+        <div
+          className={`ml-auto items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0 sm:flex ${
+            isSearchOpen ? 'hidden' : 'flex'
+          }`}
+        >
           {isSignedIn && isAdmin && !isAdminPage && (
             <button
               onClick={() => router.push('/admin?tab=upload')}
