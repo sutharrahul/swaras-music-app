@@ -61,6 +61,10 @@ export default function Header() {
     if (isSearchOpen) {
       inputRef.current?.focus();
       wasSearchOpenRef.current = true;
+      // The debounce keys off `searchQuery`, which has not changed, so nothing
+      // would re-fetch — the field would reopen holding text with no
+      // suggestions under it until the next keystroke.
+      if (searchQuery.trim() && searchResults) setShowResults(true);
       return;
     }
     // Closing unmounts the input, and focus would otherwise fall to <body> —
@@ -71,15 +75,27 @@ export default function Header() {
       wasSearchOpenRef.current = false;
       searchButtonRef.current?.focus();
     }
+    // `searchQuery` and `searchResults` are read only at the instant the field
+    // opens; listing them would re-run this on every keystroke and steal focus
+    // back mid-typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSearchOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowResults(false);
-        if (!searchQuery.trim()) setIsSearchOpen(false);
-      }
+      const target = event.target as Node;
+      const insideWidget =
+        searchRef.current?.contains(target) || searchButtonRef.current?.contains(target);
+      if (insideWidget) return;
+
+      setShowResults(false);
+      // Collapse unconditionally, not only when the query is empty. Keeping the
+      // field open just because text remained also kept the Admin shortcut and
+      // user menu at display:none long after the search was visually over — the
+      // exact state `handleSongClick` already collapses to avoid. The text is
+      // NOT discarded: it is restored, with its results, on reopening.
+      setIsSearchOpen(false);
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -209,7 +225,6 @@ export default function Header() {
             ref={searchButtonRef}
             onClick={() => setIsSearchOpen(true)}
             aria-label="Open search"
-            aria-expanded={false}
             className="flex size-10 flex-shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary sm:hidden"
           >
             <Search aria-hidden="true" className="size-6" />
