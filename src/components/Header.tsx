@@ -234,15 +234,8 @@ export default function Header() {
         {!isAdminPage && (
           <div
             ref={searchRef}
-            // The open field slides in from the right rather than appearing in
-            // one frame, so the magnifier visibly becomes the bar instead of
-            // the header just changing shape. `animate-in` only ever applies
-            // while `isSearchOpen`, which is never true from `sm` up — the
-            // permanent desktop field must not re-animate on every render.
             className={`relative flex-1 sm:block sm:max-w-md md:max-w-2xl ${
-              isSearchOpen
-                ? 'max-w-none animate-in fade-in slide-in-from-right-8 duration-200 ease-out'
-                : 'hidden max-w-xs'
+              isSearchOpen ? 'max-w-none' : 'hidden max-w-xs'
             }`}
           >
             <div className="relative">
