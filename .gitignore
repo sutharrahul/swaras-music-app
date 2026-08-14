@@ -53,3 +53,6 @@ supabaseToken.md
 # `pooler-url` carries a connection string — never commit it. The migrations
 # under supabase/migrations/ ARE tracked; only this scratch dir is not.
 supabase/.temp/
+
+# Personal interview-prep notes. Local only — never commit or push.
+INTERVIEW_PREP.md
