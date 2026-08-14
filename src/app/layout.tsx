@@ -35,7 +35,17 @@ export const metadata: Metadata = {
     description:
       'Stream music, build playlists, and keep every track you love in one place. SwarasMusic is a free music player for the web.',
     url: '/',
-    images: [{ url: '/LandingPage.png', width: 1200, height: 630, alt: 'SwarasMusic' }],
+    // Dimensions are the file's real ones (1536×1024), not the 1200×630 the
+    // previous placeholder claimed — scrapers reserve layout space from these,
+    // so a wrong pair makes the preview jump once the image loads.
+    images: [
+      {
+        url: '/assets/opengraph.png',
+        width: 1536,
+        height: 1024,
+        alt: 'SwarasMusic — stream, discover and create playlists with your favourite songs',
+      },
+    ],
   },
 };
 
