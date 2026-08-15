@@ -11,11 +11,11 @@ A music streaming app: admins upload tracks, anyone can browse and listen withou
 
 **Live:** [music.rahuls.dev](https://music.rahuls.dev) · **Source:** [github.com/sutharrahul/swaras-music-app](https://github.com/sutharrahul/swaras-music-app)
 
-![Swaras home screen — Recently added shelf and the Artists rail](./public/appImg/home.png)
+![Swaras home screen — Recently added shelf and the Artists rail](./public/appImg/home.webp)
 
 _Home: the "Recently added" shelf and the Artists rail, both derived from song metadata._
 
-<img src="./public/appImg/now-playing.png" width="420" alt="Full-screen now-playing view" />
+<img src="./public/appImg/now-playing.webp" width="420" alt="Full-screen now-playing view" />
 
 ## At a glance
 
