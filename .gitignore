@@ -45,6 +45,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Local agent instructions. Kept on disk so Claude Code reads it, but not
+# published — it is working notes, not documentation for other people.
+CLAUDE.md
+
 # secrets handed to tooling at runtime — never committed
 supabaseToken.md
 resend.md
