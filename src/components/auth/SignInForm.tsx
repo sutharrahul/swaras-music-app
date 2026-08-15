@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -88,9 +89,17 @@ export default function SignInForm({ bare = false }: { bare?: boolean }) {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password" className="block text-sm font-medium text-foreground">
-            Password
-          </label>
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-brand hover:text-brand-hover"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <PasswordInput
             id="password"
             name="password"

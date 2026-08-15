@@ -51,6 +51,19 @@ const PUBLIC_ROUTES = [
   /^\/artist\/.+$/,
   /^\/album\/.+$/,
   /^\/movie\/.+$/,
+  // Password recovery. `/forgot-password` is for people who cannot sign in, so
+  // it has to be reachable signed out. `/reset-password` is normally reached
+  // already holding a recovery session, so deny-by-default would pass it
+  // anyway; listing it is what lets a session-less visit render the page's own
+  // "that link has expired" state instead of being bounced to
+  // /sign-in?next=/reset-password. Note an expired or already-spent `code`
+  // never gets this far — `exchangeCodeForSession` fails inside /auth/callback
+  // and that route sends the user to /sign-in?error=exchange_failed. Neither
+  // route belongs in AUTH_ROUTES: that list redirects signed-in users away,
+  // which would make /reset-password unreachable for exactly the people
+  // arriving on it with a fresh recovery session.
+  /^\/forgot-password$/,
+  /^\/reset-password$/,
 ];
 
 const AUTH_ROUTES = [/^\/sign-in(\/.*)?$/, /^\/sign-up(\/.*)?$/];

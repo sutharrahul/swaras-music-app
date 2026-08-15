@@ -17,6 +17,30 @@ export const credentialsSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
+/**
+ * Just the email, for the screen that asks for a recovery link — reusing
+ * `credentialsSchema` there would demand a password nobody has yet.
+ */
+export const emailSchema = z.object({
+  email: z.email('Enter a valid email address'),
+});
+
+/**
+ * The password half of the reset screen. Same 8-character floor as
+ * `credentialsSchema` — a reset must not be a way around the sign-up rule.
+ * The mismatch issue is attached to `confirmPassword` so it renders under the
+ * field the user has to retype, not under the one they already got right.
+ */
+export const newPasswordSchema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine(values => values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match',
+  });
+
 /** zod issues keyed by field, for rendering next to the input that caused them. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const result: Record<string, string> = {};
