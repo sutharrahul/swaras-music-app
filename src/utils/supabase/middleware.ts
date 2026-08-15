@@ -22,6 +22,12 @@ import type { Database } from '@/lib/database.types';
 
 const PUBLIC_ROUTES = [
   /^\/$/,
+  // robots.txt. The matcher in src/middleware.ts skips static extensions like
+  // .png and .css, but NOT .txt, so this was falling through to
+  // deny-by-default and 307ing to /sign-in?next=%2Frobots.txt — a crawler that
+  // respects robots.txt (LinkedIn's does) would read that as "disallowed" and
+  // decline to scrape the page at all, silently killing the OG preview.
+  /^\/robots\.txt$/,
   // The OAuth / email-confirmation code exchange. It must be reachable while
   // signed out — that is the entire point of it — and it authenticates by the
   // single-use `code` in the query string, not by a session.
