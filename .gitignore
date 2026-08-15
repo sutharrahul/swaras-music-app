@@ -47,6 +47,7 @@ next-env.d.ts
 
 # secrets handed to tooling at runtime — never committed
 supabaseToken.md
+resend.md
 *.token
 
 # Supabase CLI link state. Local to whoever ran `supabase link`, and
