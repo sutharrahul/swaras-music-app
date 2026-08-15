@@ -61,3 +61,13 @@ supabase/.temp/
 
 # Personal interview-prep notes. Local only — never commit or push.
 INTERVIEW_PREP.md
+
+# Local-only working notes. Kept on disk, not published — these predate the
+# Supabase migration and describe an architecture that no longer exists.
+docs/API_HOOKS_GUIDE.md
+docs/QUICK_REFERENCE.md
+docs/ARCHITECTURE_DIAGRAM.md
+docs/SUPABASE_INTEGRATION_SPEC.md
+docs/CHANGELOG.md
+docs/project/
+docs/v0/
